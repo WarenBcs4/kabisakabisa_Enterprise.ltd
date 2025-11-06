@@ -17,24 +17,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [sessionTimeout, setSessionTimeout] = useState(null);
 
-  useEffect(() => {
-    // Check for existing token on app load
-    const token = Cookies.get('accessToken');
-    const userData = Cookies.get('userData');
-    
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        setupSessionTimeout();
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        logout();
-      }
-    }
-    setLoading(false);
-  }, [logout, setupSessionTimeout]);
-
   const logout = useCallback(() => {
     Cookies.remove('accessToken');
     Cookies.remove('refreshToken');
@@ -61,6 +43,24 @@ export const AuthProvider = ({ children }) => {
 
     setSessionTimeout(timeout);
   }, [sessionTimeout, logout]);
+
+  useEffect(() => {
+    // Check for existing token on app load
+    const token = Cookies.get('accessToken');
+    const userData = Cookies.get('userData');
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        setupSessionTimeout();
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        logout();
+      }
+    }
+    setLoading(false);
+  }, [logout, setupSessionTimeout]);
 
   const login = async (credentials) => {
     try {
