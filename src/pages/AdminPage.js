@@ -27,7 +27,7 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
-import { Add, Edit, Delete, Business, Inventory, AccountBalance } from '@mui/icons-material';
+import { Add, Edit, Delete, Business, Inventory } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import AccountingIntegration from '../components/AccountingIntegration';
 import ReceiptCustomizer from '../components/ReceiptCustomizer';
@@ -70,7 +70,7 @@ const AdminPage = () => {
   const employees = pageData?.employees || [];
   const branches = pageData?.branches || [];
   const products = pageData?.products || [];
-  const overview = pageData?.overview || {};
+  // const overview = pageData?.overview || {};
   
   console.log('Admin page data:', { employees: employees.length, branches: branches.length, products: products.length });
 

@@ -76,7 +76,7 @@ const ManagerPage = () => {
     employees = [],
     stock = [],
     sales = [],
-    lowStockItems = [],
+    // lowStockItems = [],
     weeklyData = []
   } = dashboardData || {};
 

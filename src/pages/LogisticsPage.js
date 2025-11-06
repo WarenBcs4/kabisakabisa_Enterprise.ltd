@@ -58,7 +58,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
 
   const vehicles = pageData?.vehicles || [];
   const trips = pageData?.trips || [];
-  const maintenance = pageData?.maintenance || [];
+  // const maintenance = pageData?.maintenance || [];
   
   const { data: employees = [] } = useQuery('employees', () => hrAPI.getEmployees());
 

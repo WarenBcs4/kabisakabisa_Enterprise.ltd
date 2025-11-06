@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
     setLoading(false);
-  }, []);
+  }, [logout, setupSessionTimeout]);
 
   const setupSessionTimeout = () => {
     // Clear existing timeout

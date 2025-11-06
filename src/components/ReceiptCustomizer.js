@@ -12,13 +12,9 @@ import {
   InputLabel,
   Grid,
   Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  ColorPicker
+
 } from '@mui/material';
-import { Print, Palette, Save } from '@mui/icons-material';
+import { Print, Save } from '@mui/icons-material';
 
 const ReceiptCustomizer = () => {
   const [settings, setSettings] = useState({

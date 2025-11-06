@@ -48,7 +48,7 @@ const StockPage = () => {
   const { register: registerTransfer, handleSubmit: handleTransferSubmit, reset: resetTransfer } = useForm();
 
   // Queries
-  const { data: pageData, isLoading, error, refetch } = useQuery(
+  const { data: pageData, isLoading, error } = useQuery(
     ['stockPageData', branchId],
     () => dataAPI.getPageData('stock', branchId),
     { enabled: !!branchId }
@@ -56,7 +56,7 @@ const StockPage = () => {
 
   const stock = pageData?.stock || [];
   const pendingTransfers = pageData?.transfers || [];
-  const movements = pageData?.movements || [];
+  // const movements = pageData?.movements || [];
 
   const { data: branches = [] } = useQuery('branches', () => branchesAPI.getAll());
 

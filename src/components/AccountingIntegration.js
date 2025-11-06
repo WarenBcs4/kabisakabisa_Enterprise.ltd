@@ -18,13 +18,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+
   Chip
 } from '@mui/material';
 import { Sync, Assessment, Settings, CloudSync } from '@mui/icons-material';
@@ -41,7 +35,7 @@ const AccountingIntegration = () => {
   const { register, handleSubmit, reset } = useForm();
 
   // Queries
-  const { data: settings = [], isLoading } = useQuery(
+  const { data: settings = [] } = useQuery(
     'erpSettings',
     () => accountingAPI.getSettings()
   );
@@ -92,9 +86,9 @@ const AccountingIntegration = () => {
     saveSettingsMutation.mutate(data);
   };
 
-  const handleSyncInvoice = (invoiceId) => {
-    syncEtimsMutation.mutate({ invoice_id: invoiceId });
-  };
+  // const handleSyncInvoice = (invoiceId) => {
+  //   syncEtimsMutation.mutate({ invoice_id: invoiceId });
+  // };
 
   const handleBulkSync = (dateFrom, dateTo) => {
     bulkSyncMutation.mutate({ date_from: dateFrom, date_to: dateTo });

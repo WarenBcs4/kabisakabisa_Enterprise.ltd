@@ -14,7 +14,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+
   Dialog,
   DialogTitle,
   DialogContent,
@@ -31,7 +31,7 @@ import { useParams } from 'react-router-dom';
 import QuickUpload from '../components/QuickUpload';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { stockAPI, salesAPI, dataAPI } from '../services/api';
+import { salesAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
@@ -56,7 +56,7 @@ const SalesPage = () => {
   });
 
   // Queries
-  const { data: pageData, isLoading, error, refetch } = useQuery(
+  const { data: pageData, isLoading, error } = useQuery(
     ['salesPageData', branchId],
     () => dataAPI.getPageData('sales', branchId),
     { enabled: !!branchId }
@@ -64,7 +64,7 @@ const SalesPage = () => {
 
   const stock = pageData?.stock || [];
   const sales = pageData?.sales || [];
-  const expenses = pageData?.expenses || [];
+  // const expenses = pageData?.expenses || [];
 
   const { data: dailySummary } = useQuery(
     ['dailySummary', branchId],

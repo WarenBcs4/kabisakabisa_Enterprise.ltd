@@ -28,7 +28,7 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
-import { Add, Edit, Delete, Payment, LocalShipping, ShoppingCart } from '@mui/icons-material';
+import { Add, Delete, Payment, LocalShipping, ShoppingCart } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { ordersAPI, branchesAPI, dataAPI } from '../services/api';
