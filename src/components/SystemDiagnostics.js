@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -24,7 +24,7 @@ const SystemDiagnostics = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://enterprisebackendltd.vercel.app/api';
 
-  const runSystemCheck = useCallback(async () => {
+  const runSystemCheck = async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/diagnostics/system-check`);
@@ -38,7 +38,7 @@ const SystemDiagnostics = () => {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL]);
+  };
 
   const testLogin = async () => {
     if (!testEmail) return;
@@ -61,9 +61,23 @@ const SystemDiagnostics = () => {
   };
 
   useEffect(() => {
-    runSystemCheck();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const loadDiagnostics = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${API_BASE_URL}/diagnostics/system-check`);
+        setDiagnostics(response.data);
+      } catch (error) {
+        setDiagnostics({
+          error: true,
+          message: error.message,
+          details: error.response?.data || 'Failed to connect to backend'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadDiagnostics();
+  }, [API_BASE_URL]);
 
   const getStatusColor = (status) => {
     switch (status) {
