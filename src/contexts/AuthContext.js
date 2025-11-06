@@ -129,11 +129,33 @@ export const AuthProvider = ({ children }) => {
 
 
 
+  // MFA methods (placeholders for now)
+  const setupMFA = async (userId) => {
+    // Placeholder - return mock MFA data
+    return {
+      secret: 'MOCK_SECRET_123456',
+      qrCode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+    };
+  };
+
+  const verifyMFA = async (userId, token) => {
+    // Placeholder - always succeed
+    return { success: true };
+  };
+
+  const loginWithMFA = async (credentials) => {
+    // Placeholder - same as regular login
+    return await login(credentials);
+  };
+
   const value = {
     user,
     loading,
     login,
-    logout
+    logout,
+    setupMFA,
+    verifyMFA,
+    loginWithMFA
   };
 
   return (
