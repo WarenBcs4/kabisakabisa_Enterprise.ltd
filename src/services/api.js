@@ -1,17 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-// Validate and restrict API base URL to prevent SSRF
-const validateApiUrl = (url) => {
-  const allowedHosts = ['localhost', '127.0.0.1', process.env.REACT_APP_ALLOWED_HOST];
-  try {
-    const urlObj = new URL(url);
-    return allowedHosts.includes(urlObj.hostname);
-  } catch {
-    return false;
-  }
-};
-
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://enterprisebackendltd.vercel.app/api';
 
 // Create axios instance
