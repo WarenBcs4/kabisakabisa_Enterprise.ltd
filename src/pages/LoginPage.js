@@ -47,8 +47,15 @@ const LoginPage = () => {
         setUserId(result.userId);
         setMfaStep('login');
       } else if (result.success) {
+        console.log('Login successful, navigating to:', from);
         toast.success('Login successful!');
-        navigate(from, { replace: true });
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          navigate(from, { replace: true });
+        }, 100);
+      } else {
+        console.log('Login result:', result);
+        setError('Login failed - unexpected response');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');

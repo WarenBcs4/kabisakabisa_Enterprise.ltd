@@ -34,8 +34,10 @@ const queryClient = new QueryClient({
 
 
 function AppContent() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [externalPortal, setExternalPortal] = useState(null);
+  
+  console.log('AppContent - user:', user, 'loading:', loading);
 
   const openExternalPortal = (url, title) => {
     setExternalPortal({ url, title });
@@ -136,6 +138,13 @@ function AppContent() {
 
 function DashboardRedirect() {
   const { user } = useAuth();
+  
+  console.log('DashboardRedirect - user:', user, 'role:', user?.role);
+  
+  if (!user) {
+    console.log('No user in DashboardRedirect, redirecting to login');
+    return <Navigate to="/login" replace />;
+  }
   
   // Redirect to appropriate dashboard based on role
   switch (user?.role) {

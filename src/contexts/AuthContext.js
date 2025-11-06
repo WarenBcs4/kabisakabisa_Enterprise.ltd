@@ -118,6 +118,7 @@ export const AuthProvider = ({ children }) => {
         sameSite: 'strict'
       });
 
+      console.log('Setting user in AuthContext:', response.user);
       setUser(response.user);
       setupSessionTimeout();
       
