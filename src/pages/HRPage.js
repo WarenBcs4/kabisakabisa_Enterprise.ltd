@@ -28,9 +28,10 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
-import { Add, Edit, Delete, Payment, Email, People } from '@mui/icons-material';
+import { Add, Edit, Delete, Payment, Email, People, History } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import QuickUpload from '../components/QuickUpload';
+import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useForm } from 'react-hook-form';
 import { hrAPI, branchesAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
@@ -42,6 +43,7 @@ const HRPage = () => {
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showGeneratePayroll, setShowGeneratePayroll] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const [showHistoricalData, setShowHistoricalData] = useState(false);
 
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerPayroll, handleSubmit: handlePayrollSubmit, reset: resetPayroll } = useForm();
@@ -287,6 +289,14 @@ const HRPage = () => {
           onClick={() => setShowGeneratePayroll(true)}
         >
           Generate Payroll
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<History />}
+          onClick={() => setShowHistoricalData(true)}
+          color="info"
+        >
+          Historical Data
         </Button>
         <QuickUpload defaultCategory="employee_documents" buttonText="Upload Employee Doc" />
       </Box>
@@ -635,6 +645,13 @@ const HRPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Historical Data Viewer */}
+      <HistoricalDataViewer 
+        open={showHistoricalData}
+        onClose={() => setShowHistoricalData(false)}
+        title="HR Historical Data"
+      />
     </Container>
   );
 };

@@ -27,12 +27,13 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
-import { Add, Edit, Delete, Business, Inventory } from '@mui/icons-material';
+import { Add, Edit, Delete, Business, Inventory, History } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import AccountingIntegration from '../components/AccountingIntegration';
 import ReceiptCustomizer from '../components/ReceiptCustomizer';
 import ReportsGenerator from '../components/ReportsGenerator';
 import DocumentManager from '../components/DocumentManager';
+import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useForm } from 'react-hook-form';
 import { hrAPI, branchesAPI, stockAPI, adminAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
@@ -47,6 +48,7 @@ const AdminPage = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [editingBranch, setEditingBranch] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [showHistoricalData, setShowHistoricalData] = useState(false);
 
   const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
@@ -218,8 +220,23 @@ const AdminPage = () => {
     console.log('Form submission data:', data);
     
     // Validate required fields
-    if (!data.full_name?.trim() || !data.email?.trim() || !data.role) {
-      toast.error('Please fill in all required fields');
+    if (!data.full_name?.trim()) {
+      toast.error('Full name is required');
+      return;
+    }
+    if (!data.email?.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+    if (!data.role) {
+      toast.error('Role is required');
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email.trim())) {
+      toast.error('Please enter a valid email address');
       return;
     }
     
@@ -241,7 +258,7 @@ const AdminPage = () => {
       updateUserMutation.mutate({ id: editingUser.id, data: cleanData });
     } else {
       // Add password for new users
-      cleanData.password = `${data.role}password123`;
+      cleanData.password = `${data.role}Password123!`;
       createUserMutation.mutate(cleanData);
     }
   };
@@ -265,9 +282,28 @@ const AdminPage = () => {
   };
 
   const onSubmitBranch = (data) => {
+    // Validate required fields
+    if (!data.branch_name?.trim()) {
+      toast.error('Branch name is required');
+      return;
+    }
+    if (!data.location_address?.trim()) {
+      toast.error('Location address is required');
+      return;
+    }
+
+    // Validate email if provided
+    if (data.email?.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email.trim())) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
+    }
+
     const cleanData = {
-      branch_name: data.branch_name?.trim(),
-      location_address: data.location_address?.trim(),
+      branch_name: data.branch_name.trim(),
+      location_address: data.location_address.trim(),
       phone: data.phone?.trim() || null,
       email: data.email?.toLowerCase().trim() || null,
       latitude: data.latitude ? parseFloat(data.latitude) : null,
@@ -282,11 +318,30 @@ const AdminPage = () => {
   };
 
   const onSubmitProduct = (data) => {
+    // Validate required fields
+    if (!data.product_name?.trim()) {
+      toast.error('Product name is required');
+      return;
+    }
+    if (!data.unit_price || data.unit_price <= 0) {
+      toast.error('Valid unit price is required');
+      return;
+    }
+    if (!data.branch_id && !editingProduct) {
+      toast.error('Please select a branch');
+      return;
+    }
+
     const cleanData = {
-      product_name: data.product_name?.trim(),
-      unit_price: parseFloat(data.unit_price) || 0,
-      reorder_level: parseInt(data.reorder_level) || 10
+      product_name: data.product_name.trim(),
+      unit_price: parseFloat(data.unit_price),
+      reorder_level: parseInt(data.reorder_level) || 10,
+      quantity_available: parseInt(data.quantity_available) || 0
     };
+
+    if (!editingProduct) {
+      cleanData.branch_id = data.branch_id;
+    }
     
     if (editingProduct) {
       updateProductMutation.mutate({ id: editingProduct.id, data: cleanData });
@@ -370,6 +425,7 @@ const AdminPage = () => {
           <Tab label="Receipts" />
           <Tab label="Reports" />
           <Tab label="Documents" />
+          <Tab label="Historical Data" />
         </Tabs>
       </Box>
 
@@ -596,6 +652,26 @@ const AdminPage = () => {
         <DocumentManager />
       )}
 
+      {activeTab === 7 && (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Historical Data Management
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Access and manage historical records from your previous spreadsheet system.
+            You can view, edit, and continue adding data seamlessly.
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<History />}
+            onClick={() => setShowHistoricalData(true)}
+            size="large"
+          >
+            Open Historical Data
+          </Button>
+        </Box>
+      )}
+
       {/* Add/Edit User Dialog */}
       <Dialog open={showAddUser} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
@@ -681,7 +757,7 @@ const AdminPage = () => {
             variant="contained"
             disabled={createUserMutation.isLoading || updateUserMutation.isLoading}
           >
-            {editingUser ? 'Update' : 'Create'} User
+            {createUserMutation.isLoading || updateUserMutation.isLoading ? 'Processing...' : (editingUser ? 'Update' : 'Create') + ' User'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -745,7 +821,7 @@ const AdminPage = () => {
             variant="contained"
             disabled={createBranchMutation.isLoading || updateBranchMutation.isLoading}
           >
-            {editingBranch ? 'Update' : 'Create'} Branch
+            {createBranchMutation.isLoading || updateBranchMutation.isLoading ? 'Processing...' : (editingBranch ? 'Update' : 'Create') + ' Branch'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -816,10 +892,17 @@ const AdminPage = () => {
             variant="contained"
             disabled={createProductMutation.isLoading || updateProductMutation.isLoading}
           >
-            {editingProduct ? 'Update' : 'Add'} Product
+            {createProductMutation.isLoading || updateProductMutation.isLoading ? 'Processing...' : (editingProduct ? 'Update' : 'Add') + ' Product'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Historical Data Viewer */}
+      <HistoricalDataViewer 
+        open={showHistoricalData}
+        onClose={() => setShowHistoricalData(false)}
+        title="Historical Business Data"
+      />
     </Container>
   );
 };

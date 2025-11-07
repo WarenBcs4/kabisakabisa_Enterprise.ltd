@@ -26,9 +26,10 @@ import {
   IconButton,
   Chip
 } from '@mui/material';
-import { Add, Delete, Visibility, Receipt } from '@mui/icons-material';
+import { Add, Delete, Visibility, Receipt, History } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import QuickUpload from '../components/QuickUpload';
+import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { salesAPI, dataAPI } from '../services/api';
@@ -41,6 +42,7 @@ const SalesPage = () => {
   const [showStockModal, setShowStockModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showFundsModal, setShowFundsModal] = useState(false);
+  const [showHistoricalData, setShowHistoricalData] = useState(false);
 
   const { register, control, handleSubmit, watch, setValue, reset } = useForm({
     defaultValues: {
@@ -127,13 +129,32 @@ const SalesPage = () => {
   };
 
   const onSubmitSale = (data) => {
+    // Validate required fields
+    if (!data.items || data.items.length === 0) {
+      toast.error('Please add at least one item to the sale');
+      return;
+    }
+
     // Validate stock availability
     const validationErrors = [];
     
     data.items.forEach((item, index) => {
+      if (!item.product_id) {
+        validationErrors.push(`Please select a product for item ${index + 1}`);
+        return;
+      }
+      if (!item.quantity || item.quantity <= 0) {
+        validationErrors.push(`Please enter a valid quantity for item ${index + 1}`);
+        return;
+      }
+      if (!item.unit_price || item.unit_price <= 0) {
+        validationErrors.push(`Please enter a valid price for item ${index + 1}`);
+        return;
+      }
+
       const stockItem = stock.find(s => s.product_id === item.product_id);
       if (!stockItem) {
-        validationErrors.push(`Product ${item.product_name} not found in stock`);
+        validationErrors.push(`Product ${item.product_name || item.product_id} not found in stock`);
       } else if (stockItem.quantity_available < item.quantity) {
         validationErrors.push(
           `Product ${item.product_name} has only ${stockItem.quantity_available} units available. You cannot sell ${item.quantity} units.`
@@ -312,6 +333,14 @@ const SalesPage = () => {
           onClick={() => setShowFundsModal(true)}
         >
           Funds Tracking
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<History />}
+          onClick={() => setShowHistoricalData(true)}
+          color="info"
+        >
+          Historical Data
         </Button>
         <QuickUpload defaultCategory="receipts" buttonText="Upload Receipt" />
       </Box>
@@ -592,6 +621,13 @@ const SalesPage = () => {
           <Button onClick={() => setShowFundsModal(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Historical Data Viewer */}
+      <HistoricalDataViewer 
+        open={showHistoricalData}
+        onClose={() => setShowHistoricalData(false)}
+        title="Sales Historical Data"
+      />
     </Container>
   );
 };

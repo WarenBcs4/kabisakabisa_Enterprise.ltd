@@ -26,12 +26,13 @@ import {
   TrendingUp, 
   Business, 
   People, 
-
   Assessment,
-  GetApp
+  GetApp,
+  History
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import QuickUpload from '../components/QuickUpload';
+import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { branchesAPI, hrAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import {
@@ -53,6 +54,7 @@ import {
 const BossPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [showHistoricalData, setShowHistoricalData] = useState(false);
 
   // Queries
   const { data: pageData, isLoading, error } = useQuery(
@@ -207,6 +209,14 @@ const BossPage = () => {
           onClick={() => handleExportReport('excel')}
         >
           Export Excel
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<History />}
+          onClick={() => setShowHistoricalData(true)}
+          color="info"
+        >
+          Historical Data
         </Button>
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel>Period</InputLabel>
@@ -554,6 +564,13 @@ const BossPage = () => {
           </Grid>
         </Grid>
       )}
+
+      {/* Historical Data Viewer */}
+      <HistoricalDataViewer 
+        open={showHistoricalData}
+        onClose={() => setShowHistoricalData(false)}
+        title="Executive Historical Data"
+      />
     </Container>
   );
 };

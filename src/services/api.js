@@ -238,24 +238,21 @@ export const dataAPI = {
     try {
       switch (page) {
         case 'admin':
-          const [branches, employees, allStock] = await Promise.all([
-            branchesAPI.getAll(),
-            hrAPI.getEmployees(),
-            api.get('/stock/debug').then(res => res.data.stock)
+          const [branches, employees, debugData] = await Promise.all([
+            branchesAPI.getAll().catch(() => []),
+            hrAPI.getEmployees().catch(() => []),
+            api.get('/stock/debug').then(res => res.data).catch(() => ({ stock: [] }))
           ]);
-          const products = allStock.reduce((acc, item) => {
-            const existing = acc.find(p => p.product_name === item.product_name);
-            if (existing) {
-              existing.total_quantity += item.quantity_available;
-            } else {
-              acc.push({
-                product_name: item.product_name,
-                unit_price: item.unit_price,
-                total_quantity: item.quantity_available
-              });
-            }
-            return acc;
-          }, []);
+          const allStock = debugData.stock || [];
+          const products = allStock.map(item => ({
+            id: item.id,
+            product_name: item.product_name,
+            product_id: item.product_id,
+            unit_price: item.unit_price || 0,
+            quantity_available: item.quantity_available || 0,
+            branch_id: item.branch_id,
+            reorder_level: item.reorder_level || 10
+          }));
           const overview = {
             totalBranches: branches.length,
             totalEmployees: employees.length,

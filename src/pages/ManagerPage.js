@@ -15,14 +15,17 @@ import {
   Paper,
   Chip,
   Tabs,
-  Tab
+  Tab,
+  Button
 } from '@mui/material';
 import { 
   TrendingUp, 
   People, 
   Inventory, 
-  Warning
+  Warning,
+  History
 } from '@mui/icons-material';
+import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useQuery } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { managerAPI } from '../services/api';
@@ -43,6 +46,7 @@ import {
 const ManagerPage = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
+  const [showHistoricalData, setShowHistoricalData] = useState(false);
 
   const { data: dashboardData, isLoading, error } = useQuery(
     ['managerDashboard', user?.branchId],
@@ -109,9 +113,19 @@ const ManagerPage = () => {
       </Typography>
       
       {branch && (
-        <Typography variant="h6" color="text.secondary" gutterBottom>
-          {branch.branch_name} Branch
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" color="text.secondary">
+            {branch.branch_name} Branch
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<History />}
+            onClick={() => setShowHistoricalData(true)}
+            color="info"
+          >
+            Historical Data
+          </Button>
+        </Box>
       )}
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -383,6 +397,13 @@ const ManagerPage = () => {
           </Grid>
         </Grid>
       )}
+
+      {/* Historical Data Viewer */}
+      <HistoricalDataViewer 
+        open={showHistoricalData}
+        onClose={() => setShowHistoricalData(false)}
+        title="Manager Historical Data"
+      />
     </Container>
   );
 };

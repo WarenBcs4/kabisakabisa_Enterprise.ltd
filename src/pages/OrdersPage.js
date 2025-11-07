@@ -28,11 +28,12 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
-import { Add, Delete, Payment, LocalShipping, ShoppingCart } from '@mui/icons-material';
+import { Add, Delete, Payment, LocalShipping, ShoppingCart, History } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { ordersAPI, branchesAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
+import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import toast from 'react-hot-toast';
 
 const OrdersPage = () => {
@@ -42,6 +43,7 @@ const OrdersPage = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [showDelivery, setShowDelivery] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showHistoricalData, setShowHistoricalData] = useState(false);
 
   const { register, control, handleSubmit, reset, watch } = useForm({
     defaultValues: {
@@ -257,13 +259,21 @@ const OrdersPage = () => {
       </Grid>
 
       {/* Action Buttons */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <Button
           variant="contained"
           startIcon={<Add />}
           onClick={() => setShowAddOrder(true)}
         >
           Create New Order
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<History />}
+          onClick={() => setShowHistoricalData(true)}
+          color="info"
+        >
+          Historical Data
         </Button>
       </Box>
 
@@ -617,6 +627,13 @@ const OrdersPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Historical Data Viewer */}
+      <HistoricalDataViewer 
+        open={showHistoricalData}
+        onClose={() => setShowHistoricalData(false)}
+        title="Orders Historical Data"
+      />
     </Container>
   );
 };

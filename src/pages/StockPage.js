@@ -28,12 +28,13 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
-import { Add, Edit, Delete, SwapHoriz, Inventory } from '@mui/icons-material';
+import { Add, Edit, Delete, SwapHoriz, Inventory, History } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { stockAPI, branchesAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
+import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import toast from 'react-hot-toast';
 
 const StockPage = () => {
@@ -43,6 +44,7 @@ const StockPage = () => {
   const [showAddStock, setShowAddStock] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
+  const [showHistoricalData, setShowHistoricalData] = useState(false);
 
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerTransfer, handleSubmit: handleTransferSubmit, reset: resetTransfer } = useForm();
@@ -147,17 +149,65 @@ const StockPage = () => {
   );
 
   const onSubmit = (data) => {
+    // Validate required fields
+    if (!data.product_name?.trim()) {
+      toast.error('Product name is required');
+      return;
+    }
+    if (!data.unit_price || data.unit_price <= 0) {
+      toast.error('Valid unit price is required');
+      return;
+    }
+    if (data.quantity_available === undefined || data.quantity_available < 0) {
+      toast.error('Valid quantity is required');
+      return;
+    }
+
+    const cleanData = {
+      product_name: data.product_name.trim(),
+      product_id: data.product_id?.trim() || `PRD_${Date.now()}`,
+      quantity_available: parseInt(data.quantity_available) || 0,
+      unit_price: parseFloat(data.unit_price),
+      reorder_level: parseInt(data.reorder_level) || 10
+    };
+
     if (editingStock) {
-      updateStockMutation.mutate({ id: editingStock.id, data });
+      updateStockMutation.mutate({ id: editingStock.id, data: cleanData });
     } else {
-      addStockMutation.mutate(data);
+      addStockMutation.mutate(cleanData);
     }
   };
 
   const onSubmitTransfer = (data) => {
+    // Validate transfer data
+    if (!data.product_id) {
+      toast.error('Please select a product to transfer');
+      return;
+    }
+    if (!data.to_branch_id) {
+      toast.error('Please select destination branch');
+      return;
+    }
+    if (!data.quantity || data.quantity <= 0) {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
+
+    // Check stock availability
+    const stockItem = stock.find(s => s.product_id === data.product_id);
+    if (!stockItem) {
+      toast.error('Selected product not found in stock');
+      return;
+    }
+    if (stockItem.quantity_available < data.quantity) {
+      toast.error(`Only ${stockItem.quantity_available} units available for transfer`);
+      return;
+    }
+
     transferStockMutation.mutate({
       ...data,
-      from_branch_id: branchId
+      from_branch_id: branchId,
+      quantity: parseInt(data.quantity)
     });
   };
 
@@ -274,6 +324,14 @@ const StockPage = () => {
           onClick={() => setShowTransfer(true)}
         >
           Transfer Stock
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<History />}
+          onClick={() => setShowHistoricalData(true)}
+          color="info"
+        >
+          Historical Data
         </Button>
       </Box>
 
@@ -508,7 +566,7 @@ const StockPage = () => {
             variant="contained"
             disabled={addStockMutation.isLoading || updateStockMutation.isLoading}
           >
-            {editingStock ? 'Update' : 'Add'} Stock
+            {addStockMutation.isLoading || updateStockMutation.isLoading ? 'Processing...' : (editingStock ? 'Update' : 'Add') + ' Stock'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -572,6 +630,13 @@ const StockPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Historical Data Viewer */}
+      <HistoricalDataViewer 
+        open={showHistoricalData}
+        onClose={() => setShowHistoricalData(false)}
+        title="Stock Historical Data"
+      />
     </Container>
   );
 };

@@ -29,9 +29,10 @@ import {
   Tab,
   Menu
 } from '@mui/material';
-import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, DirectionsCar } from '@mui/icons-material';
+import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, DirectionsCar, History } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import QuickUpload from '../components/QuickUpload';
+import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useForm } from 'react-hook-form';
 import { logisticsAPI, hrAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
@@ -45,6 +46,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
   const [showAddMaintenance, setShowAddMaintenance] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [ntsaMenuAnchor, setNtsaMenuAnchor] = useState(null);
+  const [showHistoricalData, setShowHistoricalData] = useState(false);
 
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerTrip, handleSubmit: handleTripSubmit, reset: resetTrip } = useForm();
@@ -298,6 +300,14 @@ const LogisticsPage = ({ openExternalPortal }) => {
           color="secondary"
         >
           NTSA Portal
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<History />}
+          onClick={() => setShowHistoricalData(true)}
+          color="info"
+        >
+          Historical Data
         </Button>
         <Menu
           anchorEl={ntsaMenuAnchor}
@@ -706,6 +716,13 @@ const LogisticsPage = ({ openExternalPortal }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Historical Data Viewer */}
+      <HistoricalDataViewer 
+        open={showHistoricalData}
+        onClose={() => setShowHistoricalData(false)}
+        title="Logistics Historical Data"
+      />
     </Container>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -18,13 +18,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-
+  CircularProgress,
   Chip
 } from '@mui/material';
-import { Sync, Assessment, Settings, CloudSync } from '@mui/icons-material';
+import { Sync, Assessment, Settings, CloudSync, Link, CheckCircle } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { accountingAPI } from '../services/api';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const AccountingIntegration = () => {
@@ -32,7 +33,35 @@ const AccountingIntegration = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showSyncDialog, setShowSyncDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [xeroStatus, setXeroStatus] = useState({ connected: false, loading: false });
   const { register, handleSubmit, reset } = useForm();
+
+  // Check Xero connection status on component mount
+  useEffect(() => {
+    checkXeroStatus();
+  }, []);
+
+  const checkXeroStatus = async () => {
+    try {
+      const response = await axios.get('/auth/xero/status');
+      setXeroStatus({ connected: response.data.connected, loading: false });
+    } catch (error) {
+      console.error('Error checking Xero status:', error);
+      setXeroStatus({ connected: false, loading: false });
+    }
+  };
+
+  const connectToXero = async () => {
+    try {
+      setXeroStatus(prev => ({ ...prev, loading: true }));
+      const response = await axios.get('/auth/xero/authorize');
+      window.location.href = response.data.authUrl;
+    } catch (error) {
+      console.error('Error connecting to Xero:', error);
+      toast.error('Failed to connect to Xero');
+      setXeroStatus(prev => ({ ...prev, loading: false }));
+    }
+  };
 
   // Queries
   const { data: settings = [] } = useQuery(
@@ -126,7 +155,7 @@ const AccountingIntegration = () => {
 
       {/* Integration Status */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -145,7 +174,34 @@ const AccountingIntegration = () => {
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Link sx={{ mr: 1, color: xeroStatus.connected ? 'success.main' : 'grey.500' }} />
+                <Typography variant="h6">Xero</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Chip 
+                  label={xeroStatus.connected ? 'Connected' : 'Disconnected'} 
+                  color={xeroStatus.connected ? 'success' : 'default'}
+                  icon={xeroStatus.loading ? <CircularProgress size={16} /> : (xeroStatus.connected ? <CheckCircle /> : undefined)}
+                />
+              </Box>
+              <Button
+                size="small"
+                variant={xeroStatus.connected ? 'outlined' : 'contained'}
+                onClick={xeroStatus.connected ? checkXeroStatus : connectToXero}
+                disabled={xeroStatus.loading}
+                startIcon={xeroStatus.loading ? <CircularProgress size={16} /> : <Link />}
+              >
+                {xeroStatus.connected ? 'Refresh' : 'Connect'}
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -164,7 +220,7 @@ const AccountingIntegration = () => {
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
