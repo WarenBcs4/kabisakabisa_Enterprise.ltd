@@ -255,50 +255,50 @@ const SalesPage = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
       <Typography variant="h4" gutterBottom>
         Sales Management
       </Typography>
 
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
+              <Typography color="textSecondary" gutterBottom variant="body2">
                 Today's Sales
               </Typography>
-              <Typography variant="h5">
+              <Typography variant="h6">
                 {dailySummary?.totalSales || 0}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
+              <Typography color="textSecondary" gutterBottom variant="body2">
                 Today's Revenue
               </Typography>
-              <Typography variant="h5">
+              <Typography variant="h6">
                 {formatCurrency(dailySummary?.totalAmount || 0)}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
+              <Typography color="textSecondary" gutterBottom variant="body2">
                 Received Funds
               </Typography>
-              <Typography variant="h5">
+              <Typography variant="h6">
                 {formatCurrency(fundsTracking?.receivedFunds || 0)}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -313,7 +313,7 @@ const SalesPage = () => {
       </Grid>
 
       {/* Action Buttons */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Button
           variant="outlined"
           startIcon={<Visibility />}
@@ -345,7 +345,7 @@ const SalesPage = () => {
         <QuickUpload defaultCategory="receipts" buttonText="Upload Receipt" />
       </Box>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {/* Sales Entry Form */}
         <Grid item xs={12} lg={8}>
           <Card>

@@ -107,7 +107,7 @@ const ManagerPage = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
       <Typography variant="h4" gutterBottom>
         Branch Management Dashboard
       </Typography>
@@ -128,17 +128,17 @@ const ManagerPage = () => {
         </Box>
       )}
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TrendingUp sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <TrendingUp sx={{ fontSize: { xs: 30, md: 40 }, color: 'primary.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" gutterBottom>
+                  <Typography color="textSecondary" gutterBottom variant="body2">
                     Today's Sales
                   </Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h6">
                     {formatCurrency(summary.todayRevenue || 0)}
                   </Typography>
                 </Box>
@@ -146,16 +146,16 @@ const ManagerPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <People sx={{ fontSize: 40, color: 'success.main', mr: 2 }} />
+                <People sx={{ fontSize: { xs: 30, md: 40 }, color: 'success.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" gutterBottom>
+                  <Typography color="textSecondary" gutterBottom variant="body2">
                     Branch Staff
                   </Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h6">
                     {summary.totalEmployees || 0}
                   </Typography>
                 </Box>
@@ -163,16 +163,16 @@ const ManagerPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Inventory sx={{ fontSize: 40, color: 'info.main', mr: 2 }} />
+                <Inventory sx={{ fontSize: { xs: 30, md: 40 }, color: 'info.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" gutterBottom>
+                  <Typography color="textSecondary" gutterBottom variant="body2">
                     Stock Items
                   </Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h6">
                     {summary.totalStock || 0}
                   </Typography>
                 </Box>
@@ -180,7 +180,7 @@ const ManagerPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>

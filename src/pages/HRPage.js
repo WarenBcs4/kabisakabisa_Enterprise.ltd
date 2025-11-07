@@ -212,23 +212,23 @@ const HRPage = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
       <Typography variant="h4" gutterBottom>
         Human Resources Management
       </Typography>
 
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <People sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <People sx={{ fontSize: { xs: 30, md: 40 }, color: 'primary.main', mr: 1 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom variant="body2">
                     Total Employees
                   </Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h6">
                     {totalEmployees}
                   </Typography>
                 </Box>
@@ -236,31 +236,31 @@ const HRPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Active Employees
               </Typography>
-              <Typography variant="h5" color="success.main">
+              <Typography variant="h6" color="success.main">
                 {activeEmployees}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Monthly Salary Expense
               </Typography>
-              <Typography variant="h5">
+              <Typography variant="h6">
                 {formatCurrency(totalSalaryExpense)}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
@@ -275,7 +275,7 @@ const HRPage = () => {
       </Grid>
 
       {/* Action Buttons */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Button
           variant="contained"
           startIcon={<Add />}

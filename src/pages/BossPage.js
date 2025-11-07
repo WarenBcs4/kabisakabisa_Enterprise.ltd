@@ -114,7 +114,7 @@ const BossPage = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">
           Executive Dashboard
@@ -123,17 +123,17 @@ const BossPage = () => {
       </Box>
 
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TrendingUp sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <TrendingUp sx={{ fontSize: { xs: 30, md: 40 }, color: 'primary.main', mr: 1 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom variant="body2">
                     Total Revenue
                   </Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h6">
                     {formatCurrency(dashboard?.totalRevenue || 0)}
                   </Typography>
                 </Box>
@@ -141,16 +141,16 @@ const BossPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Business sx={{ fontSize: 40, color: 'success.main', mr: 2 }} />
+                <Business sx={{ fontSize: { xs: 30, md: 40 }, color: 'success.main', mr: 1 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom variant="body2">
                     Active Branches
                   </Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h6">
                     {branches.length}
                   </Typography>
                 </Box>
@@ -158,16 +158,16 @@ const BossPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <People sx={{ fontSize: 40, color: 'info.main', mr: 2 }} />
+                <People sx={{ fontSize: { xs: 30, md: 40 }, color: 'info.main', mr: 1 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom variant="body2">
                     Total Employees
                   </Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h6">
                     {employees.filter(emp => emp.is_active).length}
                   </Typography>
                 </Box>
@@ -175,7 +175,7 @@ const BossPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -195,7 +195,7 @@ const BossPage = () => {
       </Grid>
 
       {/* Export Buttons */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Button
           variant="outlined"
           startIcon={<GetApp />}

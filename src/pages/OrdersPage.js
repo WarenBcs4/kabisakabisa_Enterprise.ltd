@@ -196,23 +196,23 @@ const OrdersPage = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
       <Typography variant="h4" gutterBottom>
         Purchase Orders Management
       </Typography>
 
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <ShoppingCart sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <ShoppingCart sx={{ fontSize: { xs: 30, md: 40 }, color: 'primary.main', mr: 1 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom variant="body2">
                     Total Orders
                   </Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h6">
                     {totalOrders}
                   </Typography>
                 </Box>
@@ -220,31 +220,31 @@ const OrdersPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Pending Orders
               </Typography>
-              <Typography variant="h5" color="warning.main">
+              <Typography variant="h6" color="warning.main">
                 {pendingOrders}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Total Value
               </Typography>
-              <Typography variant="h5">
+              <Typography variant="h6">
                 {formatCurrency(totalValue)}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
@@ -259,7 +259,7 @@ const OrdersPage = () => {
       </Grid>
 
       {/* Action Buttons */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Button
           variant="contained"
           startIcon={<Add />}

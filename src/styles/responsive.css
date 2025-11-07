@@ -1,0 +1,38 @@
+/* Global Responsive Styles */
+
+/* Mobile First Approach */
+@media (max-width: 600px) {
+  .MuiContainer-root {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  .MuiTypography-h4 {
+    font-size: 1.5rem !important;
+  }
+  
+  .MuiButton-root {
+    font-size: 0.75rem !important;
+    padding: 6px 12px !important;
+  }
+  
+  .MuiCardContent-root {
+    padding: 12px !important;
+  }
+  
+  .MuiTableCell-root {
+    padding: 8px 4px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .MuiDialog-paper {
+    margin: 8px !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 960px) {
+  .MuiContainer-root {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
