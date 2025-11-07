@@ -301,10 +301,10 @@ const SalesPage = () => {
         <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
+              <Typography color="textSecondary" gutterBottom variant="body2">
                 Outstanding Balance
               </Typography>
-              <Typography variant="h5">
+              <Typography variant="h6">
                 {formatCurrency(fundsTracking?.outstandingBalance || 0)}
               </Typography>
             </CardContent>

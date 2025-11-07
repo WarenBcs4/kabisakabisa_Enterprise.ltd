@@ -1,6 +1,3 @@
-/* Global Responsive Styles */
-
-/* Mobile First Approach */
 @media (max-width: 600px) {
   .MuiContainer-root {
     padding-left: 8px !important;
@@ -13,26 +10,28 @@
   
   .MuiButton-root {
     font-size: 0.75rem !important;
-    padding: 6px 12px !important;
+    padding: 4px 8px !important;
+    min-width: auto !important;
   }
   
   .MuiCardContent-root {
-    padding: 12px !important;
+    padding: 8px !important;
   }
   
   .MuiTableCell-root {
-    padding: 8px 4px !important;
-    font-size: 0.75rem !important;
+    padding: 4px !important;
+    font-size: 0.7rem !important;
   }
   
-  .MuiDialog-paper {
-    margin: 8px !important;
+  .MuiGrid-item {
+    padding: 4px !important;
   }
-}
-
-@media (min-width: 600px) and (max-width: 960px) {
-  .MuiContainer-root {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+  
+  .MuiTextField-root .MuiInputBase-input {
+    font-size: 0.8rem !important;
+  }
+  
+  .MuiFormControl-root {
+    margin: 4px 0 !important;
   }
 }
