@@ -133,7 +133,7 @@ const DataTable = ({
     }
   };
 
-  const searchableColumns = columns.filter(col => col.searchable !== false);
+
   const filterableColumns = columns.filter(col => col.filterable !== false);
 
   return (

@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { CloudUpload } from '@mui/icons-material';
 import { useMutation, useQueryClient } from 'react-query';
-import { documentsAPI } from '../services/api';
+
 import toast from 'react-hot-toast';
 
 const QuickUpload = ({ defaultCategory = 'general', buttonText = 'Upload Document' }) => {

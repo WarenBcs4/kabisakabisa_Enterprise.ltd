@@ -4,8 +4,6 @@ import {
   Typography,
   Box,
   Grid,
-  Card,
-  CardContent,
   Button,
   Select,
   MenuItem,
@@ -15,9 +13,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  Tabs,
-  Tab
+  TextField
 } from '@mui/material';
 import { Add, Refresh, GetApp } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -37,7 +33,7 @@ const DataManagementPage = () => {
   const availableTables = getAvailableTables();
 
   // Queries
-  const { data: tableData = [], isLoading, error } = useQuery(
+  const { data: tableData = [], error } = useQuery(
     ['tableData', selectedTable],
     () => genericDataAPI.getAll(selectedTable),
     { enabled: !!selectedTable }
