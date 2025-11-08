@@ -51,6 +51,9 @@ const LogisticsPage = ({ openExternalPortal }) => {
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [selectedVehicleForTrips, setSelectedVehicleForTrips] = useState('');
   const [performancePeriod, setPerformancePeriod] = useState('all');
+  const [tripDateFilter, setTripDateFilter] = useState('month');
+  const [maintenanceDateFilter, setMaintenanceDateFilter] = useState('month');
+  const [selectedVehicleForMaintenance, setSelectedVehicleForMaintenance] = useState('');
 
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerTrip, handleSubmit: handleTripSubmit, reset: resetTrip } = useForm();
@@ -67,14 +70,37 @@ const LogisticsPage = ({ openExternalPortal }) => {
   const vehicles = useMemo(() => pageData?.vehicles || [], [pageData?.vehicles]);
   const allTrips = useMemo(() => pageData?.trips || [], [pageData?.trips]);
   const maintenance = useMemo(() => {
-    const data = pageData?.maintenance || [];
-    if (data.length > 0) {
-      console.log('✅ Maintenance data received:', data.length, 'records');
-    } else {
-      console.log('❌ No maintenance data received');
+    let data = pageData?.maintenance || [];
+    
+    // Filter by date period
+    const now = new Date();
+    data = data.filter(record => {
+      const maintenanceDate = new Date(record.maintenance_date);
+      switch (maintenanceDateFilter) {
+        case 'today':
+          return maintenanceDate.toDateString() === now.toDateString();
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return maintenanceDate >= weekAgo;
+        case 'month':
+          return maintenanceDate.getMonth() === now.getMonth() && maintenanceDate.getFullYear() === now.getFullYear();
+        case 'year':
+          return maintenanceDate.getFullYear() === now.getFullYear();
+        default:
+          return true;
+      }
+    });
+    
+    // Filter by vehicle
+    if (selectedVehicleForMaintenance) {
+      data = data.filter(record => {
+        const vehicleId = Array.isArray(record.vehicle_id) ? record.vehicle_id[0] : record.vehicle_id;
+        return vehicleId === selectedVehicleForMaintenance;
+      });
     }
-    return data;
-  }, [pageData?.maintenance]);
+    
+    return data.sort((a, b) => new Date(b.maintenance_date) - new Date(a.maintenance_date));
+  }, [pageData?.maintenance, maintenanceDateFilter, selectedVehicleForMaintenance]);
   
 
   
@@ -91,10 +117,30 @@ const LogisticsPage = ({ openExternalPortal }) => {
     return driver?.full_name || 'N/A';
   };
   
-  // Sort trips by date (newest first) and filter by selected vehicle
+  // Filter trips by date and vehicle
   const trips = useMemo(() => {
     let filteredTrips = [...allTrips];
     
+    // Filter by date period
+    const now = new Date();
+    filteredTrips = filteredTrips.filter(trip => {
+      const tripDate = new Date(trip.trip_date);
+      switch (tripDateFilter) {
+        case 'today':
+          return tripDate.toDateString() === now.toDateString();
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return tripDate >= weekAgo;
+        case 'month':
+          return tripDate.getMonth() === now.getMonth() && tripDate.getFullYear() === now.getFullYear();
+        case 'year':
+          return tripDate.getFullYear() === now.getFullYear();
+        default:
+          return true;
+      }
+    });
+    
+    // Filter by vehicle
     if (selectedVehicleForTrips) {
       const selectedVehicle = vehicles.find(v => v.id === selectedVehicleForTrips);
       if (selectedVehicle) {
@@ -106,7 +152,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
     }
     
     return filteredTrips.sort((a, b) => new Date(b.trip_date) - new Date(a.trip_date));
-  }, [allTrips, selectedVehicleForTrips, vehicles]);
+  }, [allTrips, selectedVehicleForTrips, vehicles, tripDateFilter]);
   
   // Filter vehicles by search
   const filteredVehicles = useMemo(() => {
@@ -473,22 +519,36 @@ const LogisticsPage = ({ openExternalPortal }) => {
       {activeTab === 1 && (
         <Card>
           <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
               <Typography variant="h6">
-                Trip Records {selectedVehicleForTrips && `- ${vehicles.find(v => v.id === selectedVehicleForTrips)?.plate_number || 'Unknown'}`}
+                Trip Records
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                <FormControl size="small" sx={{ minWidth: 200 }}>
-                  <InputLabel>Filter by Vehicle</InputLabel>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Period</InputLabel>
+                  <Select
+                    value={tripDateFilter}
+                    onChange={(e) => setTripDateFilter(e.target.value)}
+                    label="Period"
+                  >
+                    <MenuItem value="today">Today</MenuItem>
+                    <MenuItem value="week">This Week</MenuItem>
+                    <MenuItem value="month">This Month</MenuItem>
+                    <MenuItem value="year">This Year</MenuItem>
+                    <MenuItem value="all">All Time</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <InputLabel>Vehicle</InputLabel>
                   <Select
                     value={selectedVehicleForTrips}
                     onChange={(e) => setSelectedVehicleForTrips(e.target.value)}
-                    label="Filter by Vehicle"
+                    label="Vehicle"
                   >
                     <MenuItem value="">All Vehicles</MenuItem>
                     {vehicles.map((vehicle) => (
                       <MenuItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.plate_number} - {vehicle.vehicle_type}
+                        {vehicle.plate_number}
                       </MenuItem>
                     ))}
                   </Select>
@@ -556,9 +616,45 @@ const LogisticsPage = ({ openExternalPortal }) => {
       {activeTab === 2 && (
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Maintenance Records
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+              <Typography variant="h6">
+                Maintenance Records
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Period</InputLabel>
+                  <Select
+                    value={maintenanceDateFilter}
+                    onChange={(e) => setMaintenanceDateFilter(e.target.value)}
+                    label="Period"
+                  >
+                    <MenuItem value="today">Today</MenuItem>
+                    <MenuItem value="week">This Week</MenuItem>
+                    <MenuItem value="month">This Month</MenuItem>
+                    <MenuItem value="year">This Year</MenuItem>
+                    <MenuItem value="all">All Time</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <InputLabel>Vehicle</InputLabel>
+                  <Select
+                    value={selectedVehicleForMaintenance}
+                    onChange={(e) => setSelectedVehicleForMaintenance(e.target.value)}
+                    label="Vehicle"
+                  >
+                    <MenuItem value="">All Vehicles</MenuItem>
+                    {vehicles.map((vehicle) => (
+                      <MenuItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.plate_number}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Typography variant="body2" color="text.secondary">
+                  {maintenance.length} records
+                </Typography>
+              </Box>
+            </Box>
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
