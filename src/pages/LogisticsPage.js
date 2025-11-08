@@ -73,8 +73,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
       const selectedVehicle = vehicles.find(v => v.id === selectedVehicleForTrips);
       if (selectedVehicle) {
         filteredTrips = filteredTrips.filter(trip => 
-          trip.vehicle_plate_number === selectedVehicle.plate_number ||
-          trip.vehicle_id === selectedVehicleForTrips
+          trip.vehicle_plate_number === selectedVehicle.plate_number
         );
       }
     }
@@ -219,13 +218,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
 
   const drivers = employees.filter(emp => emp.role === 'logistics');
   
-  // Get vehicle and driver names for trips
-  const getVehiclePlateNumber = (vehicleId, plateNumber) => {
-    if (plateNumber) return plateNumber;
-    const vehicle = vehicles.find(v => v.id === vehicleId);
-    return vehicle?.plate_number || 'Unknown';
-  };
-  
+  // Get driver name from employee data
   const getDriverName = (driverId) => {
     const driver = employees.find(emp => emp.id === driverId);
     return driver?.full_name || 'N/A';
@@ -502,7 +495,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
                     return (
                       <TableRow key={trip.id}>
                         <TableCell>{trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'N/A'}</TableCell>
-                        <TableCell>{getVehiclePlateNumber(trip.vehicle_id, trip.vehicle_plate_number)}</TableCell>
+                        <TableCell>{trip.vehicle_plate_number || 'N/A'}</TableCell>
                         <TableCell>{trip.destination || 'N/A'}</TableCell>
                         <TableCell>{trip.distance_km || 0}</TableCell>
                         <TableCell>{formatCurrency(trip.fuel_cost || 0)}</TableCell>
@@ -515,7 +508,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
                             {formatCurrency(profit)}
                           </Typography>
                         </TableCell>
-                        <TableCell>{getDriverName(trip.driver_id)}</TableCell>
+                        <TableCell>{trip.driver_name || 'N/A'}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -558,7 +551,6 @@ const LogisticsPage = ({ openExternalPortal }) => {
                     <TableBody>
                       {vehicles.map((vehicle) => {
                         const vehicleTrips = allTrips.filter(t => 
-                          t.vehicle_id === vehicle.id || 
                           t.vehicle_plate_number === vehicle.plate_number
                         );
                         const revenue = vehicleTrips.reduce((sum, t) => sum + (t.amount_charged || 0), 0);
@@ -617,7 +609,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
                       {maintenance.slice(0, 5).map((record) => (
                         <TableRow key={record.id}>
                           <TableCell>{record.maintenance_date ? new Date(record.maintenance_date).toLocaleDateString() : 'N/A'}</TableCell>
-                          <TableCell>{getVehiclePlateNumber(record.vehicle_id, record.vehicle_plate_number)}</TableCell>
+                          <TableCell>{record.vehicle_plate_number || 'N/A'}</TableCell>
                           <TableCell>{record.maintenance_type || 'N/A'}</TableCell>
                           <TableCell>{formatCurrency(record.cost || 0)}</TableCell>
                         </TableRow>
@@ -704,11 +696,11 @@ const LogisticsPage = ({ openExternalPortal }) => {
             <FormControl fullWidth margin="normal">
               <InputLabel>Vehicle *</InputLabel>
               <Select
-                {...registerTrip('vehicle_id', { required: true })}
+                {...registerTrip('vehicle_plate_number', { required: true })}
                 label="Vehicle"
               >
-                {vehicles.filter(v => v.status === 'active').map((vehicle) => (
-                  <MenuItem key={vehicle.id} value={vehicle.id}>
+                {vehicles.filter(v => v.status === 'active' || !v.status).map((vehicle) => (
+                  <MenuItem key={vehicle.id} value={vehicle.plate_number}>
                     {vehicle.plate_number} - {vehicle.vehicle_type}
                   </MenuItem>
                 ))}
@@ -788,11 +780,11 @@ const LogisticsPage = ({ openExternalPortal }) => {
             <FormControl fullWidth margin="normal">
               <InputLabel>Vehicle *</InputLabel>
               <Select
-                {...registerMaintenance('vehicle_id', { required: true })}
+                {...registerMaintenance('vehicle_plate_number', { required: true })}
                 label="Vehicle"
               >
                 {vehicles.map((vehicle) => (
-                  <MenuItem key={vehicle.id} value={vehicle.id}>
+                  <MenuItem key={vehicle.id} value={vehicle.plate_number}>
                     {vehicle.plate_number} - {vehicle.vehicle_type}
                   </MenuItem>
                 ))}
