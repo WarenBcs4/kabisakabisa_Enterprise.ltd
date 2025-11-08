@@ -86,8 +86,8 @@ const Navbar = ({ openExternalPortal }) => {
   return (
     <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          BSN Manager
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'orange', fontWeight: 'bold' }}>
+          kabisakabisa enterprise.ltd
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
