@@ -451,7 +451,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6">
-                Trip Records {selectedVehicleForTrips && `- ${getVehiclePlateNumber(selectedVehicleForTrips)}`}
+                Trip Records {selectedVehicleForTrips && `- ${vehicles.find(v => v.id === selectedVehicleForTrips)?.plate_number || 'Unknown'}`}
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                 <FormControl size="small" sx={{ minWidth: 200 }}>
