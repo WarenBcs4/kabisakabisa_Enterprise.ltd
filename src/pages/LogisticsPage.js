@@ -65,7 +65,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
 
   const vehicles = useMemo(() => pageData?.vehicles || [], [pageData?.vehicles]);
   const allTrips = useMemo(() => pageData?.trips || [], [pageData?.trips]);
-  const maintenance = useMemo(() => pageData?.maintenance || [], [pageData?.maintenance]);
+  const maintenance = useMemo(() => maintenanceRecords.length > 0 ? maintenanceRecords : (pageData?.maintenance || []), [maintenanceRecords, pageData?.maintenance]);
   
 
   
@@ -109,6 +109,23 @@ const LogisticsPage = ({ openExternalPortal }) => {
   }, [vehicles, vehicleSearch]);
   
   const { data: employees = [] } = useQuery('employees', () => hrAPI.getEmployees());
+  
+  // Separate maintenance data fetch
+  const { data: maintenanceRecords = [] } = useQuery(
+    'vehicleMaintenance',
+    async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://enterprisebackendltd.vercel.app/api'}/data/Vehicle_Maintenance`, {
+          headers: {
+            'Authorization': `Bearer ${document.cookie.split('accessToken=')[1]?.split(';')[0] || ''}`
+          }
+        });
+        return response.ok ? await response.json() : [];
+      } catch {
+        return [];
+      }
+    }
+  );
 
   // Mutations
   const createVehicleMutation = useMutation(
