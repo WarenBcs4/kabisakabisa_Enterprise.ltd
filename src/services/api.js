@@ -308,21 +308,11 @@ export const dataAPI = {
           return { stock: stockData, transfers: [], movements: [] };
 
         case 'logistics':
-          const [vehicles, trips] = await Promise.all([
+          const [vehicles, trips, maintenance] = await Promise.all([
             logisticsAPI.getVehicles().catch(() => []),
-            logisticsAPI.getTrips(params).catch(() => [])
+            logisticsAPI.getTrips(params).catch(() => []),
+            Promise.resolve([])
           ]);
-          
-          // Get maintenance data directly from Airtable
-          let maintenance = [];
-          try {
-            const maintenanceResponse = await api.get('/data/Vehicle_Maintenance');
-            maintenance = maintenanceResponse.data || [];
-          } catch (error) {
-            console.log('Maintenance fetch failed:', error.message);
-            maintenance = [];
-          }
-          
           return { vehicles, trips, maintenance };
 
         case 'orders':
