@@ -1162,11 +1162,11 @@ const LogisticsPage = ({ openExternalPortal }) => {
             <FormControl fullWidth margin="normal">
               <InputLabel>Vehicle *</InputLabel>
               <Select
-                {...registerTrip('vehicle_plate_number', { required: true })}
+                {...registerTrip('vehicle_id', { required: true })}
                 label="Vehicle"
               >
                 {vehicles.filter(v => v.status === 'active' || !v.status).map((vehicle) => (
-                  <MenuItem key={vehicle.id} value={vehicle.plate_number}>
+                  <MenuItem key={vehicle.id} value={vehicle.id}>
                     {vehicle.plate_number} - {vehicle.vehicle_type}
                   </MenuItem>
                 ))}
