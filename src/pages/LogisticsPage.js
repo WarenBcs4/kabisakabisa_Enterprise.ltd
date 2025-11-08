@@ -65,7 +65,6 @@ const LogisticsPage = ({ openExternalPortal }) => {
   const allTrips = useMemo(() => pageData?.data?.trips || [], [pageData?.data?.trips]);
   const maintenance = useMemo(() => pageData?.data?.maintenance || [], [pageData?.data?.maintenance]);
   const stats = useMemo(() => pageData?.data?.stats || {}, [pageData?.data?.stats]);
-  const vehiclePerformance = useMemo(() => pageData?.data?.vehiclePerformance || [], [pageData?.data?.vehiclePerformance]);
   
   // Sort trips by date (newest first) and filter by selected vehicle
   const trips = useMemo(() => {
