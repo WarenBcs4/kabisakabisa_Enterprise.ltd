@@ -33,7 +33,7 @@ import {
 import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, DirectionsCar, History, Search } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import QuickUpload from '../components/QuickUpload';
-import HistoricalDataViewer from '../components/HistoricalDataViewer';
+
 import { useForm } from 'react-hook-form';
 import { logisticsAPI, hrAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
@@ -47,7 +47,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
   const [showAddMaintenance, setShowAddMaintenance] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [ntsaMenuAnchor, setNtsaMenuAnchor] = useState(null);
-  const [showHistoricalData, setShowHistoricalData] = useState(false);
+
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [selectedVehicleForTrips, setSelectedVehicleForTrips] = useState('');
   const [performanceStartDate, setPerformanceStartDate] = useState('');
@@ -390,14 +390,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
         >
           NTSA Portal
         </Button>
-        <Button
-          variant="outlined"
-          startIcon={<History />}
-          onClick={() => setShowHistoricalData(true)}
-          color="info"
-        >
-          Historical Data
-        </Button>
+
         <Menu
           anchorEl={ntsaMenuAnchor}
           open={Boolean(ntsaMenuAnchor)}
@@ -546,7 +539,9 @@ const LogisticsPage = ({ openExternalPortal }) => {
                 <Button
                   variant="contained"
                   startIcon={<Search />}
-                  onClick={() => {}}
+                  onClick={() => {
+                    toast.success(`Searching trips ${tripStartDate || tripEndDate ? 'for selected period' : 'for all time'}`);
+                  }}
                   size="small"
                 >
                   Search
@@ -698,7 +693,9 @@ const LogisticsPage = ({ openExternalPortal }) => {
                 <Button
                   variant="contained"
                   startIcon={<Search />}
-                  onClick={() => {}}
+                  onClick={() => {
+                    toast.success(`Searching maintenance ${maintenanceStartDate || maintenanceEndDate ? 'for selected period' : 'for all time'}`);
+                  }}
                   size="small"
                 >
                   Search
@@ -823,7 +820,9 @@ const LogisticsPage = ({ openExternalPortal }) => {
               <Button
                 variant="contained"
                 startIcon={<Search />}
-                onClick={() => {}}
+                onClick={() => {
+                  toast.success(`Analyzing performance ${performanceStartDate || performanceEndDate ? 'for selected period' : 'for all time'}`);
+                }}
                 size="small"
               >
                 Search
@@ -1317,12 +1316,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
         </DialogActions>
       </Dialog>
 
-      {/* Historical Data Viewer */}
-      <HistoricalDataViewer 
-        open={showHistoricalData}
-        onClose={() => setShowHistoricalData(false)}
-        title="Logistics Historical Data"
-      />
+
     </Container>
   );
 };
