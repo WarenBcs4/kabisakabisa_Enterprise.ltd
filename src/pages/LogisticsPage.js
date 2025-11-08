@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Container,
   Typography,
@@ -27,9 +27,10 @@ import {
   Chip,
   Tabs,
   Tab,
-  Menu
+  Menu,
+  InputAdornment
 } from '@mui/material';
-import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, DirectionsCar, History } from '@mui/icons-material';
+import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, DirectionsCar, History, Search } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import QuickUpload from '../components/QuickUpload';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
@@ -47,6 +48,8 @@ const LogisticsPage = ({ openExternalPortal }) => {
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [ntsaMenuAnchor, setNtsaMenuAnchor] = useState(null);
   const [showHistoricalData, setShowHistoricalData] = useState(false);
+  const [vehicleSearch, setVehicleSearch] = useState('');
+  const [selectedVehicleForTrips, setSelectedVehicleForTrips] = useState('');
 
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerTrip, handleSubmit: handleTripSubmit, reset: resetTrip } = useForm();
@@ -59,8 +62,28 @@ const LogisticsPage = ({ openExternalPortal }) => {
   );
 
   const vehicles = pageData?.vehicles || [];
-  const trips = pageData?.trips || [];
-  // const maintenance = pageData?.maintenance || [];
+  const allTrips = pageData?.trips || [];
+  const maintenance = pageData?.maintenance || [];
+  
+  // Sort trips by date (newest first) and filter by selected vehicle
+  const trips = useMemo(() => {
+    let filteredTrips = [...allTrips];
+    
+    if (selectedVehicleForTrips) {
+      filteredTrips = filteredTrips.filter(trip => trip.vehicle_id === selectedVehicleForTrips);
+    }
+    
+    return filteredTrips.sort((a, b) => new Date(b.trip_date) - new Date(a.trip_date));
+  }, [allTrips, selectedVehicleForTrips]);
+  
+  // Filter vehicles by search
+  const filteredVehicles = useMemo(() => {
+    if (!vehicleSearch) return vehicles;
+    return vehicles.filter(vehicle => 
+      vehicle.plate_number?.toLowerCase().includes(vehicleSearch.toLowerCase()) ||
+      vehicle.vehicle_type?.toLowerCase().includes(vehicleSearch.toLowerCase())
+    );
+  }, [vehicles, vehicleSearch]);
   
   const { data: employees = [] } = useQuery('employees', () => hrAPI.getEmployees());
 
@@ -183,12 +206,23 @@ const LogisticsPage = ({ openExternalPortal }) => {
   };
 
   // Calculate statistics
-  const totalTrips = trips.length;
-  const totalRevenue = trips.reduce((sum, trip) => sum + (trip.amount_charged || 0), 0);
-  const totalProfit = trips.reduce((sum, trip) => sum + (trip.profit || 0), 0);
-  const activeVehicles = vehicles.filter(v => v.status === 'active').length;
+  const totalTrips = allTrips.length;
+  const totalRevenue = allTrips.reduce((sum, trip) => sum + (trip.amount_charged || 0), 0);
+  const totalProfit = allTrips.reduce((sum, trip) => sum + ((trip.amount_charged || 0) - (trip.fuel_cost || 0)), 0);
+  const activeVehicles = vehicles.filter(v => v.status === 'active' || !v.status).length;
 
   const drivers = employees.filter(emp => emp.role === 'logistics');
+  
+  // Get vehicle and driver names for trips
+  const getVehiclePlateNumber = (vehicleId) => {
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    return vehicle?.plate_number || 'Unknown';
+  };
+  
+  const getDriverName = (driverId) => {
+    const driver = employees.find(emp => emp.id === driverId);
+    return driver?.full_name || 'N/A';
+  };
 
   if (isLoading) {
     return (
@@ -290,7 +324,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
           startIcon={<Build />}
           onClick={() => setShowAddMaintenance(true)}
         >
-          Record Maintenance
+          Maintenance
         </Button>
         <QuickUpload defaultCategory="vehicle_documents" buttonText="Upload Vehicle Doc" />
         <Button
@@ -336,9 +370,25 @@ const LogisticsPage = ({ openExternalPortal }) => {
       {activeTab === 0 && (
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Vehicle Fleet
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                Vehicle Fleet
+              </Typography>
+              <TextField
+                size="small"
+                placeholder="Search vehicles..."
+                value={vehicleSearch}
+                onChange={(e) => setVehicleSearch(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{ width: 250 }}
+              />
+            </Box>
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
@@ -352,15 +402,15 @@ const LogisticsPage = ({ openExternalPortal }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {vehicles.map((vehicle) => (
+                  {filteredVehicles.map((vehicle) => (
                     <TableRow key={vehicle.id}>
                       <TableCell>{vehicle.plate_number}</TableCell>
                       <TableCell>{vehicle.vehicle_type}</TableCell>
-                      <TableCell>{new Date(vehicle.purchase_date).toLocaleDateString()}</TableCell>
+                      <TableCell>{vehicle.purchase_date ? new Date(vehicle.purchase_date).toLocaleDateString() : 'N/A'}</TableCell>
                       <TableCell>{vehicle.current_branch_name || 'Unassigned'}</TableCell>
                       <TableCell>
                         <Chip 
-                          label={vehicle.status}
+                          label={vehicle.status || 'active'}
                           color={vehicle.status === 'active' ? 'success' : 'default'}
                           size="small"
                         />
@@ -376,6 +426,15 @@ const LogisticsPage = ({ openExternalPortal }) => {
                         >
                           <Delete />
                         </IconButton>
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            setSelectedVehicleForTrips(vehicle.id);
+                            setActiveTab(1);
+                          }}
+                        >
+                          View Trips
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -390,14 +449,37 @@ const LogisticsPage = ({ openExternalPortal }) => {
       {activeTab === 1 && (
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Trip Records
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                Trip Records {selectedVehicleForTrips && `- ${getVehiclePlateNumber(selectedVehicleForTrips)}`}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                  <InputLabel>Filter by Vehicle</InputLabel>
+                  <Select
+                    value={selectedVehicleForTrips}
+                    onChange={(e) => setSelectedVehicleForTrips(e.target.value)}
+                    label="Filter by Vehicle"
+                  >
+                    <MenuItem value="">All Vehicles</MenuItem>
+                    {vehicles.map((vehicle) => (
+                      <MenuItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.plate_number} - {vehicle.vehicle_type}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Typography variant="body2" color="text.secondary">
+                  {trips.length} trips
+                </Typography>
+              </Box>
+            </Box>
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
                   <TableRow>
                     <TableCell>Date</TableCell>
+                    <TableCell>Vehicle ID</TableCell>
                     <TableCell>Vehicle</TableCell>
                     <TableCell>Destination</TableCell>
                     <TableCell>Distance (km)</TableCell>
@@ -408,25 +490,38 @@ const LogisticsPage = ({ openExternalPortal }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {trips.map((trip) => (
-                    <TableRow key={trip.id}>
-                      <TableCell>{new Date(trip.trip_date).toLocaleDateString()}</TableCell>
-                      <TableCell>{trip.vehicle_plate_number}</TableCell>
-                      <TableCell>{trip.destination}</TableCell>
-                      <TableCell>{trip.distance_km}</TableCell>
-                      <TableCell>{formatCurrency(trip.fuel_cost)}</TableCell>
-                      <TableCell>{formatCurrency(trip.amount_charged)}</TableCell>
-                      <TableCell>
-                        <Typography 
-                          color={trip.profit >= 0 ? 'success.main' : 'error.main'}
-                          variant="body2"
-                        >
-                          {formatCurrency(trip.profit)}
+                  {trips.map((trip) => {
+                    const profit = (trip.amount_charged || 0) - (trip.fuel_cost || 0);
+                    return (
+                      <TableRow key={trip.id}>
+                        <TableCell>{trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'N/A'}</TableCell>
+                        <TableCell>{trip.vehicle_id || 'N/A'}</TableCell>
+                        <TableCell>{getVehiclePlateNumber(trip.vehicle_id)}</TableCell>
+                        <TableCell>{trip.destination || 'N/A'}</TableCell>
+                        <TableCell>{trip.distance_km || 0}</TableCell>
+                        <TableCell>{formatCurrency(trip.fuel_cost || 0)}</TableCell>
+                        <TableCell>{formatCurrency(trip.amount_charged || 0)}</TableCell>
+                        <TableCell>
+                          <Typography 
+                            color={profit >= 0 ? 'success.main' : 'error.main'}
+                            variant="body2"
+                          >
+                            {formatCurrency(profit)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{getDriverName(trip.driver_id)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {trips.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={9} align="center">
+                        <Typography color="text.secondary">
+                          {selectedVehicleForTrips ? 'No trips found for selected vehicle' : 'No trips recorded'}
                         </Typography>
                       </TableCell>
-                      <TableCell>{trip.driver_name || 'N/A'}</TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -451,13 +546,14 @@ const LogisticsPage = ({ openExternalPortal }) => {
                         <TableCell>Trips</TableCell>
                         <TableCell>Revenue</TableCell>
                         <TableCell>Profit</TableCell>
+                        <TableCell>Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {vehicles.map((vehicle) => {
-                        const vehicleTrips = trips.filter(t => t.vehicle_id === vehicle.id);
+                        const vehicleTrips = allTrips.filter(t => t.vehicle_id === vehicle.id);
                         const revenue = vehicleTrips.reduce((sum, t) => sum + (t.amount_charged || 0), 0);
-                        const profit = vehicleTrips.reduce((sum, t) => sum + (t.profit || 0), 0);
+                        const profit = vehicleTrips.reduce((sum, t) => sum + ((t.amount_charged || 0) - (t.fuel_cost || 0)), 0);
                         
                         return (
                           <TableRow key={vehicle.id}>
@@ -472,6 +568,17 @@ const LogisticsPage = ({ openExternalPortal }) => {
                                 {formatCurrency(profit)}
                               </Typography>
                             </TableCell>
+                            <TableCell>
+                              <Button
+                                size="small"
+                                onClick={() => {
+                                  setSelectedVehicleForTrips(vehicle.id);
+                                  setActiveTab(1);
+                                }}
+                              >
+                                View Trips
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -485,20 +592,45 @@ const LogisticsPage = ({ openExternalPortal }) => {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Monthly Summary
+                  Maintenance Records
                 </Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Vehicle</TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Cost</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {maintenance.slice(0, 5).map((record) => (
+                        <TableRow key={record.id}>
+                          <TableCell>{record.maintenance_date ? new Date(record.maintenance_date).toLocaleDateString() : 'N/A'}</TableCell>
+                          <TableCell>{getVehiclePlateNumber(record.vehicle_id)}</TableCell>
+                          <TableCell>{record.maintenance_type || 'N/A'}</TableCell>
+                          <TableCell>{formatCurrency(record.cost || 0)}</TableCell>
+                        </TableRow>
+                      ))}
+                      {maintenance.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} align="center">
+                            <Typography color="text.secondary">
+                              No maintenance records
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2" color="text.secondary">
-                    Average Profit per Trip: {formatCurrency(totalTrips > 0 ? totalProfit / totalTrips : 0)}
+                    Total Maintenance Cost: {formatCurrency(maintenance.reduce((sum, m) => sum + (m.cost || 0), 0))}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Total Distance Covered: {trips.reduce((sum, t) => sum + (t.distance_km || 0), 0)} km
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Fuel Cost: {formatCurrency(trips.reduce((sum, t) => sum + (t.fuel_cost || 0), 0))}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Profit Margin: {totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0}%
+                    Average Cost per Vehicle: {formatCurrency(vehicles.length > 0 ? maintenance.reduce((sum, m) => sum + (m.cost || 0), 0) / vehicles.length : 0)}
                   </Typography>
                 </Box>
               </CardContent>
