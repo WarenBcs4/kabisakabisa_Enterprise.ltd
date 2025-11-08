@@ -115,7 +115,7 @@ const ReceiptCustomizer = () => {
 
         <div style="text-align: center; margin-top: 20px; font-size: 10px; color: #666;">
           <p>Thank you for your business!</p>
-          <p>Powered by BSN Manager</p>
+          <p style={{ color: 'orange' }}>Powered by kabisakabisa enterprise</p>
         </div>
       </div>
     `;

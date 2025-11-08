@@ -122,7 +122,7 @@ const LoginPage = () => {
       >
         <Paper elevation={3} sx={{ padding: 4, width: '100%' }}>
           <Typography component="h1" variant="h4" align="center" gutterBottom>
-            BSN Manager Login
+            kabisakabisa enterprise Login
           </Typography>
           
           {error && (
