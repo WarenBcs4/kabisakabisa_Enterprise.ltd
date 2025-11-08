@@ -311,7 +311,7 @@ export const dataAPI = {
           const [vehicles, trips, maintenance] = await Promise.all([
             logisticsAPI.getVehicles().catch(() => []),
             logisticsAPI.getTrips(params).catch(() => []),
-            logisticsAPI.getAllMaintenance().catch(() => [])
+            api.get('/data/Vehicle_Maintenance').then(res => res.data).catch(() => [])
           ]);
           return { vehicles, trips, maintenance };
 
