@@ -50,7 +50,9 @@ const LogisticsPage = ({ openExternalPortal }) => {
   const [showHistoricalData, setShowHistoricalData] = useState(false);
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [selectedVehicleForTrips, setSelectedVehicleForTrips] = useState('');
-  const [performancePeriod, setPerformancePeriod] = useState('all');
+  const [performanceStartDate, setPerformanceStartDate] = useState('');
+  const [performanceEndDate, setPerformanceEndDate] = useState('');
+  const [selectedVehicleForPerformance, setSelectedVehicleForPerformance] = useState('');
   const [selectedVehicleForMaintenance, setSelectedVehicleForMaintenance] = useState('');
   const [tripStartDate, setTripStartDate] = useState('');
   const [tripEndDate, setTripEndDate] = useState('');
@@ -565,6 +567,38 @@ const LogisticsPage = ({ openExternalPortal }) => {
                 </Typography>
               </Box>
             </Box>
+            {/* Financial Summary for Trips */}
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'orange.50', borderRadius: 1, border: '1px solid orange' }}>
+              <Typography variant="h6" sx={{ color: 'orange', mb: 1 }}>
+                Period Financial Summary
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={3}>
+                  <Typography variant="body2" color="text.secondary">Total Revenue</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency(trips.reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0))}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant="body2" color="text.secondary">Total Fuel Cost</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency(trips.reduce((sum, trip) => sum + (parseFloat(trip.fuel_cost) || 0), 0))}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant="body2" color="text.secondary">Total Profit</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency(trips.reduce((sum, trip) => sum + ((parseFloat(trip.amount_charged) || 0) - (parseFloat(trip.fuel_cost) || 0)), 0))}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant="body2" color="text.secondary">Total Distance</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {trips.reduce((sum, trip) => sum + (parseFloat(trip.distance_km) || 0), 0)} km
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
@@ -685,6 +719,32 @@ const LogisticsPage = ({ openExternalPortal }) => {
                 </Typography>
               </Box>
             </Box>
+            {/* Financial Summary for Maintenance */}
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'orange.50', borderRadius: 1, border: '1px solid orange' }}>
+              <Typography variant="h6" sx={{ color: 'orange', mb: 1 }}>
+                Period Maintenance Summary
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={4}>
+                  <Typography variant="body2" color="text.secondary">Total Maintenance Cost</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency(maintenance.reduce((sum, record) => sum + (parseFloat(record.cost) || 0), 0))}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="body2" color="text.secondary">Average Cost per Record</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency(maintenance.length > 0 ? maintenance.reduce((sum, record) => sum + (parseFloat(record.cost) || 0), 0) / maintenance.length : 0)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="body2" color="text.secondary">Total Records</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {maintenance.length}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
@@ -726,28 +786,182 @@ const LogisticsPage = ({ openExternalPortal }) => {
       {activeTab === 3 && (
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+              <TextField
+                size="small"
+                label="From Date"
+                type="date"
+                value={performanceStartDate}
+                onChange={(e) => setPerformanceStartDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ minWidth: 150 }}
+              />
+              <TextField
+                size="small"
+                label="To Date"
+                type="date"
+                value={performanceEndDate}
+                onChange={(e) => setPerformanceEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ minWidth: 150 }}
+              />
               <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Period</InputLabel>
+                <InputLabel>Vehicle</InputLabel>
                 <Select
-                  value={performancePeriod}
-                  onChange={(e) => setPerformancePeriod(e.target.value)}
-                  label="Period"
+                  value={selectedVehicleForPerformance}
+                  onChange={(e) => setSelectedVehicleForPerformance(e.target.value)}
+                  label="Vehicle"
                 >
-                  <MenuItem value="all">All Time</MenuItem>
-                  <MenuItem value="today">Today</MenuItem>
-                  <MenuItem value="week">This Week</MenuItem>
-                  <MenuItem value="month">This Month</MenuItem>
-                  <MenuItem value="year">This Year</MenuItem>
+                  <MenuItem value="">All Vehicles</MenuItem>
+                  {vehicles.map((vehicle) => (
+                    <MenuItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.plate_number}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
+              <Button
+                variant="contained"
+                startIcon={<Search />}
+                onClick={() => {}}
+                size="small"
+              >
+                Search
+              </Button>
+              <Button
+                size="small"
+                onClick={() => {
+                  setPerformanceStartDate('');
+                  setPerformanceEndDate('');
+                  setSelectedVehicleForPerformance('');
+                }}
+                variant="outlined"
+              >
+                Clear
+              </Button>
+            </Box>
+            {/* Financial Summary for Performance */}
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'orange.50', borderRadius: 1, border: '1px solid orange' }}>
+              <Typography variant="h6" sx={{ color: 'orange', mb: 1 }}>
+                Period Performance Summary
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={3}>
+                  <Typography variant="body2" color="text.secondary">Total Revenue</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency((() => {
+                      let filteredTrips = [...allTrips];
+                      if (performanceStartDate || performanceEndDate) {
+                        filteredTrips = filteredTrips.filter(trip => {
+                          const tripDate = new Date(trip.trip_date);
+                          const start = performanceStartDate ? new Date(performanceStartDate) : new Date('1900-01-01');
+                          const end = performanceEndDate ? new Date(performanceEndDate) : new Date('2100-12-31');
+                          return tripDate >= start && tripDate <= end;
+                        });
+                      }
+                      if (selectedVehicleForPerformance) {
+                        filteredTrips = filteredTrips.filter(trip => {
+                          const tripVehicleId = Array.isArray(trip.vehicle_id) ? trip.vehicle_id[0] : trip.vehicle_id;
+                          return tripVehicleId === selectedVehicleForPerformance;
+                        });
+                      }
+                      return filteredTrips.reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0);
+                    })())}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant="body2" color="text.secondary">Total Profit</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency((() => {
+                      let filteredTrips = [...allTrips];
+                      if (performanceStartDate || performanceEndDate) {
+                        filteredTrips = filteredTrips.filter(trip => {
+                          const tripDate = new Date(trip.trip_date);
+                          const start = performanceStartDate ? new Date(performanceStartDate) : new Date('1900-01-01');
+                          const end = performanceEndDate ? new Date(performanceEndDate) : new Date('2100-12-31');
+                          return tripDate >= start && tripDate <= end;
+                        });
+                      }
+                      if (selectedVehicleForPerformance) {
+                        filteredTrips = filteredTrips.filter(trip => {
+                          const tripVehicleId = Array.isArray(trip.vehicle_id) ? trip.vehicle_id[0] : trip.vehicle_id;
+                          return tripVehicleId === selectedVehicleForPerformance;
+                        });
+                      }
+                      return filteredTrips.reduce((sum, trip) => sum + ((parseFloat(trip.amount_charged) || 0) - (parseFloat(trip.fuel_cost) || 0)), 0);
+                    })())}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant="body2" color="text.secondary">Maintenance Cost</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency((() => {
+                      let filteredMaintenance = [...(pageData?.maintenance || [])];
+                      if (performanceStartDate || performanceEndDate) {
+                        filteredMaintenance = filteredMaintenance.filter(record => {
+                          const maintenanceDate = new Date(record.maintenance_date);
+                          const start = performanceStartDate ? new Date(performanceStartDate) : new Date('1900-01-01');
+                          const end = performanceEndDate ? new Date(performanceEndDate) : new Date('2100-12-31');
+                          return maintenanceDate >= start && maintenanceDate <= end;
+                        });
+                      }
+                      if (selectedVehicleForPerformance) {
+                        filteredMaintenance = filteredMaintenance.filter(record => {
+                          const vehicleId = Array.isArray(record.vehicle_id) ? record.vehicle_id[0] : record.vehicle_id;
+                          return vehicleId === selectedVehicleForPerformance;
+                        });
+                      }
+                      return filteredMaintenance.reduce((sum, record) => sum + (parseFloat(record.cost) || 0), 0);
+                    })())}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant="body2" color="text.secondary">Net Profit</Typography>
+                  <Typography variant="h6" sx={{ color: 'orange' }}>
+                    {formatCurrency((() => {
+                      let filteredTrips = [...allTrips];
+                      let filteredMaintenance = [...(pageData?.maintenance || [])];
+                      
+                      if (performanceStartDate || performanceEndDate) {
+                        filteredTrips = filteredTrips.filter(trip => {
+                          const tripDate = new Date(trip.trip_date);
+                          const start = performanceStartDate ? new Date(performanceStartDate) : new Date('1900-01-01');
+                          const end = performanceEndDate ? new Date(performanceEndDate) : new Date('2100-12-31');
+                          return tripDate >= start && tripDate <= end;
+                        });
+                        filteredMaintenance = filteredMaintenance.filter(record => {
+                          const maintenanceDate = new Date(record.maintenance_date);
+                          const start = performanceStartDate ? new Date(performanceStartDate) : new Date('1900-01-01');
+                          const end = performanceEndDate ? new Date(performanceEndDate) : new Date('2100-12-31');
+                          return maintenanceDate >= start && maintenanceDate <= end;
+                        });
+                      }
+                      
+                      if (selectedVehicleForPerformance) {
+                        filteredTrips = filteredTrips.filter(trip => {
+                          const tripVehicleId = Array.isArray(trip.vehicle_id) ? trip.vehicle_id[0] : trip.vehicle_id;
+                          return tripVehicleId === selectedVehicleForPerformance;
+                        });
+                        filteredMaintenance = filteredMaintenance.filter(record => {
+                          const vehicleId = Array.isArray(record.vehicle_id) ? record.vehicle_id[0] : record.vehicle_id;
+                          return vehicleId === selectedVehicleForPerformance;
+                        });
+                      }
+                      
+                      const tripProfit = filteredTrips.reduce((sum, trip) => sum + ((parseFloat(trip.amount_charged) || 0) - (parseFloat(trip.fuel_cost) || 0)), 0);
+                      const maintenanceCost = filteredMaintenance.reduce((sum, record) => sum + (parseFloat(record.cost) || 0), 0);
+                      return tripProfit - maintenanceCost;
+                    })())}
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
           </Grid>
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Vehicle Performance - {performancePeriod === 'all' ? 'All Time' : performancePeriod.charAt(0).toUpperCase() + performancePeriod.slice(1)}
+                  Vehicle Performance
                 </Typography>
                 <TableContainer>
                   <Table size="small">
@@ -761,11 +975,24 @@ const LogisticsPage = ({ openExternalPortal }) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {vehicles.map((vehicle) => {
-                        const vehicleTrips = allTrips.filter(t => {
+                      {vehicles
+                        .filter(vehicle => !selectedVehicleForPerformance || vehicle.id === selectedVehicleForPerformance)
+                        .map((vehicle) => {
+                        let vehicleTrips = allTrips.filter(t => {
                           const tripVehicleId = Array.isArray(t.vehicle_id) ? t.vehicle_id[0] : t.vehicle_id;
                           return tripVehicleId === vehicle.id;
                         });
+                        
+                        // Filter by date range
+                        if (performanceStartDate || performanceEndDate) {
+                          vehicleTrips = vehicleTrips.filter(trip => {
+                            const tripDate = new Date(trip.trip_date);
+                            const start = performanceStartDate ? new Date(performanceStartDate) : new Date('1900-01-01');
+                            const end = performanceEndDate ? new Date(performanceEndDate) : new Date('2100-12-31');
+                            return tripDate >= start && tripDate <= end;
+                          });
+                        }
+                        
                         const revenue = vehicleTrips.reduce((sum, t) => sum + (t.amount_charged || 0), 0);
                         const profit = vehicleTrips.reduce((sum, t) => sum + ((t.amount_charged || 0) - (t.fuel_cost || 0)), 0);
                         
@@ -819,32 +1046,59 @@ const LogisticsPage = ({ openExternalPortal }) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {maintenance.slice(0, 5).map((record) => (
-                        <TableRow key={record.id}>
-                          <TableCell>{record.maintenance_date ? new Date(record.maintenance_date).toLocaleDateString() : 'N/A'}</TableCell>
-                          <TableCell>{getVehiclePlateNumber(record.vehicle_id)}</TableCell>
-                          <TableCell>{record.maintenance_type || 'N/A'}</TableCell>
-                          <TableCell>{formatCurrency(record.cost || 0)}</TableCell>
-                        </TableRow>
-                      ))}
-                      {maintenance.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={4} align="center">
-                            <Typography color="text.secondary">
-                              No maintenance records
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      )}
+                      {(() => {
+                        let filteredMaintenance = [...(pageData?.maintenance || [])];
+                        
+                        // Filter by date range
+                        if (performanceStartDate || performanceEndDate) {
+                          filteredMaintenance = filteredMaintenance.filter(record => {
+                            const maintenanceDate = new Date(record.maintenance_date);
+                            const start = performanceStartDate ? new Date(performanceStartDate) : new Date('1900-01-01');
+                            const end = performanceEndDate ? new Date(performanceEndDate) : new Date('2100-12-31');
+                            return maintenanceDate >= start && maintenanceDate <= end;
+                          });
+                        }
+                        
+                        // Filter by vehicle
+                        if (selectedVehicleForPerformance) {
+                          filteredMaintenance = filteredMaintenance.filter(record => {
+                            const vehicleId = Array.isArray(record.vehicle_id) ? record.vehicle_id[0] : record.vehicle_id;
+                            return vehicleId === selectedVehicleForPerformance;
+                          });
+                        }
+                        
+                        return filteredMaintenance.slice(0, 5).map((record) => (
+                          <TableRow key={record.id}>
+                            <TableCell>{record.maintenance_date ? new Date(record.maintenance_date).toLocaleDateString() : 'N/A'}</TableCell>
+                            <TableCell>{getVehiclePlateNumber(record.vehicle_id)}</TableCell>
+                            <TableCell>{record.maintenance_type || 'N/A'}</TableCell>
+                            <TableCell>{formatCurrency(record.cost || 0)}</TableCell>
+                          </TableRow>
+                        ));
+                      })()}
                     </TableBody>
                   </Table>
                 </TableContainer>
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2" color="text.secondary">
-                    Total Maintenance Cost: {formatCurrency(maintenance.reduce((sum, m) => sum + (m.cost || 0), 0))}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Average Cost per Vehicle: {formatCurrency(vehicles.length > 0 ? maintenance.reduce((sum, m) => sum + (m.cost || 0), 0) / vehicles.length : 0)}
+                    Filtered Records: {(() => {
+                      let filteredMaintenance = [...(pageData?.maintenance || [])];
+                      if (performanceStartDate || performanceEndDate) {
+                        filteredMaintenance = filteredMaintenance.filter(record => {
+                          const maintenanceDate = new Date(record.maintenance_date);
+                          const start = performanceStartDate ? new Date(performanceStartDate) : new Date('1900-01-01');
+                          const end = performanceEndDate ? new Date(performanceEndDate) : new Date('2100-12-31');
+                          return maintenanceDate >= start && maintenanceDate <= end;
+                        });
+                      }
+                      if (selectedVehicleForPerformance) {
+                        filteredMaintenance = filteredMaintenance.filter(record => {
+                          const vehicleId = Array.isArray(record.vehicle_id) ? record.vehicle_id[0] : record.vehicle_id;
+                          return vehicleId === selectedVehicleForPerformance;
+                        });
+                      }
+                      return filteredMaintenance.length;
+                    })()}
                   </Typography>
                 </Box>
               </CardContent>
