@@ -231,6 +231,17 @@ export const salesAPIEnhanced = {
   getAnalytics: (branchId, params) => api.get(`/sales/analytics/${branchId}`, { params }).then(res => res.data),
 };
 
+// Generic data API for all tables
+export const genericDataAPI = {
+  getAll: (tableName, params) => api.get(`/data/${tableName}`, { params }).then(res => res.data),
+  getById: (tableName, id) => api.get(`/data/${tableName}/${id}`).then(res => res.data),
+  create: (tableName, data) => api.post(`/data/${tableName}`, data).then(res => res.data),
+  update: (tableName, id, data) => api.put(`/data/${tableName}/${id}`, data).then(res => res.data),
+  delete: (tableName, id) => api.delete(`/data/${tableName}/${id}`).then(res => res.data),
+  bulkOperation: (tableName, operation, records) => 
+    api.post(`/data/${tableName}/bulk`, { operation, records }).then(res => res.data)
+};
+
 // Comprehensive data fetching utilities
 export const dataAPI = {
   // Get all data for a specific page

@@ -20,7 +20,8 @@ import {
   ShoppingCart,
   People,
   Business,
-  AccountBalance
+  AccountBalance,
+  Storage
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -129,6 +130,17 @@ const Navbar = ({ openExternalPortal }) => {
               onClick={() => navigate('/admin')}
             >
               Admin
+            </Button>
+          )}
+
+          {/* Data Management */}
+          {(canAccessAdmin || canAccessBoss) && (
+            <Button
+              color="inherit"
+              startIcon={<Storage />}
+              onClick={() => navigate('/data')}
+            >
+              Data
             </Button>
           )}
 

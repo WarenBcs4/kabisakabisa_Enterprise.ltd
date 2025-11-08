@@ -20,6 +20,7 @@ import HRPage from './pages/HRPage';
 import BossPage from './pages/BossPage';
 import ManagerPage from './pages/ManagerPage';
 import AdminPage from './pages/AdminPage';
+import DataManagementPage from './pages/DataManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -127,7 +128,11 @@ function AppContent() {
             </ProtectedRoute>
           } />
 
-
+          <Route path="/data" element={
+            <ProtectedRoute allowedRoles={['admin', 'boss']}>
+              <DataManagementPage />
+            </ProtectedRoute>
+          } />
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" />} />

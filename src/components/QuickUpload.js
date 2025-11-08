@@ -42,7 +42,17 @@ const QuickUpload = ({ defaultCategory = 'general', buttonText = 'Upload Documen
   ];
 
   const uploadMutation = useMutation(
-    (formData) => documentsAPI.uploadDocument(formData),
+    async (formData) => {
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: formData
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
+    },
     {
       onSuccess: () => {
         toast.success('Document uploaded successfully!');
