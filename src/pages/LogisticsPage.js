@@ -50,6 +50,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
   const [showHistoricalData, setShowHistoricalData] = useState(false);
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [selectedVehicleForTrips, setSelectedVehicleForTrips] = useState('');
+  const [performancePeriod, setPerformancePeriod] = useState('all');
 
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerTrip, handleSubmit: handleTripSubmit, reset: resetTrip } = useForm();
@@ -65,7 +66,15 @@ const LogisticsPage = ({ openExternalPortal }) => {
 
   const vehicles = useMemo(() => pageData?.vehicles || [], [pageData?.vehicles]);
   const allTrips = useMemo(() => pageData?.trips || [], [pageData?.trips]);
-  const maintenance = useMemo(() => pageData?.maintenance || [], [pageData?.maintenance]);
+  const maintenance = useMemo(() => {
+    const data = pageData?.maintenance || [];
+    if (data.length > 0) {
+      console.log('✅ Maintenance data received:', data.length, 'records');
+    } else {
+      console.log('❌ No maintenance data received');
+    }
+    return data;
+  }, [pageData?.maintenance]);
   
 
   
@@ -590,11 +599,29 @@ const LogisticsPage = ({ openExternalPortal }) => {
       {/* Performance Tab */}
       {activeTab === 3 && (
         <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+              <FormControl size="small" sx={{ minWidth: 150 }}>
+                <InputLabel>Period</InputLabel>
+                <Select
+                  value={performancePeriod}
+                  onChange={(e) => setPerformancePeriod(e.target.value)}
+                  label="Period"
+                >
+                  <MenuItem value="all">All Time</MenuItem>
+                  <MenuItem value="today">Today</MenuItem>
+                  <MenuItem value="week">This Week</MenuItem>
+                  <MenuItem value="month">This Month</MenuItem>
+                  <MenuItem value="year">This Year</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Grid>
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Vehicle Performance
+                  Vehicle Performance - {performancePeriod === 'all' ? 'All Time' : performancePeriod.charAt(0).toUpperCase() + performancePeriod.slice(1)}
                 </Typography>
                 <TableContainer>
                   <Table size="small">
