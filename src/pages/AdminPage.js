@@ -284,7 +284,6 @@ const AdminPage = () => {
   };
 
   const onSubmitBranch = (data) => {
-    // Validate required fields
     if (!data.branch_name?.trim()) {
       toast.error('Branch name is required');
       return;
@@ -302,6 +301,68 @@ const AdminPage = () => {
     } else {
       createBranchMutation.mutate(cleanData);
     }
+  };
+
+  const onSubmitProduct = (data) => {
+    if (!data.product_name?.trim()) {
+      toast.error('Product name is required');
+      return;
+    }
+    
+    const cleanData = {
+      product_name: data.product_name.trim(),
+      unit_price: parseFloat(data.unit_price) || 0,
+      quantity_available: parseInt(data.quantity_available) || 0,
+      branch_id: data.branch_id
+    };
+    
+    if (editingProduct) {
+      updateProductMutation.mutate({ id: editingProduct.id, data: cleanData });
+    } else {
+      createProductMutation.mutate(cleanData);
+    }
+  };
+
+  const handleEditBranch = (branch) => {
+    setEditingBranch(branch);
+    setValueBranch('branch_name', branch.branch_name);
+    setValueBranch('location_address', branch.location_address);
+    setValueBranch('phone', branch.phone);
+    setValueBranch('email', branch.email);
+    setShowAddBranch(true);
+  };
+
+  const handleEditProduct = (product) => {
+    setEditingProduct(product);
+    setValueProduct('product_name', product.product_name);
+    setValueProduct('unit_price', product.unit_price);
+    setValueProduct('quantity_available', product.quantity_available);
+    setValueProduct('branch_id', product.branch_id);
+    setShowAddProduct(true);
+  };
+
+  const handleCloseBranchDialog = () => {
+    setShowAddBranch(false);
+    setEditingBranch(null);
+    resetBranch();
+  };
+
+  const handleCloseProductDialog = () => {
+    setShowAddProduct(false);
+    setEditingProduct(null);
+    resetProduct();
+  };
+
+  const getRoleColor = (role) => {
+    const colors = {
+      admin: 'error',
+      boss: 'secondary', 
+      manager: 'primary',
+      hr: 'info',
+      sales: 'success',
+      logistics: 'warning'
+    };
+    return colors[role] || 'default';
   };
 
   if (isLoading) {
@@ -389,280 +450,91 @@ const AdminPage = () => {
         </Card>
       )}
 
-      {/* Add User Dialog */}
-      <Dialog open={showAddUser} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
-            <TextField
-              fullWidth
-              label="Full Name"
-              margin="normal"
-              {...register('full_name', { required: true })}
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              margin="normal"
-              {...register('email', { required: true })}
-            />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Role</InputLabel>
-              <Select
-                {...register('role', { required: true })}
-                label="Role"
+      {activeTab === 1 && (
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6">Branch Management</Typography>
+              <Button
+                variant="contained"
+                startIcon={<Business />}
+                onClick={() => setShowAddBranch(true)}
               >
-                <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="manager">Manager</MenuItem>
-                <MenuItem value="hr">HR</MenuItem>
-                <MenuItem value="sales">Sales</MenuItem>
-                <MenuItem value="logistics">Logistics</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit(onSubmit)} variant="contained">
-            {editingUser ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
-  );oast.error('Branch name is required');
-      return;
-    }
-    if (!data.location_address?.trim()) {
-      toast.error('Location address is required');
-      return;
-    }
-
-    // Validate email if provided
-    if (data.email?.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(data.email.trim())) {
-        toast.error('Please enter a valid email address');
-        return;
-      }
-    }
-
-    const cleanData = {
-      branch_name: data.branch_name.trim(),
-      location_address: data.location_address.trim(),
-      phone: data.phone?.trim() || null,
-      email: data.email?.toLowerCase().trim() || null,
-      latitude: data.latitude ? parseFloat(data.latitude) : null,
-      longitude: data.longitude ? parseFloat(data.longitude) : null
-    };
-    
-    if (editingBranch) {
-      updateBranchMutation.mutate({ id: editingBranch.id, data: cleanData });
-    } else {
-      createBranchMutation.mutate(cleanData);
-    }
-  };
-
-  const onSubmitProduct = (data) => {
-    // Validate required fields
-    if (!data.product_name?.trim()) {
-      toast.error('Product name is required');
-      return;
-    }
-    if (!data.unit_price || data.unit_price <= 0) {
-      toast.error('Valid unit price is required');
-      return;
-    }
-    if (!data.branch_id && !editingProduct) {
-      toast.error('Please select a branch');
-      return;
-    }
-
-    const cleanData = {
-      product_name: data.product_name.trim(),
-      unit_price: parseFloat(data.unit_price),
-      reorder_level: parseInt(data.reorder_level) || 10,
-      quantity_available: parseInt(data.quantity_available) || 0
-    };
-
-    if (!editingProduct) {
-      cleanData.branch_id = data.branch_id;
-    }
-    
-    if (editingProduct) {
-      updateProductMutation.mutate({ id: editingProduct.id, data: cleanData });
-    } else {
-      createProductMutation.mutate(cleanData);
-    }
-  };
-
-  const handleEditBranch = (branch) => {
-    setEditingBranch(branch);
-    setValueBranch('branch_name', branch.branch_name);
-    setValueBranch('location_address', branch.location_address);
-    setValueBranch('phone', branch.phone);
-    setValueBranch('email', branch.email);
-    setShowAddBranch(true);
-  };
-
-  const handleEditProduct = (product) => {
-    setEditingProduct(product);
-    setValueProduct('product_name', product.product_name);
-    setValueProduct('product_id', product.product_id);
-    setValueProduct('quantity_available', product.quantity_available);
-    setValueProduct('unit_price', product.unit_price);
-    setValueProduct('reorder_level', product.reorder_level);
-    setValueProduct('branch_id', product.branch_id);
-    setShowAddProduct(true);
-  };
-
-  const handleCloseBranchDialog = () => {
-    setShowAddBranch(false);
-    setEditingBranch(null);
-    resetBranch();
-  };
-
-  const handleCloseProductDialog = () => {
-    setShowAddProduct(false);
-    setEditingProduct(null);
-    resetProduct();
-  };
-
-  const getRoleColor = (role) => {
-    const colors = {
-      admin: 'error',
-      boss: 'secondary',
-      manager: 'primary',
-      hr: 'info',
-      sales: 'success',
-      logistics: 'warning'
-    };
-    return colors[role] || 'default';
-  };
-
-  if (isLoading) {
-    return (
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4, display: 'flex', justifyContent: 'center' }}>
-        <div>Loading...</div>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        <Typography color="error">Error loading admin data</Typography>
-      </Container>
-    );
-  }
-
-  return (
-    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h4">
-          Admin Management
-        </Typography>
-        
-        {/* Branch Selection */}
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Filter by Branch</InputLabel>
-          <Select
-            value={selectedBranchId}
-            onChange={(e) => setSelectedBranchId(e.target.value)}
-            label="Filter by Branch"
-            startAdornment={<Business sx={{ mr: 1, color: 'action.active' }} />}
-          >
-            <MenuItem value="">
-              <em>All Branches</em>
-            </MenuItem>
-            {branches.map((branch) => (
-              <MenuItem key={branch.id} value={branch.id}>
-                {branch.branch_name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
-          <Tab label="Users" />
-          <Tab label="Branches" />
-          <Tab label="Products" />
-          <Tab label="Accounting" />
-          <Tab label="Receipts" />
-          <Tab label="Reports" />
-          <Tab label="Documents" />
-          <Tab label="Historical Data" />
-        </Tabs>
-      </Box>
-
-      {activeTab === 0 && (
-        <Box>
-          <Box sx={{ mb: 3 }}>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setShowAddUser(true)}
-            >
-              Add New User
-            </Button>
-          </Box>
-
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            System Users
-          </Typography>
-          
-          <TableContainer component={Paper}>
+                Add Branch
+              </Button>
+            </Box>
+            
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Name</TableCell>
+                  <TableCell>Branch Name</TableCell>
+                  <TableCell>Address</TableCell>
+                  <TableCell>Phone</TableCell>
                   <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Branch</TableCell>
-                  <TableCell>Status</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {employees.map((user) => {
-                  const userBranch = branches.find(b => b.id === user.branch_id);
+                {branches.map((branch) => (
+                  <TableRow key={branch.id}>
+                    <TableCell>{branch.branch_name}</TableCell>
+                    <TableCell>{branch.location_address}</TableCell>
+                    <TableCell>{branch.phone}</TableCell>
+                    <TableCell>{branch.email}</TableCell>
+                    <TableCell>
+                      <IconButton onClick={() => handleEditBranch(branch)}>
+                        <Edit />
+                      </IconButton>
+                      <IconButton onClick={() => deleteBranchMutation.mutate(branch.id)}>
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 2 && (
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6">Product Management</Typography>
+              <Button
+                variant="contained"
+                startIcon={<Inventory />}
+                onClick={() => setShowAddProduct(true)}
+              >
+                Add Product
+              </Button>
+            </Box>
+            
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Product Name</TableCell>
+                  <TableCell>Branch</TableCell>
+                  <TableCell>Quantity</TableCell>
+                  <TableCell>Unit Price</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {products.map((product) => {
+                  const productBranch = branches.find(b => b.id === product.branch_id);
                   return (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.full_name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
+                    <TableRow key={product.id}>
+                      <TableCell>{product.product_name}</TableCell>
+                      <TableCell>{productBranch?.branch_name || 'Unknown'}</TableCell>
+                      <TableCell>{product.quantity_available}</TableCell>
+                      <TableCell>{formatCurrency(product.unit_price)}</TableCell>
                       <TableCell>
-                        <Chip 
-                          label={user.role.toUpperCase()} 
-                          color={getRoleColor(user.role)}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {userBranch?.branch_name || 'No Branch'}
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={user.is_active ? 'Active' : 'Inactive'}
-                          color={user.is_active ? 'success' : 'default'}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <IconButton 
-                          onClick={() => handleEdit(user)}
-                          size="small"
-                        >
+                        <IconButton onClick={() => handleEditProduct(product)}>
                           <Edit />
                         </IconButton>
-                        <IconButton 
-                          onClick={() => deleteUserMutation.mutate(user.id)}
-                          size="small"
-                          color="error"
-                        >
+                        <IconButton onClick={() => deleteProductMutation.mutate(product.id)}>
                           <Delete />
                         </IconButton>
                       </TableCell>
@@ -671,137 +543,8 @@ const AdminPage = () => {
                 })}
               </TableBody>
             </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
-        </Box>
-      )}
-
-      {activeTab === 1 && (
-        <Box>
-          <Box sx={{ mb: 3 }}>
-            <Button
-              variant="contained"
-              startIcon={<Business />}
-              onClick={() => setShowAddBranch(true)}
-            >
-              Add New Branch
-            </Button>
-          </Box>
-
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Branches
-              </Typography>
-              
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Branch Name</TableCell>
-                      <TableCell>Address</TableCell>
-                      <TableCell>Phone</TableCell>
-                      <TableCell>Email</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {branches.map((branch) => (
-                      <TableRow key={branch.id}>
-                        <TableCell>{branch.branch_name}</TableCell>
-                        <TableCell>{branch.location_address}</TableCell>
-                        <TableCell>{branch.phone}</TableCell>
-                        <TableCell>{branch.email}</TableCell>
-                        <TableCell>
-                          <IconButton 
-                            onClick={() => handleEditBranch(branch)}
-                            size="small"
-                          >
-                            <Edit />
-                          </IconButton>
-                          <IconButton 
-                            onClick={() => deleteBranchMutation.mutate(branch.id)}
-                            size="small"
-                            color="error"
-                          >
-                            <Delete />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Box>
-      )}
-
-      {activeTab === 2 && (
-        <Box>
-          <Box sx={{ mb: 3 }}>
-            <Button
-              variant="contained"
-              startIcon={<Inventory />}
-              onClick={() => setShowAddProduct(true)}
-            >
-              Add New Product
-            </Button>
-          </Box>
-
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Products
-              </Typography>
-              
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Product Name</TableCell>
-                      <TableCell>Product ID</TableCell>
-                      <TableCell>Branch</TableCell>
-                      <TableCell>Quantity</TableCell>
-                      <TableCell>Unit Price</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {products.map((product) => {
-                      const productBranch = branches.find(b => b.id === product.branch_id);
-                      return (
-                        <TableRow key={product.id}>
-                          <TableCell>{product.product_name}</TableCell>
-                          <TableCell>{product.product_id}</TableCell>
-                          <TableCell>{productBranch?.branch_name || 'Unknown'}</TableCell>
-                          <TableCell>{product.quantity_available}</TableCell>
-                          <TableCell>{formatCurrency(product.unit_price)}</TableCell>
-                          <TableCell>
-                            <IconButton 
-                              onClick={() => handleEditProduct(product)}
-                              size="small"
-                            >
-                              <Edit />
-                            </IconButton>
-                            <IconButton 
-                              onClick={() => deleteProductMutation.mutate(product.id)}
-                              size="small"
-                              color="error"
-                            >
-                              <Delete />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Box>
+          </CardContent>
+        </Card>
       )}
 
       {activeTab === 3 && (
@@ -825,28 +568,21 @@ const AdminPage = () => {
           <Typography variant="h6" gutterBottom>
             Historical Data Management
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Access and manage historical records from your previous spreadsheet system.
-            You can view, edit, and continue adding data seamlessly.
-          </Typography>
           <Button
             variant="contained"
             startIcon={<History />}
             onClick={() => setShowHistoricalData(true)}
-            size="large"
           >
             Open Historical Data
           </Button>
         </Box>
       )}
 
-      {/* Add/Edit User Dialog */}
+      {/* Add User Dialog */}
       <Dialog open={showAddUser} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingUser ? 'Edit User' : 'Add New User'}
-        </DialogTitle>
+        <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
         <DialogContent>
-          <Box component="form" sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2 }}>
             <TextField
               fullWidth
               label="Full Name"
@@ -860,12 +596,6 @@ const AdminPage = () => {
               margin="normal"
               {...register('email', { required: true })}
             />
-            <TextField
-              fullWidth
-              label="Phone"
-              margin="normal"
-              {...register('phone')}
-            />
             <FormControl fullWidth margin="normal">
               <InputLabel>Role</InputLabel>
               <Select
@@ -873,9 +603,8 @@ const AdminPage = () => {
                 label="Role"
                 value={watch('role') || 'sales'}
               >
-                <MenuItem value="boss">Boss</MenuItem>
-                <MenuItem value="manager">Manager</MenuItem>
                 <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="manager">Manager</MenuItem>
                 <MenuItem value="hr">HR</MenuItem>
                 <MenuItem value="sales">Sales</MenuItem>
                 <MenuItem value="logistics">Logistics</MenuItem>
@@ -896,47 +625,21 @@ const AdminPage = () => {
                 ))}
               </Select>
             </FormControl>
-            <TextField
-              fullWidth
-              label="Salary"
-              type="number"
-              margin="normal"
-              {...register('salary')}
-            />
-            <TextField
-              fullWidth
-              label="Hire Date"
-              type="date"
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
-              {...register('hire_date')}
-            />
-            {!editingUser && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                Default password will be: {watch('role') || 'role'}password123
-              </Typography>
-            )}
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button 
-            onClick={handleSubmit(onSubmit)}
-            variant="contained"
-            disabled={createUserMutation.isLoading || updateUserMutation.isLoading}
-          >
-            {createUserMutation.isLoading || updateUserMutation.isLoading ? 'Processing...' : (editingUser ? 'Update' : 'Create') + ' User'}
+          <Button onClick={handleSubmit(onSubmit)} variant="contained">
+            {editingUser ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Add/Edit Branch Dialog */}
+      {/* Add Branch Dialog */}
       <Dialog open={showAddBranch} onClose={handleCloseBranchDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingBranch ? 'Edit Branch' : 'Add New Branch'}
-        </DialogTitle>
+        <DialogTitle>{editingBranch ? 'Edit Branch' : 'Add New Branch'}</DialogTitle>
         <DialogContent>
-          <Box component="form" sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2 }}>
             <TextField
               fullWidth
               label="Branch Name"
@@ -949,7 +652,7 @@ const AdminPage = () => {
               multiline
               rows={3}
               margin="normal"
-              {...registerBranch('location_address', { required: true })}
+              {...registerBranch('location_address')}
             />
             <TextField
               fullWidth
@@ -964,45 +667,23 @@ const AdminPage = () => {
               margin="normal"
               {...registerBranch('email')}
             />
-            <TextField
-              fullWidth
-              label="Latitude"
-              type="number"
-              step="any"
-              margin="normal"
-              {...registerBranch('latitude')}
-            />
-            <TextField
-              fullWidth
-              label="Longitude"
-              type="number"
-              step="any"
-              margin="normal"
-              {...registerBranch('longitude')}
-            />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseBranchDialog}>Cancel</Button>
-          <Button 
-            onClick={handleSubmitBranch(onSubmitBranch)}
-            variant="contained"
-            disabled={createBranchMutation.isLoading || updateBranchMutation.isLoading}
-          >
-            {createBranchMutation.isLoading || updateBranchMutation.isLoading ? 'Processing...' : (editingBranch ? 'Update' : 'Create') + ' Branch'}
+          <Button onClick={handleSubmitBranch(onSubmitBranch)} variant="contained">
+            {editingBranch ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Add/Edit Product Dialog */}
+      {/* Add Product Dialog */}
       <Dialog open={showAddProduct} onClose={handleCloseProductDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingProduct ? 'Edit Product' : 'Add New Product'}
-        </DialogTitle>
+        <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
         <DialogContent>
-          <Box component="form" sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2 }}>
             <FormControl fullWidth margin="normal">
-              <InputLabel>Branch *</InputLabel>
+              <InputLabel>Branch</InputLabel>
               <Select
                 {...registerProduct('branch_id', { required: true })}
                 label="Branch"
@@ -1017,55 +698,35 @@ const AdminPage = () => {
             </FormControl>
             <TextField
               fullWidth
-              label="Product ID"
-              margin="normal"
-              placeholder="Auto-generated if empty"
-              {...registerProduct('product_id')}
-            />
-            <TextField
-              fullWidth
-              label="Product Name *"
+              label="Product Name"
               margin="normal"
               {...registerProduct('product_name', { required: true })}
             />
             <TextField
               fullWidth
-              label="Quantity Available *"
+              label="Quantity Available"
               type="number"
               margin="normal"
-              {...registerProduct('quantity_available', { required: true, min: 0 })}
+              {...registerProduct('quantity_available')}
             />
             <TextField
               fullWidth
-              label="Unit Price *"
+              label="Unit Price"
               type="number"
               step="0.01"
               margin="normal"
-              {...registerProduct('unit_price', { required: true, min: 0 })}
-            />
-            <TextField
-              fullWidth
-              label="Reorder Level"
-              type="number"
-              margin="normal"
-              defaultValue={10}
-              {...registerProduct('reorder_level')}
+              {...registerProduct('unit_price', { required: true })}
             />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseProductDialog}>Cancel</Button>
-          <Button 
-            onClick={handleSubmitProduct(onSubmitProduct)}
-            variant="contained"
-            disabled={createProductMutation.isLoading || updateProductMutation.isLoading}
-          >
-            {createProductMutation.isLoading || updateProductMutation.isLoading ? 'Processing...' : (editingProduct ? 'Update' : 'Add') + ' Product'}
+          <Button onClick={handleSubmitProduct(onSubmitProduct)} variant="contained">
+            {editingProduct ? 'Update' : 'Add'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Historical Data Viewer */}
       <HistoricalDataViewer 
         open={showHistoricalData}
         onClose={() => setShowHistoricalData(false)}
