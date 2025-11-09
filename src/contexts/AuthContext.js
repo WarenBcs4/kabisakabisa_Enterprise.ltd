@@ -137,13 +137,14 @@ export const AuthProvider = ({ children }) => {
 
 
 
-  // MFA methods (placeholders for now)
+  // MFA methods
   const setupMFA = async (userId) => {
-    // Placeholder - return mock MFA data
-    return {
-      secret: 'MOCK_SECRET_123456',
-      qrCode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-    };
+    try {
+      return await authAPI.setupMFA(userId);
+    } catch (error) {
+      console.error('MFA setup error:', error);
+      throw error;
+    }
   };
 
   const verifyMFA = async (userId, token) => {

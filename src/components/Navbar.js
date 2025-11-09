@@ -167,7 +167,7 @@ const Navbar = ({ openExternalPortal }) => {
                       handleMenuClose();
                     }}
                   >
-                    {branch.branch_name || branch.name}
+                    {String(branch.branch_name || branch.name || 'Unknown Branch')}
                   </MenuItem>
                 ))}
               </Menu>
@@ -197,7 +197,7 @@ const Navbar = ({ openExternalPortal }) => {
                       handleMenuClose();
                     }}
                   >
-                    {branch.branch_name || branch.name}
+                    {String(branch.branch_name || branch.name || 'Unknown Branch')}
                   </MenuItem>
                 ))}
               </Menu>
@@ -269,7 +269,7 @@ const Navbar = ({ openExternalPortal }) => {
             color="inherit"
           >
             <Avatar sx={{ width: 32, height: 32 }}>
-              {user?.fullName?.charAt(0) || <AccountCircle />}
+              {user?.fullName ? String(user.fullName).charAt(0).toUpperCase() : <AccountCircle />}
             </Avatar>
           </IconButton>
           <Menu
@@ -279,7 +279,7 @@ const Navbar = ({ openExternalPortal }) => {
           >
             <MenuItem onClick={handleMenuClose}>
               <Typography variant="body2">
-                {user?.fullName} ({user?.role})
+                {String(user?.fullName || 'User')} ({String(user?.role || 'Unknown')})
               </Typography>
             </MenuItem>
             <MenuItem onClick={handleLogout}>

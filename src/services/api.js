@@ -20,12 +20,13 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Add CSRF token for state-changing requests
+    // Add CSRF token for state-changing requests (only if available)
     if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
       const csrfToken = Cookies.get('csrfToken');
       if (csrfToken) {
         config.headers['X-CSRF-Token'] = csrfToken;
       }
+      // Don't fail if CSRF token is missing - let backend decide
     }
     
     return config;

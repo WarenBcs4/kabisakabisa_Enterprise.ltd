@@ -289,6 +289,150 @@ const AdminPage = () => {
       toast.error('Branch name is required');
       return;
     }
+    
+    const cleanData = {
+      branch_name: data.branch_name.trim(),
+      location_address: data.location_address?.trim() || '',
+      phone: data.phone?.trim() || '',
+      email: data.email?.trim() || ''
+    };
+    
+    if (editingBranch) {
+      updateBranchMutation.mutate({ id: editingBranch.id, data: cleanData });
+    } else {
+      createBranchMutation.mutate(cleanData);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="xl" sx={{ mt: 4, mb: 4, display: 'flex', justifyContent: 'center' }}>
+        <div>Loading...</div>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+        <Typography color="error">Error loading admin data</Typography>
+      </Container>
+    );
+  }
+
+  return (
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Admin Dashboard
+      </Typography>
+      
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+          <Tab label="Users" />
+          <Tab label="Branches" />
+          <Tab label="Products" />
+        </Tabs>
+      </Box>
+
+      {activeTab === 0 && (
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6">User Management</Typography>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => setShowAddUser(true)}
+              >
+                Add User
+              </Button>
+            </Box>
+            
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {employees.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell>{employee.full_name}</TableCell>
+                    <TableCell>{employee.email}</TableCell>
+                    <TableCell>
+                      <Chip label={employee.role} size="small" />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={employee.is_active ? 'Active' : 'Inactive'}
+                        color={employee.is_active ? 'success' : 'default'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <IconButton onClick={() => handleEdit(employee)}>
+                        <Edit />
+                      </IconButton>
+                      <IconButton onClick={() => deleteUserMutation.mutate(employee.id)}>
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add User Dialog */}
+      <Dialog open={showAddUser} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
+        <DialogContent>
+          <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Full Name"
+              margin="normal"
+              {...register('full_name', { required: true })}
+            />
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              margin="normal"
+              {...register('email', { required: true })}
+            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Role</InputLabel>
+              <Select
+                {...register('role', { required: true })}
+                label="Role"
+              >
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="manager">Manager</MenuItem>
+                <MenuItem value="hr">HR</MenuItem>
+                <MenuItem value="sales">Sales</MenuItem>
+                <MenuItem value="logistics">Logistics</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleSubmit(onSubmit)} variant="contained">
+            {editingUser ? 'Update' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
+  );oast.error('Branch name is required');
+      return;
+    }
     if (!data.location_address?.trim()) {
       toast.error('Location address is required');
       return;
