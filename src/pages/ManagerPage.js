@@ -28,8 +28,7 @@ import {
   Store,
   LocalShipping,
   ShoppingCart,
-  Assessment,
-  Business
+  Assessment
 } from '@mui/icons-material';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useQuery } from 'react-query';
@@ -38,8 +37,6 @@ import { useNavigate } from 'react-router-dom';
 import { dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
