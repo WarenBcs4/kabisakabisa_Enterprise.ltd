@@ -26,7 +26,7 @@ import {
   IconButton,
   Chip
 } from '@mui/material';
-import { Add, Delete, Visibility, Receipt, History } from '@mui/icons-material';
+import { Add, Delete, Visibility, Receipt } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import QuickUpload from '../components/QuickUpload';
 

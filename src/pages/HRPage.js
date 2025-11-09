@@ -33,10 +33,10 @@ import {
   Tooltip
 } from '@mui/material';
 import { 
-  Add, Edit, Delete, Payment, Email, People, History, Search, Calculate, Send,
-  LocalShipping, DirectionsCar, AccountBalance, Business, Work, AdminPanelSettings,
-  Engineering, Store, ManageAccounts, Badge, Groups, PersonAdd, MonetizationOn,
-  Assessment, TrendingUp, Security, Verified
+  Edit, Delete, People, History, Search, Send,
+  DirectionsCar, AccountBalance, 
+  Engineering, Store, ManageAccounts, Groups, PersonAdd, MonetizationOn,
+  Assessment, Security, Verified, AdminPanelSettings, Email
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
@@ -70,8 +70,8 @@ const HRPage = () => {
     () => dataAPI.getPageData('hr')
   );
 
-  const allEmployees = pageData?.employees || [];
-  const allPayroll = pageData?.payroll || [];
+  const allEmployees = useMemo(() => pageData?.employees || [], [pageData?.employees]);
+  const allPayroll = useMemo(() => pageData?.payroll || [], [pageData?.payroll]);
   
   const { data: branches = [] } = useQuery('branches', () => branchesAPI.getAll());
 
