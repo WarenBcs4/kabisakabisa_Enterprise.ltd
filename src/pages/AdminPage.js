@@ -41,6 +41,7 @@ import toast from 'react-hot-toast';
 
 const AdminPage = () => {
   const queryClient = useQueryClient();
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [showAddUser, setShowAddUser] = useState(false);
   const [showAddBranch, setShowAddBranch] = useState(false);
@@ -62,10 +63,11 @@ const AdminPage = () => {
 
   // Queries
   const { data: pageData, isLoading, error } = useQuery(
-    'adminPageData',
+    ['adminPageData', selectedBranchId],
     () => {
-      console.log('Fetching admin page data');
-      return dataAPI.getPageData('admin');
+      console.log('Fetching admin page data for branch:', selectedBranchId);
+      const params = selectedBranchId ? { branchId: selectedBranchId } : {};
+      return dataAPI.getPageData('admin', params);
     }
   );
 
@@ -88,7 +90,7 @@ const AdminPage = () => {
         toast.success('User created successfully!');
         setShowAddUser(false);
         reset();
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         console.error('Create user error:', error);
@@ -105,7 +107,7 @@ const AdminPage = () => {
         toast.success('User updated successfully!');
         setEditingUser(null);
         reset();
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update user');
@@ -118,7 +120,7 @@ const AdminPage = () => {
     {
       onSuccess: () => {
         toast.success('User deactivated successfully!');
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to deactivate user');
@@ -134,7 +136,7 @@ const AdminPage = () => {
         toast.success('Branch created successfully!');
         setShowAddBranch(false);
         resetBranch();
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to create branch');
@@ -150,7 +152,7 @@ const AdminPage = () => {
         setEditingBranch(null);
         setShowAddBranch(false);
         resetBranch();
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update branch');
@@ -163,7 +165,7 @@ const AdminPage = () => {
     {
       onSuccess: () => {
         toast.success('Branch deleted successfully!');
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to delete branch');
@@ -179,7 +181,7 @@ const AdminPage = () => {
         toast.success('Product added successfully!');
         setShowAddProduct(false);
         resetProduct();
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to add product');
@@ -195,7 +197,7 @@ const AdminPage = () => {
         setEditingProduct(null);
         setShowAddProduct(false);
         resetProduct();
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update product');
@@ -208,7 +210,7 @@ const AdminPage = () => {
     {
       onSuccess: () => {
         toast.success('Product deleted successfully!');
-        queryClient.invalidateQueries('adminPageData');
+        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to delete product');
@@ -412,9 +414,31 @@ const AdminPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
-      <Typography variant="h4" gutterBottom>
-        Admin Management
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h4">
+          Admin Management
+        </Typography>
+        
+        {/* Branch Selection */}
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Filter by Branch</InputLabel>
+          <Select
+            value={selectedBranchId}
+            onChange={(e) => setSelectedBranchId(e.target.value)}
+            label="Filter by Branch"
+            startAdornment={<Business sx={{ mr: 1, color: 'action.active' }} />}
+          >
+            <MenuItem value="">
+              <em>All Branches</em>
+            </MenuItem>
+            {branches.map((branch) => (
+              <MenuItem key={branch.id} value={branch.id}>
+                {branch.branch_name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>

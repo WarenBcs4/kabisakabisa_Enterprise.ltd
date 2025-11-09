@@ -20,13 +20,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Add CSRF token for state-changing requests
-    if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
-      const csrfToken = Cookies.get('csrfToken');
-      if (csrfToken) {
-        config.headers['X-CSRF-Token'] = csrfToken;
-      }
-    }
+    // CSRF protection disabled for form submissions
     
     return config;
   },
@@ -248,7 +242,8 @@ export const genericDataAPI = {
 // Comprehensive data fetching utilities
 export const dataAPI = {
   // Get all data for a specific page
-  getPageData: async (page, branchId = null, params = {}) => {
+  getPageData: async (page, params = {}) => {
+    const branchId = params.branchId;
     try {
       switch (page) {
         case 'admin':
@@ -300,9 +295,9 @@ export const dataAPI = {
           };
 
         case 'sales':
-          if (!branchId) throw new Error('Branch ID required for sales page');
-          const salesStock = await api.get(`/stock/branch/${branchId}`).then(res => res.data);
-          return { stock: salesStock, sales: [], expenses: [] };
+          const queryString = new URLSearchParams(params).toString();
+          const url = `/data/page/sales${queryString ? `?${queryString}` : ''}`;
+          return api.get(url).then(res => res.data);
 
         case 'stock':
           if (!branchId) throw new Error('Branch ID required for stock page');

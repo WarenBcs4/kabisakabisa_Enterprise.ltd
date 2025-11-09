@@ -14,7 +14,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-
   Dialog,
   DialogTitle,
   DialogContent,
@@ -26,7 +25,7 @@ import {
   IconButton,
   Chip
 } from '@mui/material';
-import { Add, Delete, Visibility, Receipt } from '@mui/icons-material';
+import { Add, Delete, Visibility, Receipt, Business } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import QuickUpload from '../components/QuickUpload';
 
@@ -37,12 +36,11 @@ import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
 const SalesPage = () => {
-  const { branchId } = useParams();
   const queryClient = useQueryClient();
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [showStockModal, setShowStockModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showFundsModal, setShowFundsModal] = useState(false);
-
 
   const { register, control, handleSubmit, watch, setValue, reset } = useForm({
     defaultValues: {
@@ -59,39 +57,58 @@ const SalesPage = () => {
 
   // Queries
   const { data: pageData, isLoading, error } = useQuery(
-    ['salesPageData', branchId],
-    () => dataAPI.getPageData('sales', branchId),
-    { enabled: !!branchId }
+    ['salesPageData', selectedBranchId],
+    () => {
+      const params = selectedBranchId ? { branchId: selectedBranchId } : {};
+      return dataAPI.getPageData('sales', params);
+    }
   );
 
   const stock = pageData?.stock || [];
   const sales = pageData?.sales || [];
   const expenses = pageData?.expenses || [];
+  const branches = pageData?.branches || [];
   
-  console.log('Sales page data:', { stock: stock.length, sales: sales.length, expenses: expenses.length });
+  console.log('Sales page data:', { 
+    stock: stock.length, 
+    sales: sales.length, 
+    expenses: expenses.length,
+    branches: branches.length,
+    selectedBranch: selectedBranchId
+  });
 
   const { data: dailySummary } = useQuery(
-    ['dailySummary', branchId],
-    () => salesAPI.getDailySummary(branchId),
-    { enabled: !!branchId }
+    ['dailySummary', selectedBranchId],
+    () => ({ totalSales: sales.length, totalAmount: sales.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0) }),
+    { enabled: sales.length > 0 }
   );
 
   const { data: fundsTracking } = useQuery(
-    ['fundsTracking', branchId],
-    () => salesAPI.getFundsTracking(branchId),
-    { enabled: !!branchId }
+    ['fundsTracking', selectedBranchId],
+    () => ({
+      receivedFunds: sales.filter(s => s.payment_method !== 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+      outstandingBalance: sales.filter(s => s.payment_method === 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+      totalSalesAmount: sales.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+      salesBreakdown: {
+        cash: sales.filter(s => s.payment_method === 'cash').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+        card: sales.filter(s => s.payment_method === 'card').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+        credit: sales.filter(s => s.payment_method === 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0)
+      },
+      date: new Date().toLocaleDateString()
+    }),
+    { enabled: sales.length > 0 }
   );
 
   // Mutations
   const createSaleMutation = useMutation(
-    (data) => salesAPI.createSale(branchId, data),
+    (data) => salesAPI.createSale(selectedBranchId || 'default', data),
     {
       onSuccess: () => {
         toast.success('Sale recorded successfully!');
         reset();
-        queryClient.invalidateQueries(['salesPageData', branchId]);
-        queryClient.invalidateQueries(['dailySummary', branchId]);
-        queryClient.invalidateQueries(['fundsTracking', branchId]);
+        queryClient.invalidateQueries(['salesPageData', selectedBranchId]);
+        queryClient.invalidateQueries(['dailySummary', selectedBranchId]);
+        queryClient.invalidateQueries(['fundsTracking', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to record sale');
@@ -100,12 +117,12 @@ const SalesPage = () => {
   );
 
   const recordExpenseMutation = useMutation(
-    (data) => salesAPI.recordExpense(branchId, data),
+    (data) => salesAPI.recordExpense(selectedBranchId || 'default', data),
     {
       onSuccess: () => {
         toast.success('Expense recorded successfully!');
         setShowExpenseModal(false);
-        queryClient.invalidateQueries(['salesPageData', branchId]);
+        queryClient.invalidateQueries(['salesPageData', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to record expense');
@@ -258,9 +275,31 @@ const SalesPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
-      <Typography variant="h4" gutterBottom>
-        Sales Management
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h4">
+          Sales Management
+        </Typography>
+        
+        {/* Branch Selection */}
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Select Branch</InputLabel>
+          <Select
+            value={selectedBranchId}
+            onChange={(e) => setSelectedBranchId(e.target.value)}
+            label="Select Branch"
+            startAdornment={<Business sx={{ mr: 1, color: 'action.active' }} />}
+          >
+            <MenuItem value="">
+              <em>All Branches</em>
+            </MenuItem>
+            {branches.map((branch) => (
+              <MenuItem key={branch.id} value={branch.id}>
+                {branch.branch_name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
 
       {/* Summary Cards */}
       <Grid container spacing={2} sx={{ mb: 4 }}>
