@@ -284,8 +284,8 @@ export const dataAPI = {
           };
 
         case 'sales':
-          const salesQueryString = new URLSearchParams(params).toString();
-          const url = `/data/page/sales${salesQueryString ? `?${salesQueryString}` : ''}`;
+          const salesParams = new URLSearchParams(params).toString();
+          const url = `/data/page/sales${salesParams ? `?${salesParams}` : ''}`;
           return api.get(url).then(res => res.data);
 
         case 'stock':
