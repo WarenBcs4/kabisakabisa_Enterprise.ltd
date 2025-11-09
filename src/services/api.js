@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://enterprisebackendltd.vercel.app/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api';
 
 // Create axios instance
 const api = axios.create({
