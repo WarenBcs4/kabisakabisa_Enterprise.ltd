@@ -31,7 +31,7 @@ import {
 import { Add, Delete, Payment, LocalShipping, ShoppingCart, History } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { ordersAPI, branchesAPI, dataAPI } from '../services/api';
+import { ordersAPI, branchesAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import toast from 'react-hot-toast';

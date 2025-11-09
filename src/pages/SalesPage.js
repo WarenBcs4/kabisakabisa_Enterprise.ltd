@@ -68,15 +68,9 @@ const SalesPage = () => {
     { enabled: !!selectedBranchId }
   );
   
-  const { data: expenses = [], isLoading: expensesLoading } = useQuery(
-    ['expenses', selectedBranchId],
-    () => selectedBranchId ? salesAPI.getExpenses(selectedBranchId) : [],
-    { enabled: !!selectedBranchId }
-  );
-  
   const { data: branches = [] } = useQuery('branches', () => dataAPI.refreshData.branches());
   
-  const isLoading = stockLoading || salesLoading || expensesLoading;
+  const isLoading = stockLoading || salesLoading;
   const error = null; // Individual queries handle their own errors
 
   const { data: dailySummary } = useQuery(
@@ -136,7 +130,7 @@ const SalesPage = () => {
       onSuccess: () => {
         toast.success('Expense recorded successfully!');
         setShowExpenseModal(false);
-        queryClient.invalidateQueries(['expenses', selectedBranchId]);
+        queryClient.invalidateQueries(['sales', selectedBranchId]);
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to record expense');
