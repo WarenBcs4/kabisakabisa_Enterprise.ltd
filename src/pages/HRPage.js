@@ -35,8 +35,7 @@ import {
 import { 
   Edit, Delete, People, History, Search, Send,
   DirectionsCar, AccountBalance, LocalShipping,
-  Engineering, Store, ManageAccounts, Groups, PersonAdd, MonetizationOn,
-  Assessment, Security, Verified, AdminPanelSettings, Email
+  ManageAccounts, PersonAdd, Assessment
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
@@ -785,11 +784,11 @@ const HRPage = () => {
                     Inactive Employees: <strong style={{ color: '#F44336' }}>{totalEmployees - activeEmployees}</strong>
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Average Salary: <strong style={{ color: '#FF6B35' }}>{formatCurrency(averageSalary)}</strong>
+                    Average Salary: <strong style={{ color: '#ff9800' }}>{formatCurrency(averageSalary)}</strong>
                   </Typography>
                   <Divider sx={{ my: 1 }} />
                   <Typography variant="body2" color="text.secondary">
-                    Total Drivers: <strong style={{ color: '#FF6B35' }}>{totalDrivers}</strong>
+                    Total Drivers: <strong style={{ color: '#9c27b0' }}>{totalDrivers}</strong>
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Active Drivers: <strong style={{ color: '#4CAF50' }}>{activeDrivers}</strong>
