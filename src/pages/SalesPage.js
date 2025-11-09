@@ -79,24 +79,35 @@ const SalesPage = () => {
 
   const { data: dailySummary } = useQuery(
     ['dailySummary', selectedBranchId],
-    () => ({ totalSales: sales.length, totalAmount: sales.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0) }),
-    { enabled: sales.length > 0 }
+    () => {
+      const today = new Date().toISOString().split('T')[0];
+      const todaySales = sales.filter(s => s.sale_date && s.sale_date.startsWith(today));
+      return { 
+        totalSales: todaySales.length, 
+        totalAmount: todaySales.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0) 
+      };
+    },
+    { enabled: true }
   );
 
   const { data: fundsTracking } = useQuery(
     ['fundsTracking', selectedBranchId],
-    () => ({
-      receivedFunds: sales.filter(s => s.payment_method !== 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
-      outstandingBalance: sales.filter(s => s.payment_method === 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
-      totalSalesAmount: sales.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
-      salesBreakdown: {
-        cash: sales.filter(s => s.payment_method === 'cash').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
-        card: sales.filter(s => s.payment_method === 'card').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
-        credit: sales.filter(s => s.payment_method === 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0)
-      },
-      date: new Date().toLocaleDateString()
-    }),
-    { enabled: sales.length > 0 }
+    () => {
+      const today = new Date().toISOString().split('T')[0];
+      const todaySales = sales.filter(s => s.sale_date && s.sale_date.startsWith(today));
+      return {
+        receivedFunds: todaySales.filter(s => s.payment_method !== 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+        outstandingBalance: todaySales.filter(s => s.payment_method === 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+        totalSalesAmount: todaySales.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+        salesBreakdown: {
+          cash: todaySales.filter(s => s.payment_method === 'cash').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+          card: todaySales.filter(s => s.payment_method === 'card').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0),
+          credit: todaySales.filter(s => s.payment_method === 'credit').reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0)
+        },
+        date: new Date().toLocaleDateString()
+      };
+    },
+    { enabled: true }
   );
 
   // Mutations
