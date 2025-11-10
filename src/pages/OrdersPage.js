@@ -184,26 +184,37 @@ const OrdersPage = () => {
   };
 
   const onSubmitComplete = (data) => {
-    if (!selectedOrder?.items) {
+    console.log('Complete order data:', data);
+    console.log('Selected order:', selectedOrder);
+    
+    if (!selectedOrder || !selectedOrder.items || selectedOrder.items.length === 0) {
       toast.error('No order items found');
       return;
     }
 
-    const completedItems = selectedOrder.items.map((item, index) => ({
-      orderItemId: item.id,
-      productName: item.product_name,
-      quantityOrdered: Number(item.quantity_ordered),
-      branchDestinationId: data[`branch_${index}`],
-      purchasePrice: Number(item.purchase_price_per_unit),
-      productId: item.product_id || `PRD_${Date.now()}`
-    }));
+    const completedItems = selectedOrder.items.map((item, index) => {
+      const branchId = data[`branch_${index}`];
+      if (!branchId) {
+        toast.error(`Please select destination branch for ${item.product_name}`);
+        return null;
+      }
+      
+      return {
+        orderItemId: item.id,
+        productName: item.product_name,
+        quantityOrdered: Number(item.quantity_ordered) || 0,
+        branchDestinationId: branchId,
+        purchasePrice: Number(item.purchase_price_per_unit) || 0,
+        productId: item.product_id || `PRD_${Date.now()}`
+      };
+    }).filter(Boolean);
 
-    const missingBranches = completedItems.filter(item => !item.branchDestinationId);
-    if (missingBranches.length > 0) {
-      toast.error('Please select destination branch for all items');
-      return;
+    if (completedItems.length !== selectedOrder.items.length) {
+      return; // Error already shown above
     }
 
+    console.log('Completed items:', completedItems);
+    
     completeOrderMutation.mutate({
       orderId: selectedOrder.id,
       completedItems
