@@ -48,7 +48,6 @@ import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
 const HRPage = () => {
-  const {} = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
