@@ -603,8 +603,8 @@ const SalesPage = () => {
                 <TableRow>
                   <TableCell>Product Name</TableCell>
                   <TableCell>Available Quantity</TableCell>
-                  <TableCell>Unit Price</TableCell>
                   <TableCell>Reorder Level</TableCell>
+                  <TableCell>Last Movement</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -617,8 +617,8 @@ const SalesPage = () => {
                         color={item.quantity_available <= item.reorder_level ? 'error' : 'success'}
                       />
                     </TableCell>
-                    <TableCell>{formatCurrency(item.unit_price)}</TableCell>
                     <TableCell>{item.reorder_level}</TableCell>
+                    <TableCell>{item.last_updated ? new Date(item.last_updated).toLocaleDateString() : 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

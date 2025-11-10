@@ -212,6 +212,7 @@ const OrdersPage = () => {
       }
       
       return {
+        orderItemId: item.id,
         productName: item.product_name,
         quantityOrdered: Number(item.quantity_ordered) || 0,
         branchDestinationId: branchId,
