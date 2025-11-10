@@ -65,31 +65,36 @@ const HRPage = () => {
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerPayroll, handleSubmit: handlePayrollSubmit, reset: resetPayroll } = useForm();
 
-  // Queries
-  const { data: pageData, isLoading, error } = useQuery(
-    'hrPageData',
-    () => dataAPI.getPageData('hr')
+  // Queries - Load employees and branches separately
+  const { data: allEmployees = [], isLoading: employeesLoading } = useQuery(
+    'employees',
+    () => hrAPI.getEmployees(),
+    { staleTime: 2 * 60 * 1000 }
   );
 
-  // Get user's branch employees if user is manager
-  const { data: branchEmployees } = useQuery(
-    ['branchEmployees', user?.branchId],
-    () => user?.branchId ? hrAPI.getEmployees({ branchId: user.branchId }) : [],
-    { enabled: !!user?.branchId && user?.role === 'manager' }
+  const { data: allPayroll = [], isLoading: payrollLoading } = useQuery(
+    'payroll',
+    () => hrAPI.getPayroll(),
+    { staleTime: 2 * 60 * 1000 }
   );
-
-  const allEmployees = useMemo(() => {
-    // If user is manager, show only their branch employees
-    if (user?.role === 'manager' && branchEmployees) {
-      return branchEmployees;
-    }
-    return pageData?.employees || [];
-  }, [pageData?.employees, branchEmployees, user?.role]);
-  const allPayroll = useMemo(() => pageData?.payroll || [], [pageData?.payroll]);
   
-  const { data: branches = [] } = useQuery('branches', () => 
-    dataAPI.refreshData.branches().catch(() => branchesAPI.getAll())
+  const { data: branches = [], isLoading: branchesLoading } = useQuery(
+    'branches',
+    async () => {
+      try {
+        const branchData = await branchesAPI.getAll();
+        console.log('Branches loaded:', branchData);
+        return branchData;
+      } catch (error) {
+        console.error('Failed to load branches:', error);
+        return [];
+      }
+    },
+    { staleTime: 5 * 60 * 1000 }
   );
+
+  const isLoading = employeesLoading || payrollLoading || branchesLoading;
+  const error = null;
 
   // Filter employees based on search and filters (show all employees with status)
   const employees = useMemo(() => {
@@ -156,14 +161,10 @@ const HRPage = () => {
         toast.success(`Employee ${response.full_name} created successfully!`);
         setShowAddEmployee(false);
         reset();
-        queryClient.invalidateQueries('hrPageData');
-        if (user?.role === 'manager') {
-          queryClient.invalidateQueries(['branchEmployees', user.branchId]);
-        }
+        queryClient.invalidateQueries('employees');
       },
       onError: (error) => {
-        const message = error.response?.data?.message || 'Failed to create employee';
-        toast.error(message);
+        toast.error(error.response?.data?.message || 'Failed to create employee');
       }
     }
   );
@@ -176,10 +177,7 @@ const HRPage = () => {
         setEditingEmployee(null);
         setShowAddEmployee(false);
         reset();
-        queryClient.invalidateQueries('hrPageData');
-        if (user?.role === 'manager') {
-          queryClient.invalidateQueries(['branchEmployees', user.branchId]);
-        }
+        queryClient.invalidateQueries('employees');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update employee');
@@ -192,13 +190,10 @@ const HRPage = () => {
     {
       onSuccess: (_, employee) => {
         toast.success(`Employee ${employee.full_name} deactivated successfully!`);
-        queryClient.invalidateQueries('hrPageData');
-        if (user?.role === 'manager') {
-          queryClient.invalidateQueries(['branchEmployees', user.branchId]);
-        }
+        queryClient.invalidateQueries('employees');
       },
       onError: (error, employee) => {
-        toast.error(`Failed to deactivate ${employee.full_name}: ${error.response?.data?.message || 'Unknown error'}`);
+        toast.error(`Failed to deactivate ${employee.full_name}`);
       }
     }
   );
@@ -210,7 +205,7 @@ const HRPage = () => {
         toast.success('Payroll generated successfully!');
         setShowGeneratePayroll(false);
         resetPayroll();
-        queryClient.invalidateQueries('hrPageData');
+        queryClient.invalidateQueries('payroll');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to generate payroll');
@@ -223,7 +218,7 @@ const HRPage = () => {
     {
       onSuccess: () => {
         toast.success('Payslips sent successfully!');
-        queryClient.invalidateQueries('hrPageData');
+        queryClient.invalidateQueries('payroll');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to send payslips');
@@ -232,7 +227,6 @@ const HRPage = () => {
   );
 
   const onSubmitEmployee = (data) => {
-    // Validate required fields
     if (!data.full_name?.trim()) {
       toast.error('Full name is required');
       return;
@@ -311,18 +305,16 @@ const HRPage = () => {
   if (isLoading) {
     return (
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4, display: 'flex', justifyContent: 'center' }}>
-        <div>Loading...</div>
+        <div>Loading HR data...</div>
       </Container>
     );
   }
 
-  if (error) {
-    return (
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        <Typography color="error">Error loading HR data</Typography>
-      </Container>
-    );
-  }
+  console.log('HR Page Data:', { 
+    employees: allEmployees.length, 
+    branches: branches.length,
+    branchesData: branches
+  });
 
   return (
     <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
@@ -506,13 +498,16 @@ const HRPage = () => {
                     value={selectedBranch}
                     onChange={(e) => setSelectedBranch(e.target.value)}
                     label="Branch"
+                    displayEmpty
                   >
                     <MenuItem value="">All Branches</MenuItem>
-                    {branches.map((branch) => (
+                    {branches.length > 0 ? branches.map((branch) => (
                       <MenuItem key={branch.id} value={branch.id}>
-                        {branch.branch_name}
+                        {branch.branch_name || branch.name || `Branch ${branch.id}`}
                       </MenuItem>
-                    ))}
+                    )) : (
+                      <MenuItem disabled>No branches available</MenuItem>
+                    )}
                   </Select>
                 </FormControl>
                 <Button
@@ -978,9 +973,10 @@ const HRPage = () => {
             {!editingEmployee && (
               <Alert severity="info" sx={{ mt: 2 }}>
                 <Typography variant="body2">
-                  Default password will be: <strong>[role]password123</strong>
+                  Default password will be: <strong>[role]pass123</strong>
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
+                  {branches.length === 0 && 'Note: No branches available for assignment. '}
                   Driver accounts will have logistics role and can be viewed in Logistics page
                 </Typography>
               </Alert>
