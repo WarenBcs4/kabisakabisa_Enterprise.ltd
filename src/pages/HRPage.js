@@ -81,7 +81,7 @@ const HRPage = () => {
     'branches',
     async () => {
       try {
-        const branchData = await branchesAPI.getAll();
+        const branchData = await branchesAPI.getPublic();
         console.log('Branches loaded:', branchData);
         return branchData;
       } catch (error) {
@@ -501,7 +501,7 @@ const HRPage = () => {
                     <MenuItem value="">All Branches</MenuItem>
                     {branches.length > 0 ? branches.map((branch) => (
                       <MenuItem key={branch.id} value={branch.id}>
-                        {branch.branch_name || branch.name || `Branch ${branch.id}`}
+                        {branch.name || branch.branch_name || `Branch ${branch.id}`}
                       </MenuItem>
                     )) : (
                       <MenuItem disabled>No branches available</MenuItem>
@@ -572,7 +572,7 @@ const HRPage = () => {
                             icon={employee.role === 'logistics' ? <LocalShipping /> : undefined}
                           />
                         </TableCell>
-                        <TableCell>{(employeeBranch?.branch_name || 'no branch').toLowerCase()}</TableCell>
+                        <TableCell>{(employeeBranch?.name || employeeBranch?.branch_name || 'no branch').toLowerCase()}</TableCell>
                         <TableCell>{employee.salary ? formatCurrency(employee.salary) : 'N/A'}</TableCell>
                         <TableCell>{employee.hire_date ? new Date(employee.hire_date).toLocaleDateString() : 'N/A'}</TableCell>
                         <TableCell>
@@ -948,7 +948,7 @@ const HRPage = () => {
                 <MenuItem value="">No Branch</MenuItem>
                 {branches.map((branch) => (
                   <MenuItem key={branch.id} value={branch.id}>
-                    {branch.branch_name || branch.name || 'Unknown Branch'}
+                    {branch.name || branch.branch_name || 'Unknown Branch'}
                   </MenuItem>
                 ))}
               </Select>
