@@ -31,7 +31,7 @@ import QuickUpload from '../components/QuickUpload';
 
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { salesAPI, stockAPI, branchesAPI } from '../services/api';
+import { salesAPI, stockAPI, branchesAPI, logisticsAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
@@ -44,6 +44,7 @@ const SalesPage = () => {
   const [showSalesSearch, setShowSalesSearch] = useState(false);
   const [searchDate, setSearchDate] = useState('');
   const [filteredSales, setFilteredSales] = useState([]);
+  const [showExpensesModal, setShowExpensesModal] = useState(false);
 
   const { register, control, handleSubmit, watch, setValue, reset } = useForm({
     defaultValues: {
@@ -68,6 +69,12 @@ const SalesPage = () => {
   const { data: sales = [], isLoading: salesLoading } = useQuery(
     ['sales', selectedBranchId],
     () => selectedBranchId ? salesAPI.getByBranch(selectedBranchId) : Promise.resolve([]),
+    { enabled: !!selectedBranchId }
+  );
+  
+  const { data: expenses = [] } = useQuery(
+    ['expenses', selectedBranchId],
+    () => selectedBranchId ? salesAPI.getExpenses(selectedBranchId) : Promise.resolve([]),
     { enabled: !!selectedBranchId }
   );
   
@@ -152,8 +159,8 @@ const SalesPage = () => {
     },
     {
       onSuccess: (response) => {
-        console.log('Expense recorded successfully:', response);
         toast.success('Expense recorded successfully!');
+        resetExpenseForm();
         setShowExpenseModal(false);
         queryClient.invalidateQueries(['sales', selectedBranchId]);
         queryClient.invalidateQueries(['expenses', selectedBranchId]);
@@ -226,151 +233,154 @@ const SalesPage = () => {
     createSaleMutation.mutate(data);
   };
 
-  const ExpenseForm = () => {
-    const [expenseCategory, setExpenseCategory] = useState('other');
-    const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
-    const [amount, setAmount] = useState('');
-    const [vehiclePlate, setVehiclePlate] = useState('');
-    const [description, setDescription] = useState('');
-    
-    const resetForm = () => {
-      setExpenseCategory('other');
-      setExpenseDate(new Date().toISOString().split('T')[0]);
-      setAmount('');
-      setVehiclePlate('');
-      setDescription('');
-    };
+  // Expense form state
+  const [expenseForm, setExpenseForm] = useState({
+    expense_date: new Date().toISOString().split('T')[0],
+    category: '',
+    amount: '',
+    vehicle_plate_number: '',
+    description: ''
+  });
 
-    const onSubmitExpense = (e) => {
-      e.preventDefault();
-      
-      // Validation
-      if (!expenseCategory || !amount || !expenseDate) {
-        toast.error('Please fill in all required fields (Date, Category, Amount)');
-        return;
-      }
-      
-      if (parseFloat(amount) <= 0) {
-        toast.error('Amount must be greater than 0');
-        return;
-      }
-      
-      if (!selectedBranchId) {
-        toast.error('Please select a branch first');
-        return;
-      }
-      
-      const expenseData = {
-        expense_date: expenseDate,
-        category: expenseCategory,
-        amount: parseFloat(amount)
-      };
-      
-      // Add optional fields only if they have values
-      if (vehiclePlate && vehiclePlate.trim()) {
-        expenseData.vehicle_plate_number = vehiclePlate.trim();
-      }
-      
-      if (description && description.trim()) {
-        expenseData.description = description.trim();
-      }
-      
-      console.log('Submitting expense:', expenseData);
-      recordExpenseMutation.mutate(expenseData, {
-        onSuccess: () => {
-          resetForm();
-        }
-      });
-    };
+  // Get vehicles for dropdown
+  const { data: vehicles = [] } = useQuery('vehicles', () => 
+    logisticsAPI.getVehicles().catch(() => [])
+  );
 
-    return (
-      <Box component="form" onSubmit={onSubmitExpense}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Expense Date"
-              type="date"
-              value={expenseDate}
-              onChange={(e) => setExpenseDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={expenseCategory}
-                onChange={(e) => setExpenseCategory(e.target.value)}
-                label="Category"
-              >
-                <MenuItem value="fuel">Fuel</MenuItem>
-                <MenuItem value="utilities">Utilities</MenuItem>
-                <MenuItem value="maintenance">Maintenance</MenuItem>
-                <MenuItem value="vehicle_related">Vehicle-related</MenuItem>
-                <MenuItem value="office_supplies">Office Supplies</MenuItem>
-                <MenuItem value="rent">Rent</MenuItem>
-                <MenuItem value="insurance">Insurance</MenuItem>
-                <MenuItem value="marketing">Marketing</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Amount"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              step="0.01"
-              inputProps={{ min: 0 }}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Vehicle Plate Number"
-              value={vehiclePlate}
-              onChange={(e) => setVehiclePlate(e.target.value)}
-              helperText="Required for vehicle-related expenses"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Description"
-              multiline
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              helperText="Optional: Add details about this expense"
-            />
-          </Grid>
-        </Grid>
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-          <Button
-            onClick={() => {
-              resetForm();
-              setShowExpenseModal(false);
-            }}
-            disabled={recordExpenseMutation.isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={recordExpenseMutation.isLoading || !selectedBranchId}
-          >
-            {recordExpenseMutation.isLoading ? 'Recording...' : 'Record Expense'}
-          </Button>
-        </Box>
-      </Box>
-    );
+  const handleExpenseChange = (field, value) => {
+    setExpenseForm(prev => ({ ...prev, [field]: value }));
   };
+
+  const resetExpenseForm = () => {
+    setExpenseForm({
+      expense_date: new Date().toISOString().split('T')[0],
+      category: '',
+      amount: '',
+      vehicle_plate_number: '',
+      description: ''
+    });
+  };
+
+  const handleExpenseSubmit = (e) => {
+    e.preventDefault();
+    
+    if (!expenseForm.expense_date || !expenseForm.category || !expenseForm.amount) {
+      toast.error('Please fill in Date, Category, and Amount');
+      return;
+    }
+    
+    if (parseFloat(expenseForm.amount) <= 0) {
+      toast.error('Amount must be greater than 0');
+      return;
+    }
+    
+    recordExpenseMutation.mutate({
+      expense_date: expenseForm.expense_date,
+      category: expenseForm.category,
+      amount: parseFloat(expenseForm.amount),
+      vehicle_plate_number: expenseForm.vehicle_plate_number || undefined,
+      description: expenseForm.description || undefined
+    });
+  };
+
+  const ExpenseForm = () => (
+    <Box component="form" onSubmit={handleExpenseSubmit} sx={{ mt: 2 }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Expense Date *"
+            type="date"
+            value={expenseForm.expense_date}
+            onChange={(e) => handleExpenseChange('expense_date', e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            required
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth required>
+            <InputLabel>Category *</InputLabel>
+            <Select
+              value={expenseForm.category}
+              onChange={(e) => handleExpenseChange('category', e.target.value)}
+              label="Category *"
+            >
+              <MenuItem value="fuel">Fuel</MenuItem>
+              <MenuItem value="utilities">Utilities</MenuItem>
+              <MenuItem value="maintenance">Maintenance</MenuItem>
+              <MenuItem value="vehicle_related">Vehicle Related</MenuItem>
+              <MenuItem value="office_supplies">Office Supplies</MenuItem>
+              <MenuItem value="rent">Rent</MenuItem>
+              <MenuItem value="insurance">Insurance</MenuItem>
+              <MenuItem value="marketing">Marketing</MenuItem>
+              <MenuItem value="other">Other</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Amount *"
+            type="number"
+            value={expenseForm.amount}
+            onChange={(e) => handleExpenseChange('amount', e.target.value)}
+            step="0.01"
+            inputProps={{ min: 0.01 }}
+            required
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <InputLabel>Vehicle</InputLabel>
+            <Select
+              value={expenseForm.vehicle_plate_number}
+              onChange={(e) => handleExpenseChange('vehicle_plate_number', e.target.value)}
+              label="Vehicle"
+            >
+              <MenuItem value="">
+                <em>Select Vehicle (Optional)</em>
+              </MenuItem>
+              {vehicles.map((vehicle) => (
+                <MenuItem key={vehicle.id} value={vehicle.plate_number}>
+                  {vehicle.plate_number} - {vehicle.vehicle_type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Description"
+            multiline
+            rows={3}
+            value={expenseForm.description}
+            onChange={(e) => handleExpenseChange('description', e.target.value)}
+            placeholder="Add details about this expense..."
+          />
+        </Grid>
+      </Grid>
+      
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button
+          onClick={() => {
+            resetExpenseForm();
+            setShowExpenseModal(false);
+          }}
+          disabled={recordExpenseMutation.isLoading}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={recordExpenseMutation.isLoading}
+        >
+          {recordExpenseMutation.isLoading ? 'Recording...' : 'Record Expense'}
+        </Button>
+      </Box>
+    </Box>
+  );
 
   if (isLoading) {
     return (
@@ -495,6 +505,19 @@ const SalesPage = () => {
           onClick={() => setShowFundsModal(true)}
         >
           Funds Tracking
+        </Button>
+        <Button
+          variant="outlined"
+          color="warning"
+          onClick={() => {
+            if (!selectedBranchId) {
+              toast.error('Please select a branch first');
+              return;
+            }
+            setShowExpensesModal(true);
+          }}
+        >
+          View Expenses
         </Button>
         <Button
           variant="outlined"
@@ -887,6 +910,56 @@ const SalesPage = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Expenses Modal */}
+      <Dialog open={showExpensesModal} onClose={() => setShowExpensesModal(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Branch Expenses</DialogTitle>
+        <DialogContent>
+          <TableContainer sx={{ maxHeight: 400 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Category</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Vehicle</TableCell>
+                  <TableCell>Description</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {expenses.map((expense) => (
+                  <TableRow key={expense.id} hover>
+                    <TableCell>
+                      {expense.expense_date ? new Date(expense.expense_date).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={expense.category || 'N/A'} 
+                        size="small"
+                        color={expense.category === 'fuel' ? 'warning' : 'default'}
+                      />
+                    </TableCell>
+                    <TableCell>{formatCurrency(expense.amount || 0)}</TableCell>
+                    <TableCell>{expense.vehicle_plate_number || 'N/A'}</TableCell>
+                    <TableCell>{expense.description || 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+                {expenses.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <Typography color="text.secondary">
+                        No expenses recorded for this branch
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowExpensesModal(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
     </Container>
   );
