@@ -31,7 +31,7 @@ const LoginPage = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const { register: registerMFA, handleSubmit: handleSubmitMFA } = useForm();
 
-  const from = location.state?.from?.pathname;
+
 
   const onSubmit = async (data) => {
     setLoading(true);
