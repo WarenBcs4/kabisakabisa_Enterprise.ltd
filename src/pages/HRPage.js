@@ -39,7 +39,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+
 import QuickUpload from '../components/QuickUpload';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useForm } from 'react-hook-form';
