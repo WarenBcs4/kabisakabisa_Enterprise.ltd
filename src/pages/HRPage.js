@@ -87,11 +87,13 @@ const HRPage = () => {
   }, [pageData?.employees, branchEmployees, user?.role]);
   const allPayroll = useMemo(() => pageData?.payroll || [], [pageData?.payroll]);
   
-  const { data: branches = [] } = useQuery('branches', () => branchesAPI.getAll());
+  const { data: branches = [] } = useQuery('branches', () => branchesAPI.getAll(), {
+    staleTime: 5 * 60 * 1000 // 5 minutes
+  });
 
-  // Filter employees based on search and filters
+  // Filter employees based on search and filters (only show active employees)
   const employees = useMemo(() => {
-    let filtered = [...allEmployees];
+    let filtered = allEmployees.filter(emp => emp.is_active !== false);
     
     if (employeeSearch) {
       filtered = filtered.filter(emp => 
@@ -265,14 +267,14 @@ const HRPage = () => {
 
   const handleEditEmployee = (employee) => {
     setEditingEmployee(employee);
-    setValue('full_name', employee.full_name);
-    setValue('email', employee.email);
-    setValue('phone', employee.phone);
-    setValue('role', employee.role);
-    setValue('branch_id', employee.branch_id);
-    setValue('salary', employee.salary);
-    setValue('hire_date', employee.hire_date);
-    setValue('is_active', employee.is_active);
+    setValue('full_name', employee.full_name || '');
+    setValue('email', employee.email || '');
+    setValue('phone', employee.phone || '');
+    setValue('role', employee.role || '');
+    setValue('branch_id', Array.isArray(employee.branch_id) ? employee.branch_id[0] : employee.branch_id || '');
+    setValue('salary', employee.salary || '');
+    setValue('hire_date', employee.hire_date || '');
+    setValue('is_active', employee.is_active !== false);
     setShowAddEmployee(true);
   };
 
@@ -559,7 +561,8 @@ const HRPage = () => {
                 </TableHead>
                 <TableBody>
                   {employees.map((employee) => {
-                    const employeeBranch = branches.find(b => b.id === employee.branch_id);
+                    const branchId = Array.isArray(employee.branch_id) ? employee.branch_id[0] : employee.branch_id;
+                    const employeeBranch = branches.find(b => b.id === branchId);
                     return (
                       <TableRow key={employee.id}>
                         <TableCell>{(employee.full_name || '').toLowerCase()}</TableCell>
@@ -567,7 +570,7 @@ const HRPage = () => {
                         <TableCell>{employee.phone || 'N/A'}</TableCell>
                         <TableCell>
                           <Chip 
-                            label={employee.role === 'logistics' ? 'DRIVER' : employee.role.toUpperCase()}
+                            label={employee.role === 'logistics' ? 'DRIVER' : (employee.role || '').toUpperCase()}
                             color={getRoleColor(employee.role)}
                             size="small"
                             icon={employee.role === 'logistics' ? <LocalShipping /> : undefined}
@@ -578,8 +581,8 @@ const HRPage = () => {
                         <TableCell>{employee.hire_date ? new Date(employee.hire_date).toLocaleDateString() : 'N/A'}</TableCell>
                         <TableCell>
                           <Chip 
-                            label={employee.is_active ? 'Active' : 'Inactive'}
-                            color={employee.is_active ? 'success' : 'default'}
+                            label="Active"
+                            color="success"
                             size="small"
                           />
                         </TableCell>
@@ -932,7 +935,7 @@ const HRPage = () => {
                 <MenuItem value="">No Branch</MenuItem>
                 {branches.map((branch) => (
                   <MenuItem key={branch.id} value={branch.id}>
-                    {branch.branch_name}
+                    {branch.branch_name || branch.name || 'Unknown Branch'}
                   </MenuItem>
                 ))}
               </Select>
