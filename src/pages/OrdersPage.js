@@ -31,7 +31,7 @@ import {
 import { Add, Delete, Payment, LocalShipping, ShoppingCart, History } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { ordersAPI, branchesAPI } from '../services/api';
+import { ordersAPI, branchesAPI, stockAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import toast from 'react-hot-toast';
@@ -43,6 +43,7 @@ const OrdersPage = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [showDelivery, setShowDelivery] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
+  const [showProductSearch, setShowProductSearch] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showHistoricalData, setShowHistoricalData] = useState(false);
 
@@ -68,6 +69,11 @@ const OrdersPage = () => {
   );
   
   const { data: branches = [] } = useQuery('branches', () => branchesAPI.getAll());
+  
+  const { data: allProducts = [] } = useQuery(
+    'allProducts',
+    () => stockAPI.getAll ? stockAPI.getAll() : Promise.resolve([])
+  );
 
   // Mutations
   const createOrderMutation = useMutation(
@@ -306,6 +312,13 @@ const OrdersPage = () => {
         >
           Historical Data
         </Button>
+        <Button
+          variant="outlined"
+          onClick={() => setShowProductSearch(true)}
+          color="secondary"
+        >
+          Search Products
+        </Button>
       </Box>
 
       {/* Tabs */}
@@ -476,12 +489,22 @@ const OrdersPage = () => {
             {fields.map((field, index) => (
               <Grid container spacing={2} key={field.id} sx={{ mb: 2 }}>
                 <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="Product Name *"
-                    {...register(`items.${index}.product_name`, { required: true })}
-                    helperText="Enter the full product name"
-                  />
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <TextField
+                      fullWidth
+                      label="Product Name *"
+                      {...register(`items.${index}.product_name`, { required: true })}
+                      helperText="Enter the full product name"
+                    />
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => setShowProductSearch(true)}
+                      sx={{ minWidth: 'auto', px: 1 }}
+                    >
+                      🔍
+                    </Button>
+                  </Box>
                 </Grid>
                 <Grid item xs={12} sm={2}>
                   <TextField
@@ -688,6 +711,54 @@ const OrdersPage = () => {
           >
             Record Delivery
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Product Search Dialog */}
+      <Dialog open={showProductSearch} onClose={() => setShowProductSearch(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Available Products in System</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Browse existing products to avoid spelling mistakes
+          </Typography>
+          <TableContainer sx={{ mt: 2, maxHeight: 400 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Product Name</TableCell>
+                  <TableCell>Branch</TableCell>
+                  <TableCell>Available Qty</TableCell>
+                  <TableCell>Unit Price</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {allProducts.map((product, index) => (
+                  <TableRow key={index} hover>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="medium">
+                        {product.product_name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{product.branch_name || 'N/A'}</TableCell>
+                    <TableCell>{product.quantity_available || 0}</TableCell>
+                    <TableCell>{formatCurrency(product.unit_price || 0)}</TableCell>
+                  </TableRow>
+                ))}
+                {allProducts.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <Typography color="text.secondary">
+                        No products found in system
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowProductSearch(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 

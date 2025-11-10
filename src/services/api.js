@@ -92,6 +92,7 @@ export const branchesAPI = {
 
 // Stock API
 export const stockAPI = {
+  getAll: () => api.get('/stock').then(res => res.data),
   getByBranch: (branchId) => api.get(`/stock/branch/${branchId}`).then(res => res.data),
   addStock: (branchId, data) => api.post(`/stock/branch/${branchId}`, data).then(res => res.data),
   addQuantity: (stockId, quantity) => api.patch(`/stock/${stockId}/add-quantity`, { quantity }).then(res => res.data),
