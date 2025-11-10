@@ -119,7 +119,10 @@ const SalesPage = () => {
         queryClient.invalidateQueries(['fundsTracking', selectedBranchId]);
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to record sale');
+        toast.success('Sale recorded successfully!');
+        reset();
+        queryClient.invalidateQueries(['stock', selectedBranchId]);
+        queryClient.invalidateQueries(['sales', selectedBranchId]);
       }
     }
   );

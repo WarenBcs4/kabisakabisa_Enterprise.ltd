@@ -184,14 +184,25 @@ const OrdersPage = () => {
   };
 
   const onSubmitComplete = (data) => {
+    if (!selectedOrder?.items) {
+      toast.error('No order items found');
+      return;
+    }
+
     const completedItems = selectedOrder.items.map((item, index) => ({
       orderItemId: item.id,
       productName: item.product_name,
-      quantityOrdered: item.quantity_ordered,
+      quantityOrdered: Number(item.quantity_ordered),
       branchDestinationId: data[`branch_${index}`],
-      purchasePrice: item.purchase_price_per_unit,
-      productId: item.product_id || `PRD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      purchasePrice: Number(item.purchase_price_per_unit),
+      productId: item.product_id || `PRD_${Date.now()}`
     }));
+
+    const missingBranches = completedItems.filter(item => !item.branchDestinationId);
+    if (missingBranches.length > 0) {
+      toast.error('Please select destination branch for all items');
+      return;
+    }
 
     completeOrderMutation.mutate({
       orderId: selectedOrder.id,
