@@ -204,30 +204,45 @@ const OrdersPage = () => {
       return;
     }
     
-    if (!selectedOrder.items || selectedOrder.items.length === 0) {
-      toast.error('This order has no items to complete. Please check if the order was created properly.');
-      return;
-    }
+    let completedItems = [];
+    
+    if (selectedOrder.items && selectedOrder.items.length > 0) {
+      // Process existing order items
+      completedItems = selectedOrder.items.map((item, index) => {
+        const branchId = data[`branch_${index}`];
+        if (!branchId) {
+          toast.error(`Please select destination branch for ${item.product_name}`);
+          return null;
+        }
+        
+        return {
+          orderItemId: item.id,
+          productName: item.product_name,
+          quantityOrdered: Number(item.quantity_ordered) || 0,
+          branchDestinationId: branchId,
+          purchasePrice: Number(item.purchase_price_per_unit) || 0,
+          productId: `PRD_${Date.now()}_${index}`
+        };
+      }).filter(Boolean);
 
-    const completedItems = selectedOrder.items.map((item, index) => {
-      const branchId = data[`branch_${index}`];
-      if (!branchId) {
-        toast.error(`Please select destination branch for ${item.product_name}`);
-        return null;
+      if (completedItems.length !== selectedOrder.items.length) {
+        return; // Error already shown above
+      }
+    } else {
+      // Handle orders with no items - use manual entry
+      if (!data.manual_product_name || !data.manual_quantity || !data.manual_price || !data.manual_branch) {
+        toast.error('Please fill in all manual entry fields for this order with no items.');
+        return;
       }
       
-      return {
-        orderItemId: item.id,
-        productName: item.product_name,
-        quantityOrdered: Number(item.quantity_ordered) || 0,
-        branchDestinationId: branchId,
-        purchasePrice: Number(item.purchase_price_per_unit) || 0,
-        productId: `PRD_${Date.now()}_${index}`
-      };
-    }).filter(Boolean);
-
-    if (completedItems.length !== selectedOrder.items.length) {
-      return; // Error already shown above
+      completedItems = [{
+        orderItemId: `manual_${Date.now()}`,
+        productName: data.manual_product_name,
+        quantityOrdered: Number(data.manual_quantity),
+        branchDestinationId: data.manual_branch,
+        purchasePrice: Number(data.manual_price),
+        productId: `PRD_${Date.now()}_manual`
+      }];
     }
 
     console.log('Completed items:', completedItems);
@@ -862,9 +877,60 @@ const OrdersPage = () => {
                   ))}
                 </>
               ) : (
-                <Typography variant="body2" color="error.main" sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-                  ⚠️ This order has no items. The order may not have been created properly or items failed to save.
-                </Typography>
+                <>
+                  <Typography variant="body2" color="warning.main" sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+                    ⚠️ This order has no items. Please manually enter the item details below to complete the order.
+                  </Typography>
+                  
+                  <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
+                    Manual Item Entry
+                  </Typography>
+                  
+                  <Grid container spacing={2} sx={{ mt: 1 }}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Product Name *"
+                        {...registerComplete('manual_product_name', { required: true })}
+                        placeholder="Enter product name"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Quantity *"
+                        type="number"
+                        {...registerComplete('manual_quantity', { required: true, min: 1 })}
+                        placeholder="Enter quantity"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Unit Price *"
+                        type="number"
+                        step="0.01"
+                        {...registerComplete('manual_price', { required: true, min: 0 })}
+                        placeholder="Enter unit price"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth required>
+                        <InputLabel>Destination Branch *</InputLabel>
+                        <Select
+                          {...registerComplete('manual_branch', { required: true })}
+                          label="Destination Branch *"
+                        >
+                          {branches.map((branch) => (
+                            <MenuItem key={branch.id} value={branch.id}>
+                              {branch.branch_name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </>
               )}
               
               <Typography variant="body2" color="warning.main" sx={{ mt: 2 }}>
@@ -883,9 +949,9 @@ const OrdersPage = () => {
             onClick={handleCompleteSubmit(onSubmitComplete)}
             variant="contained"
             color="success"
-            disabled={completeOrderMutation.isLoading}
+            disabled={completeOrderMutation.isLoading || (!selectedOrder?.items?.length && !registerComplete)}
           >
-            Complete Order & Add Stock
+            {completeOrderMutation.isLoading ? 'Processing...' : 'Complete Order & Add Stock'}
           </Button>
         </DialogActions>
       </Dialog>

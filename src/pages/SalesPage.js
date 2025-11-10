@@ -145,17 +145,24 @@ const SalesPage = () => {
   );
 
   const recordExpenseMutation = useMutation(
-    (data) => salesAPI.recordExpense(selectedBranchId || 'default', data),
+    (data) => {
+      console.log('Recording expense with data:', data);
+      console.log('Selected branch ID:', selectedBranchId);
+      return salesAPI.recordExpense(selectedBranchId || 'default', data);
+    },
     {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        console.log('Expense recorded successfully:', response);
         toast.success('Expense recorded successfully!');
         setShowExpenseModal(false);
         queryClient.invalidateQueries(['sales', selectedBranchId]);
+        queryClient.invalidateQueries(['expenses', selectedBranchId]);
       },
       onError: (error) => {
-        console.error('Expense error:', error);
-        toast.error('Expense may have been recorded. Please check the records.');
-        setShowExpenseModal(false);
+        console.error('Expense recording error:', error);
+        console.error('Error response:', error.response?.data);
+        const errorMessage = error.response?.data?.message || 'Failed to record expense';
+        toast.error(errorMessage);
       }
     }
   );
@@ -225,12 +232,21 @@ const SalesPage = () => {
     const [amount, setAmount] = useState('');
     const [vehiclePlate, setVehiclePlate] = useState('');
     const [description, setDescription] = useState('');
+    
+    const resetForm = () => {
+      setExpenseCategory('other');
+      setExpenseDate(new Date().toISOString().split('T')[0]);
+      setAmount('');
+      setVehiclePlate('');
+      setDescription('');
+    };
 
     const onSubmitExpense = (e) => {
       e.preventDefault();
       
+      // Validation
       if (!expenseCategory || !amount || !expenseDate) {
-        toast.error('Please fill in all required fields');
+        toast.error('Please fill in all required fields (Date, Category, Amount)');
         return;
       }
       
@@ -239,12 +255,31 @@ const SalesPage = () => {
         return;
       }
       
-      recordExpenseMutation.mutate({
+      if (!selectedBranchId) {
+        toast.error('Please select a branch first');
+        return;
+      }
+      
+      const expenseData = {
         expense_date: expenseDate,
         category: expenseCategory,
-        amount: parseFloat(amount),
-        vehicle_plate_number: vehiclePlate,
-        description: description
+        amount: parseFloat(amount)
+      };
+      
+      // Add optional fields only if they have values
+      if (vehiclePlate && vehiclePlate.trim()) {
+        expenseData.vehicle_plate_number = vehiclePlate.trim();
+      }
+      
+      if (description && description.trim()) {
+        expenseData.description = description.trim();
+      }
+      
+      console.log('Submitting expense:', expenseData);
+      recordExpenseMutation.mutate(expenseData, {
+        onSuccess: () => {
+          resetForm();
+        }
       });
     };
 
@@ -315,11 +350,20 @@ const SalesPage = () => {
             />
           </Grid>
         </Grid>
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+          <Button
+            onClick={() => {
+              resetForm();
+              setShowExpenseModal(false);
+            }}
+            disabled={recordExpenseMutation.isLoading}
+          >
+            Cancel
+          </Button>
           <Button
             type="submit"
             variant="contained"
-            disabled={recordExpenseMutation.isLoading}
+            disabled={recordExpenseMutation.isLoading || !selectedBranchId}
           >
             {recordExpenseMutation.isLoading ? 'Recording...' : 'Record Expense'}
           </Button>
@@ -436,7 +480,13 @@ const SalesPage = () => {
         <Button
           variant="outlined"
           startIcon={<Receipt />}
-          onClick={() => setShowExpenseModal(true)}
+          onClick={() => {
+            if (!selectedBranchId) {
+              toast.error('Please select a branch first to record expenses');
+              return;
+            }
+            setShowExpenseModal(true);
+          }}
         >
           Record Expense
         </Button>
@@ -675,9 +725,24 @@ const SalesPage = () => {
 
       {/* Expense Modal */}
       <Dialog open={showExpenseModal} onClose={() => setShowExpenseModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Record Expense</DialogTitle>
+        <DialogTitle>
+          Record Expense
+          {selectedBranchId && (
+            <Typography variant="body2" color="text.secondary">
+              Branch: {branches.find(b => b.id === selectedBranchId)?.branch_name || 'Unknown'}
+            </Typography>
+          )}
+        </DialogTitle>
         <DialogContent>
-          <ExpenseForm />
+          {selectedBranchId ? (
+            <ExpenseForm />
+          ) : (
+            <Box sx={{ p: 2, textAlign: 'center' }}>
+              <Typography color="error">
+                Please select a branch first to record expenses.
+              </Typography>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowExpenseModal(false)}>Cancel</Button>
