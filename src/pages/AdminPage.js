@@ -34,7 +34,7 @@ import ReportsGenerator from '../components/ReportsGenerator';
 import DocumentManager from '../components/DocumentManager';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useForm } from 'react-hook-form';
-import { hrAPI, branchesAPI, stockAPI, adminAPI } from '../services/api';
+import { hrAPI, branchesAPI, stockAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
