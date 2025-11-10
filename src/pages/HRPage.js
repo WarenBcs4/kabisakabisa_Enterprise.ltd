@@ -147,14 +147,18 @@ const HRPage = () => {
   const createEmployeeMutation = useMutation(
     (data) => hrAPI.createEmployee(data),
     {
-      onSuccess: () => {
-        toast.success('Employee created successfully!');
+      onSuccess: (response) => {
+        toast.success(`Employee ${response.full_name} created successfully!`);
         setShowAddEmployee(false);
         reset();
         queryClient.invalidateQueries('hrPageData');
+        if (user?.role === 'manager') {
+          queryClient.invalidateQueries(['branchEmployees', user.branchId]);
+        }
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to create employee');
+        const message = error.response?.data?.message || 'Failed to create employee';
+        toast.error(message);
       }
     }
   );
@@ -162,12 +166,15 @@ const HRPage = () => {
   const updateEmployeeMutation = useMutation(
     ({ id, data }) => hrAPI.updateEmployee(id, data),
     {
-      onSuccess: () => {
-        toast.success('Employee updated successfully!');
+      onSuccess: (response) => {
+        toast.success(`Employee ${response.full_name} updated successfully!`);
         setEditingEmployee(null);
         setShowAddEmployee(false);
         reset();
         queryClient.invalidateQueries('hrPageData');
+        if (user?.role === 'manager') {
+          queryClient.invalidateQueries(['branchEmployees', user.branchId]);
+        }
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update employee');
@@ -176,14 +183,17 @@ const HRPage = () => {
   );
 
   const deleteEmployeeMutation = useMutation(
-    (id) => hrAPI.deleteEmployee(id),
+    (employee) => hrAPI.deleteEmployee(employee.id),
     {
-      onSuccess: () => {
-        toast.success('Employee deactivated successfully!');
+      onSuccess: (_, employee) => {
+        toast.success(`Employee ${employee.full_name} deactivated successfully!`);
         queryClient.invalidateQueries('hrPageData');
+        if (user?.role === 'manager') {
+          queryClient.invalidateQueries(['branchEmployees', user.branchId]);
+        }
       },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to deactivate employee');
+      onError: (error, employee) => {
+        toast.error(`Failed to deactivate ${employee.full_name}: ${error.response?.data?.message || 'Unknown error'}`);
       }
     }
   );
@@ -217,21 +227,34 @@ const HRPage = () => {
   );
 
   const onSubmitEmployee = (data) => {
+    // Validate required fields
+    if (!data.full_name?.trim()) {
+      toast.error('Full name is required');
+      return;
+    }
+    if (!data.email?.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+    if (!data.role) {
+      toast.error('Role is required');
+      return;
+    }
+
     const cleanData = {
-      full_name: data.full_name?.trim(),
-      email: data.email?.toLowerCase().trim(),
+      full_name: data.full_name.trim(),
+      email: data.email.toLowerCase().trim(),
       phone: data.phone?.trim() || null,
       role: data.role,
       branch_id: data.branch_id || null,
       salary: data.salary ? parseFloat(data.salary) : null,
-      hire_date: data.hire_date || null,
+      hire_date: data.hire_date || new Date().toISOString().split('T')[0],
       is_active: data.is_active !== false
     };
 
     if (editingEmployee) {
       updateEmployeeMutation.mutate({ id: editingEmployee.id, data: cleanData });
     } else {
-      cleanData.password = `${data.role}password123`;
       createEmployeeMutation.mutate(cleanData);
     }
   };
@@ -565,9 +588,14 @@ const HRPage = () => {
                             <Edit />
                           </IconButton>
                           <IconButton 
-                            onClick={() => deleteEmployeeMutation.mutate(employee.id)}
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to deactivate ${employee.full_name}?`)) {
+                                deleteEmployeeMutation.mutate(employee);
+                              }
+                            }}
                             size="small" 
                             color="error"
+                            disabled={deleteEmployeeMutation.isLoading}
                           >
                             <Delete />
                           </IconButton>
@@ -943,7 +971,9 @@ const HRPage = () => {
             variant="contained"
             disabled={createEmployeeMutation.isLoading || updateEmployeeMutation.isLoading}
           >
-            {editingEmployee ? 'Update' : 'Create'} Employee
+            {createEmployeeMutation.isLoading || updateEmployeeMutation.isLoading 
+              ? (editingEmployee ? 'Updating...' : 'Creating...') 
+              : (editingEmployee ? 'Update' : 'Create')} Employee
           </Button>
         </DialogActions>
       </Dialog>
