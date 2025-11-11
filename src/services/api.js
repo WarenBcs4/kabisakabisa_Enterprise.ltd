@@ -14,13 +14,24 @@ const api = axios.create({
 
 // Request interceptor to add auth token and CSRF protection
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = Cookies.get('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // No CSRF protection configured
+    // Add CSRF token for state-changing requests
+    if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
+      try {
+        const csrfResponse = await fetch(`${API_BASE_URL}/csrf-token`);
+        const csrfData = await csrfResponse.json();
+        if (csrfData.csrfToken) {
+          config.headers['X-CSRF-Token'] = csrfData.csrfToken;
+        }
+      } catch (error) {
+        console.warn('Failed to get CSRF token:', error);
+      }
+    }
     
     return config;
   },
