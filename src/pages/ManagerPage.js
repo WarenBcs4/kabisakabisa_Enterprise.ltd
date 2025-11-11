@@ -25,10 +25,8 @@ import {
   People, 
   Inventory, 
   Warning,
-  Store,
   LocalShipping,
   ShoppingCart,
-  Assessment,
   AccountBalance,
   Receipt
 } from '@mui/icons-material';
@@ -51,7 +49,7 @@ import {
 } from 'recharts';
 
 const ManagerPage = () => {
-  const { user } = useAuth();
+  useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
 
@@ -113,7 +111,7 @@ const ManagerPage = () => {
   const totalEmployees = employees.filter(emp => emp.is_active).length;
   const totalStock = stock.length;
   const lowStockAlerts = stock.filter(item => (item.quantity_available || 0) <= (item.reorder_level || 10)).length;
-  const totalExpenses = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+
   const pendingOrders = orders.filter(order => order.status !== 'completed').length;
 
   // Branch performance data

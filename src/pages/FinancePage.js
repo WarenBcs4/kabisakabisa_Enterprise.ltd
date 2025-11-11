@@ -29,12 +29,9 @@ import {
   AccountBalance,
   TrendingUp,
   TrendingDown,
-  Receipt,
   Assessment,
   Print,
   GetApp,
-  LocalShipping,
-  Inventory,
   Store
 } from '@mui/icons-material';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -182,7 +179,7 @@ const FinancePage = () => {
 
   const metrics = calculateFinancialMetrics();
   const branchPerformance = calculateBranchPerformance();
-  const topProducts = calculateProductProfitability();
+  calculateProductProfitability();
 
   // Chart data
   const expenseBreakdown = [
