@@ -242,7 +242,6 @@ const SalesPage = () => {
   };
 
   // New Expense Management System
-  const [expenses, setExpenses] = useState([]);
   const [editingExpense, setEditingExpense] = useState(null);
   const [newExpense, setNewExpense] = useState({
     expense_date: new Date().toISOString().split('T')[0],
