@@ -296,10 +296,19 @@ const AdminPage = () => {
     if (data.salary && data.salary !== '' && !isNaN(data.salary)) cleanData.salary = parseFloat(data.salary);
     if (data.hire_date) cleanData.hire_date = data.hire_date;
     
+    // Handle password for both create and update
+    if (data.password && data.password.trim()) {
+      if (editingUser) {
+        cleanData.new_password = data.password.trim();
+      } else {
+        cleanData.password = data.password.trim();
+      }
+    }
+    
     if (editingUser) {
       updateUserMutation.mutate({ id: editingUser.id, data: cleanData });
     } else {
-      cleanData.password = `${data.role}Password123!`;
+      // If no password provided, let backend generate one
       createUserMutation.mutate(cleanData);
     }
   };
@@ -313,6 +322,7 @@ const AdminPage = () => {
     setValue('branch_id', user.branch_id);
     setValue('salary', user.salary);
     setValue('is_active', user.is_active);
+    setValue('password', ''); // Clear password field for editing
     setShowAddUser(true);
   };
 
@@ -878,6 +888,27 @@ const AdminPage = () => {
                 ))}
               </Select>
             </FormControl>
+            <TextField
+              fullWidth
+              label={editingUser ? "New Password (leave blank to keep current)" : "Password (optional - system will generate if empty)"}
+              type="password"
+              margin="normal"
+              helperText={editingUser ? "Only fill if you want to change the password" : "Leave empty for auto-generated secure password"}
+              {...register('password')}
+            />
+            <TextField
+              fullWidth
+              label="Phone"
+              margin="normal"
+              {...register('phone')}
+            />
+            <TextField
+              fullWidth
+              label="Salary"
+              type="number"
+              margin="normal"
+              {...register('salary')}
+            />
           </Box>
         </DialogContent>
         <DialogActions>

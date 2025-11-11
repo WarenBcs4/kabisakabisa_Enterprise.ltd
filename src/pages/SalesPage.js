@@ -241,39 +241,45 @@ const SalesPage = () => {
     { value: 'other', label: 'Other Business Expenses' }
   ];
 
-  const handleExpenseSubmit = async (expenseData) => {
-    try {
+  const expenseMutation = useMutation(
+    (data) => {
       const payload = {
-        ...expenseData,
-        amount: parseFloat(expenseData.amount),
+        ...data,
+        amount: parseFloat(data.amount),
         branch_id: selectedBranchId ? [selectedBranchId] : undefined,
         created_by: [JSON.parse(localStorage.getItem('userData') || '{}').id || 'system'],
         created_at: new Date().toISOString()
       };
       
       if (editingExpense) {
-        await api.put(`/data/Expenses/${editingExpense.id}`, payload);
-        toast.success('Expense updated successfully!');
-        setEditingExpense(null);
+        return api.put(`/data/Expenses/${editingExpense.id}`, payload);
       } else {
-        await api.post('/data/Expenses', payload);
-        toast.success('Expense recorded successfully!');
+        return api.post('/data/Expenses', payload);
       }
-      
-      setNewExpense({
-        expense_date: new Date().toISOString().split('T')[0],
-        category: '',
-        amount: '',
-        vehicle_plate_number: '',
-        description: '',
-        receipt_number: ''
-      });
-      
-      queryClient.invalidateQueries(['expenses', selectedBranchId]);
-      setShowExpenseModal(false);
-    } catch (error) {
-      toast.error('Failed to save expense');
+    },
+    {
+      onSuccess: () => {
+        toast.success(editingExpense ? 'Expense updated successfully!' : 'Expense recorded successfully!');
+        setEditingExpense(null);
+        setNewExpense({
+          expense_date: new Date().toISOString().split('T')[0],
+          category: '',
+          amount: '',
+          vehicle_plate_number: '',
+          description: '',
+          receipt_number: ''
+        });
+        queryClient.invalidateQueries(['expenses', selectedBranchId]);
+        setShowExpenseModal(false);
+      },
+      onError: (error) => {
+        toast.error('Failed to save expense');
+      }
     }
+  );
+
+  const handleExpenseSubmit = (expenseData) => {
+    expenseMutation.mutate(expenseData);
   };
 
   const ExpenseForm = ({ expense = newExpense, isEditing = false }) => {
@@ -389,7 +395,7 @@ const SalesPage = () => {
           >
             Cancel
           </Button>
-          <Button type="submit" variant="contained">
+          <Button type="submit" variant="contained" disabled={expenseMutation.isLoading}>
             {isEditing ? 'Update Expense' : 'Record Expense'}
           </Button>
         </Box>
