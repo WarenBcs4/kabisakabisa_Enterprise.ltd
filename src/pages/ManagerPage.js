@@ -29,18 +29,14 @@ import {
   Inventory, 
   Warning,
   LocalShipping,
-  ShoppingCart,
-  AccountBalance,
-  Receipt
+  ShoppingCart
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../theme';
 
 const ManagerPage = () => {
   useAuth();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedBranch, setSelectedBranch] = useState('');
 
@@ -59,12 +55,7 @@ const ManagerPage = () => {
     { refetchInterval: 10000, retry: false }
   );
 
-  const { data: saleItems = [] } = useQuery(
-    'manager-sale-items',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sale_Items`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
-    { refetchInterval: 10000, retry: false }
-  );
+
 
   const { data: expenses = [] } = useQuery(
     'manager-expenses',
