@@ -18,10 +18,6 @@ import {
   Paper,
   Chip,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Divider,
   List,
   ListItem,
@@ -35,7 +31,6 @@ import {
   Receipt,
   Payment,
   Assessment,
-  PieChart,
   Print,
   GetApp,
   Add,
@@ -45,11 +40,10 @@ import {
 } from '@mui/icons-material';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useQuery } from 'react-query';
-import { useAuth } from '../contexts/AuthContext';
+
 import { formatCurrency } from '../theme';
 
 const FinancePage = () => {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
