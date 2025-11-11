@@ -148,7 +148,10 @@ const ManagerPage = () => {
           <Button
             variant="outlined"
             startIcon={<Store />}
-            onClick={() => navigate('/sales')}
+            onClick={() => {
+              const branchId = user?.branchId || branches[0]?.id || 'rec1XUFQQJxlwpX9T';
+              navigate(`/sales/${branchId}`);
+            }}
             size="small"
           >
             Sales
@@ -156,7 +159,10 @@ const ManagerPage = () => {
           <Button
             variant="outlined"
             startIcon={<Inventory />}
-            onClick={() => navigate('/stock')}
+            onClick={() => {
+              const branchId = user?.branchId || branches[0]?.id || 'rec1XUFQQJxlwpX9T';
+              navigate(`/stock/${branchId}`);
+            }}
             size="small"
           >
             Stock
@@ -188,11 +194,11 @@ const ManagerPage = () => {
           <Button
             variant="outlined"
             startIcon={<AccountBalance />}
-            onClick={() => window.open('https://go.xero.com/Dashboard/', '_blank')}
+            onClick={() => navigate('/finance')}
             size="small"
-            sx={{ color: '#13B5EA', borderColor: '#13B5EA' }}
+            sx={{ color: '#1976d2', borderColor: '#1976d2' }}
           >
-            Xero
+            Finance
           </Button>
         </Box>
       </Box>
@@ -476,7 +482,10 @@ const ManagerPage = () => {
                       fullWidth
                       variant="contained"
                       startIcon={<Store />}
-                      onClick={() => navigate('/sales')}
+                      onClick={() => {
+                        const branchId = user?.branchId || branches[0]?.id || 'rec1XUFQQJxlwpX9T';
+                        navigate(`/sales/${branchId}`);
+                      }}
                       sx={{ mb: 1 }}
                     >
                       Sales Management
@@ -490,7 +499,10 @@ const ManagerPage = () => {
                       fullWidth
                       variant="contained"
                       startIcon={<Inventory />}
-                      onClick={() => navigate('/stock')}
+                      onClick={() => {
+                        const branchId = user?.branchId || branches[0]?.id || 'rec1XUFQQJxlwpX9T';
+                        navigate(`/stock/${branchId}`);
+                      }}
                       sx={{ mb: 1 }}
                     >
                       Stock Management
@@ -560,13 +572,13 @@ const ManagerPage = () => {
                       fullWidth
                       variant="contained"
                       startIcon={<AccountBalance />}
-                      onClick={() => window.open('https://go.xero.com/Dashboard/', '_blank')}
-                      sx={{ mb: 1, bgcolor: '#13B5EA', '&:hover': { bgcolor: '#0F9BD7' } }}
+                      onClick={() => navigate('/finance')}
+                      sx={{ mb: 1 }}
                     >
-                      Xero Accounting
+                      Financial Management
                     </Button>
                     <Typography variant="caption" color="text.secondary">
-                      Financial management, invoicing, reports
+                      Comprehensive financial system, P&L, invoicing
                     </Typography>
                   </Grid>
                 </Grid>
