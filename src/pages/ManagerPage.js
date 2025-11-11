@@ -16,7 +16,10 @@ import {
   Chip,
   Tabs,
   Tab,
-  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Alert,
   LinearProgress
 } from '@mui/material';
@@ -34,26 +37,14 @@ import { useQuery } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../theme';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
 
 const ManagerPage = () => {
   useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
+  const [selectedBranch, setSelectedBranch] = useState('');
 
-  // Fetch all real-time data
+  // Fetch all database tables with relationships
   const { data: employees = [], isLoading: employeesLoading } = useQuery(
     'manager-employees',
     () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees`)
@@ -68,9 +59,30 @@ const ManagerPage = () => {
     { refetchInterval: 10000, retry: false }
   );
 
+  const { data: saleItems = [] } = useQuery(
+    'manager-sale-items',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sale_Items`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 10000, retry: false }
+  );
+
+  const { data: expenses = [] } = useQuery(
+    'manager-expenses',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
   const { data: stock = [], isLoading: stockLoading } = useQuery(
     'manager-stock',
     () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: stockMovements = [] } = useQuery(
+    'manager-stock-movements',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements`)
       .then(res => res.ok ? res.json() : []).catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
@@ -82,16 +94,16 @@ const ManagerPage = () => {
     { retry: false }
   );
 
-  const { data: expenses = [] } = useQuery(
-    'manager-expenses',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`)
+  const { data: orders = [] } = useQuery(
+    'manager-orders',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Orders`)
       .then(res => res.ok ? res.json() : []).catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
-  const { data: orders = [] } = useQuery(
-    'manager-orders',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Orders`)
+  const { data: orderItems = [] } = useQuery(
+    'manager-order-items',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Order_Items`)
       .then(res => res.ok ? res.json() : []).catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
@@ -103,7 +115,46 @@ const ManagerPage = () => {
     { retry: false }
   );
 
-  // Calculate real-time metrics
+  const { data: trips = [] } = useQuery(
+    'manager-trips',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Trips`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: payroll = [] } = useQuery(
+    'manager-payroll',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Payroll`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  // Helper functions to get related data
+  const getBranchName = (branchId) => {
+    const id = Array.isArray(branchId) ? branchId[0] : branchId;
+    return branches.find(b => b.id === id)?.branch_name || 'Unknown';
+  };
+
+  const getEmployeeName = (employeeId) => {
+    const id = Array.isArray(employeeId) ? employeeId[0] : employeeId;
+    return employees.find(e => e.id === id)?.full_name || 'Unknown';
+  };
+
+  const getVehiclePlate = (vehicleId) => {
+    const id = Array.isArray(vehicleId) ? vehicleId[0] : vehicleId;
+    return vehicles.find(v => v.id === id)?.plate_number || 'Unknown';
+  };
+
+  // Filter data by selected branch
+  const filterByBranch = (data, branchField = 'branch_id') => {
+    if (!selectedBranch) return data;
+    return data.filter(item => {
+      const branchId = Array.isArray(item[branchField]) ? item[branchField][0] : item[branchField];
+      return branchId === selectedBranch;
+    });
+  };
+
+  // Calculate metrics
   const todayRevenue = sales
     .filter(sale => new Date(sale.sale_date).toDateString() === new Date().toDateString())
     .reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
@@ -111,45 +162,7 @@ const ManagerPage = () => {
   const totalEmployees = employees.filter(emp => emp.is_active).length;
   const totalStock = stock.length;
   const lowStockAlerts = stock.filter(item => (item.quantity_available || 0) <= (item.reorder_level || 10)).length;
-
   const pendingOrders = orders.filter(order => order.status !== 'completed').length;
-
-  // Branch performance data
-  const branchPerformance = branches.map(branch => {
-    const branchSales = sales.filter(s => 
-      (Array.isArray(s.branch_id) ? s.branch_id[0] : s.branch_id) === branch.id
-    );
-    const branchEmployees = employees.filter(e => 
-      (Array.isArray(e.branch_id) ? e.branch_id[0] : e.branch_id) === branch.id
-    );
-    const revenue = branchSales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
-    
-    return {
-      name: branch.branch_name,
-      revenue,
-      employees: branchEmployees.length,
-      sales_count: branchSales.length
-    };
-  });
-
-  // Role distribution
-  const roleDistribution = employees.reduce((acc, emp) => {
-    acc[emp.role] = (acc[emp.role] || 0) + 1;
-    return acc;
-  }, {});
-
-  const roleChartData = Object.entries(roleDistribution).map(([role, count]) => ({
-    name: role,
-    value: count,
-    color: {
-      admin: '#ff6b6b',
-      manager: '#4ecdc4',
-      hr: '#45b7d1',
-      sales: '#96ceb4',
-      logistics: '#feca57',
-      boss: '#ff9ff3'
-    }[role] || '#95a5a6'
-  }));
 
   const getRoleColor = (role) => {
     const colors = {
@@ -169,31 +182,30 @@ const ManagerPage = () => {
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" gutterBottom sx={{ m: 0 }}>
-          Manager Dashboard - Real-time Overview
+          Manager Dashboard - Data Overview
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            variant="outlined"
-            startIcon={<AccountBalance />}
-            onClick={() => navigate('/finance')}
-            size="small"
-          >
-            Finance
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Receipt />}
-            onClick={() => navigate('/expenses')}
-            size="small"
-          >
-            Expenses
-          </Button>
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Filter by Branch</InputLabel>
+            <Select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              label="Filter by Branch"
+            >
+              <MenuItem value="">All Branches</MenuItem>
+              {branches.map((branch) => (
+                <MenuItem key={branch.id} value={branch.id}>
+                  {branch.branch_name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
       </Box>
 
       {isLoading && <LinearProgress sx={{ mb: 2 }} />}
 
-      {/* Real-time KPI Cards */}
+      {/* KPI Cards */}
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={6} sm={6} md={2}>
           <Card>
@@ -201,12 +213,8 @@ const ManagerPage = () => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <TrendingUp sx={{ fontSize: 30, color: 'primary.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" variant="body2">
-                    Today's Sales
-                  </Typography>
-                  <Typography variant="h6">
-                    {formatCurrency(todayRevenue)}
-                  </Typography>
+                  <Typography color="textSecondary" variant="body2">Today's Sales</Typography>
+                  <Typography variant="h6">{formatCurrency(todayRevenue)}</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -218,12 +226,8 @@ const ManagerPage = () => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <People sx={{ fontSize: 30, color: 'success.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" variant="body2">
-                    Active Staff
-                  </Typography>
-                  <Typography variant="h6">
-                    {totalEmployees}
-                  </Typography>
+                  <Typography color="textSecondary" variant="body2">Active Staff</Typography>
+                  <Typography variant="h6">{totalEmployees}</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -235,12 +239,8 @@ const ManagerPage = () => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Inventory sx={{ fontSize: 30, color: 'info.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" variant="body2">
-                    Stock Items
-                  </Typography>
-                  <Typography variant="h6">
-                    {totalStock}
-                  </Typography>
+                  <Typography color="textSecondary" variant="body2">Stock Items</Typography>
+                  <Typography variant="h6">{totalStock}</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -252,12 +252,8 @@ const ManagerPage = () => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Warning sx={{ fontSize: 30, color: 'warning.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" variant="body2">
-                    Low Stock
-                  </Typography>
-                  <Typography variant="h6">
-                    {lowStockAlerts}
-                  </Typography>
+                  <Typography color="textSecondary" variant="body2">Low Stock</Typography>
+                  <Typography variant="h6">{lowStockAlerts}</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -269,12 +265,8 @@ const ManagerPage = () => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <ShoppingCart sx={{ fontSize: 30, color: 'secondary.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" variant="body2">
-                    Pending Orders
-                  </Typography>
-                  <Typography variant="h6">
-                    {pendingOrders}
-                  </Typography>
+                  <Typography color="textSecondary" variant="body2">Pending Orders</Typography>
+                  <Typography variant="h6">{pendingOrders}</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -286,12 +278,8 @@ const ManagerPage = () => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <LocalShipping sx={{ fontSize: 30, color: 'error.main', mr: 1 }} />
                 <Box>
-                  <Typography color="textSecondary" variant="body2">
-                    Vehicles
-                  </Typography>
-                  <Typography variant="h6">
-                    {vehicles.length}
-                  </Typography>
+                  <Typography color="textSecondary" variant="body2">Vehicles</Typography>
+                  <Typography variant="h6">{vehicles.length}</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -301,262 +289,42 @@ const ManagerPage = () => {
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
-          <Tab label="Overview" />
-          <Tab label="HR Management" />
-          <Tab label="Sales Data" />
-          <Tab label="Inventory" />
-          <Tab label="Orders & Logistics" />
+          <Tab label="Sales & Expenses" />
+          <Tab label="HR & Payroll" />
+          <Tab label="Stock & Movements" />
+          <Tab label="Orders & Items" />
+          <Tab label="Logistics & Trips" />
         </Tabs>
       </Box>
 
       {activeTab === 0 && (
         <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Branch Performance (Real-time)
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={branchPerformance}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                    <Legend />
-                    <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
-                    <Bar dataKey="sales_count" fill="#82ca9d" name="Sales Count" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Staff Distribution
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={roleChartData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                    >
-                      {roleChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      )}
-
-      {activeTab === 1 && (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              HR Management - All Employees (Real-time)
-            </Typography>
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Total Employees: {employees.length} | Active: {totalEmployees} | 
-              Last Updated: {new Date().toLocaleTimeString()}
-            </Alert>
-            <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Role</TableCell>
-                    <TableCell>Branch</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Hire Date</TableCell>
-                    <TableCell>Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {employees.map((employee, index) => {
-                    const employeeBranch = branches.find(b => 
-                      b.id === (Array.isArray(employee.branch_id) ? employee.branch_id[0] : employee.branch_id)
-                    );
-                    return (
-                      <TableRow key={employee.id || index}>
-                        <TableCell>{employee.full_name || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={employee.role || 'Unknown'} 
-                            size="small"
-                            color={getRoleColor(employee.role)}
-                          />
-                        </TableCell>
-                        <TableCell>{employeeBranch?.branch_name || 'No Branch'}</TableCell>
-                        <TableCell>{employee.email || 'N/A'}</TableCell>
-                        <TableCell>{employee.hire_date || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={employee.is_active ? 'Active' : 'Inactive'}
-                            color={employee.is_active ? 'success' : 'default'}
-                            size="small"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeTab === 2 && (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Sales Data - All Transactions (Real-time)
-            </Typography>
-            <Alert severity="success" sx={{ mb: 2 }}>
-              Total Sales: {sales.length} | Today's Revenue: {formatCurrency(todayRevenue)} | 
-              Last Updated: {new Date().toLocaleTimeString()}
-            </Alert>
-            <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell>Branch</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                    <TableCell>Payment Method</TableCell>
-                    <TableCell>Employee</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sales.slice(0, 50).map((sale, index) => {
-                    const saleBranch = branches.find(b => 
-                      b.id === (Array.isArray(sale.branch_id) ? sale.branch_id[0] : sale.branch_id)
-                    );
-                    const saleEmployee = employees.find(e => 
-                      e.id === (Array.isArray(sale.employee_id) ? sale.employee_id[0] : sale.employee_id)
-                    );
-                    return (
-                      <TableRow key={sale.id || index}>
-                        <TableCell>{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString() : 'N/A'}</TableCell>
-                        <TableCell>{sale.customer_name || 'Walk-in Customer'}</TableCell>
-                        <TableCell>{saleBranch?.branch_name || 'Unknown'}</TableCell>
-                        <TableCell align="right">{formatCurrency(sale.total_amount || 0)}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={sale.payment_method || 'Unknown'} 
-                            size="small"
-                            color={sale.payment_method === 'cash' ? 'success' : 'default'}
-                          />
-                        </TableCell>
-                        <TableCell>{saleEmployee?.full_name || 'Unknown'}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeTab === 3 && (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Inventory Management - All Stock (Real-time)
-            </Typography>
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              Total Items: {stock.length} | Low Stock Alerts: {lowStockAlerts} | 
-              Last Updated: {new Date().toLocaleTimeString()}
-            </Alert>
-            <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Product Name</TableCell>
-                    <TableCell>Branch</TableCell>
-                    <TableCell align="right">Available</TableCell>
-                    <TableCell align="right">Reorder Level</TableCell>
-                    <TableCell align="right">Unit Price</TableCell>
-                    <TableCell>Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {stock.map((item, index) => {
-                    const stockBranch = branches.find(b => 
-                      b.id === (Array.isArray(item.branch_id) ? item.branch_id[0] : item.branch_id)
-                    );
-                    const isLowStock = (item.quantity_available || 0) <= (item.reorder_level || 10);
-                    return (
-                      <TableRow key={item.id || index} sx={{ bgcolor: isLowStock ? 'warning.light' : 'inherit' }}>
-                        <TableCell>{item.product_name || 'N/A'}</TableCell>
-                        <TableCell>{stockBranch?.branch_name || 'Unknown'}</TableCell>
-                        <TableCell align="right">{item.quantity_available || 0}</TableCell>
-                        <TableCell align="right">{item.reorder_level || 10}</TableCell>
-                        <TableCell align="right">{formatCurrency(item.unit_price || 0)}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={isLowStock ? 'Low Stock' : 'In Stock'}
-                            color={isLowStock ? 'warning' : 'success'}
-                            size="small"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeTab === 4 && (
-        <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Purchase Orders (Real-time)
-                </Typography>
+                <Typography variant="h6" gutterBottom>Sales Transactions</Typography>
                 <Alert severity="info" sx={{ mb: 2 }}>
-                  Total Orders: {orders.length} | Pending: {pendingOrders}
+                  Total Sales: {filterByBranch(sales).length} | Revenue: {formatCurrency(filterByBranch(sales).reduce((sum, s) => sum + (s.total_amount || 0), 0))}
                 </Alert>
                 <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-                  <Table size="small">
+                  <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
-                        <TableCell>Supplier</TableCell>
                         <TableCell>Date</TableCell>
+                        <TableCell>Customer</TableCell>
+                        <TableCell>Branch</TableCell>
                         <TableCell align="right">Amount</TableCell>
-                        <TableCell>Status</TableCell>
+                        <TableCell>Employee</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {orders.slice(0, 20).map((order, index) => (
-                        <TableRow key={order.id || index}>
-                          <TableCell>{order.supplier_name || 'N/A'}</TableCell>
-                          <TableCell>{order.order_date ? new Date(order.order_date).toLocaleDateString() : 'N/A'}</TableCell>
-                          <TableCell align="right">{formatCurrency(order.total_amount || 0)}</TableCell>
-                          <TableCell>
-                            <Chip 
-                              label={order.status || 'Unknown'} 
-                              size="small"
-                              color={order.status === 'completed' ? 'success' : 'warning'}
-                            />
-                          </TableCell>
+                      {filterByBranch(sales).slice(0, 20).map((sale, index) => (
+                        <TableRow key={sale.id || index}>
+                          <TableCell>{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString() : 'N/A'}</TableCell>
+                          <TableCell>{sale.customer_name || 'Walk-in'}</TableCell>
+                          <TableCell>{getBranchName(sale.branch_id)}</TableCell>
+                          <TableCell align="right">{formatCurrency(sale.total_amount || 0)}</TableCell>
+                          <TableCell>{getEmployeeName(sale.employee_id)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -568,11 +336,269 @@ const ManagerPage = () => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Vehicle Fleet
-                </Typography>
+                <Typography variant="h6" gutterBottom>Expenses Recorded</Typography>
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  Total Expenses: {filterByBranch(expenses).length} | Amount: {formatCurrency(filterByBranch(expenses).reduce((sum, e) => sum + (e.amount || 0), 0))}
+                </Alert>
+                <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Branch</TableCell>
+                        <TableCell align="right">Amount</TableCell>
+                        <TableCell>Vehicle</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filterByBranch(expenses).slice(0, 20).map((expense, index) => (
+                        <TableRow key={expense.id || index}>
+                          <TableCell>{expense.expense_date ? new Date(expense.expense_date).toLocaleDateString() : 'N/A'}</TableCell>
+                          <TableCell>{expense.category || 'N/A'}</TableCell>
+                          <TableCell>{getBranchName(expense.branch_id)}</TableCell>
+                          <TableCell align="right">{formatCurrency(expense.amount || 0)}</TableCell>
+                          <TableCell>{expense.vehicle_plate_number || getVehiclePlate(expense.vehicle_id) || 'N/A'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {activeTab === 1 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Employee Management</Typography>
                 <Alert severity="success" sx={{ mb: 2 }}>
-                  Total Vehicles: {vehicles.length}
+                  Total Employees: {filterByBranch(employees).length} | Active: {filterByBranch(employees).filter(e => e.is_active).length}
+                </Alert>
+                <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Name</TableCell>
+                        <TableCell>Role</TableCell>
+                        <TableCell>Branch</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell align="right">Salary</TableCell>
+                        <TableCell>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filterByBranch(employees).map((employee, index) => (
+                        <TableRow key={employee.id || index}>
+                          <TableCell>{employee.full_name || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Chip label={employee.role || 'Unknown'} size="small" color={getRoleColor(employee.role)} />
+                          </TableCell>
+                          <TableCell>{getBranchName(employee.branch_id)}</TableCell>
+                          <TableCell>{employee.email || 'N/A'}</TableCell>
+                          <TableCell align="right">{formatCurrency(employee.salary || 0)}</TableCell>
+                          <TableCell>
+                            <Chip label={employee.is_active ? 'Active' : 'Inactive'} color={employee.is_active ? 'success' : 'default'} size="small" />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Payroll Records</Typography>
+                <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Employee</TableCell>
+                        <TableCell>Period</TableCell>
+                        <TableCell align="right">Gross Pay</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {payroll.slice(0, 15).map((pay, index) => (
+                        <TableRow key={pay.id || index}>
+                          <TableCell>{getEmployeeName(pay.employee_id)}</TableCell>
+                          <TableCell>{pay.pay_period || 'N/A'}</TableCell>
+                          <TableCell align="right">{formatCurrency(pay.gross_pay || 0)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {activeTab === 2 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Stock Inventory</Typography>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Total Items: {filterByBranch(stock).length} | Low Stock: {filterByBranch(stock).filter(s => (s.quantity_available || 0) <= (s.reorder_level || 10)).length}
+                </Alert>
+                <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Product</TableCell>
+                        <TableCell>Branch</TableCell>
+                        <TableCell align="right">Available</TableCell>
+                        <TableCell align="right">Reorder Level</TableCell>
+                        <TableCell align="right">Unit Price</TableCell>
+                        <TableCell>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filterByBranch(stock).map((item, index) => {
+                        const isLowStock = (item.quantity_available || 0) <= (item.reorder_level || 10);
+                        return (
+                          <TableRow key={item.id || index} sx={{ bgcolor: isLowStock ? 'warning.light' : 'inherit' }}>
+                            <TableCell>{item.product_name || 'N/A'}</TableCell>
+                            <TableCell>{getBranchName(item.branch_id)}</TableCell>
+                            <TableCell align="right">{item.quantity_available || 0}</TableCell>
+                            <TableCell align="right">{item.reorder_level || 10}</TableCell>
+                            <TableCell align="right">{formatCurrency(item.unit_price || 0)}</TableCell>
+                            <TableCell>
+                              <Chip label={isLowStock ? 'Low Stock' : 'In Stock'} color={isLowStock ? 'warning' : 'success'} size="small" />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Stock Movements</Typography>
+                <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Product</TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell align="right">Quantity</TableCell>
+                        <TableCell>Date</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {stockMovements.slice(0, 20).map((movement, index) => (
+                        <TableRow key={movement.id || index}>
+                          <TableCell>{movement.product_name || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Chip label={movement.movement_type || 'Unknown'} size="small" />
+                          </TableCell>
+                          <TableCell align="right">{movement.quantity || 0}</TableCell>
+                          <TableCell>{movement.movement_date ? new Date(movement.movement_date).toLocaleDateString() : 'N/A'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {activeTab === 3 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Purchase Orders</Typography>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Total Orders: {orders.length} | Pending: {orders.filter(o => o.status !== 'completed').length}
+                </Alert>
+                <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Supplier</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell align="right">Total Amount</TableCell>
+                        <TableCell align="right">Amount Paid</TableCell>
+                        <TableCell align="right">Balance</TableCell>
+                        <TableCell>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {orders.map((order, index) => (
+                        <TableRow key={order.id || index}>
+                          <TableCell>{order.supplier_name || 'N/A'}</TableCell>
+                          <TableCell>{order.order_date ? new Date(order.order_date).toLocaleDateString() : 'N/A'}</TableCell>
+                          <TableCell align="right">{formatCurrency(order.total_amount || 0)}</TableCell>
+                          <TableCell align="right">{formatCurrency(order.amount_paid || 0)}</TableCell>
+                          <TableCell align="right">{formatCurrency((order.total_amount || 0) - (order.amount_paid || 0))}</TableCell>
+                          <TableCell>
+                            <Chip label={order.status || 'Unknown'} size="small" color={order.status === 'completed' ? 'success' : 'warning'} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Order Items</Typography>
+                <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Product</TableCell>
+                        <TableCell align="right">Quantity</TableCell>
+                        <TableCell align="right">Unit Cost</TableCell>
+                        <TableCell align="right">Total</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {orderItems.slice(0, 20).map((item, index) => (
+                        <TableRow key={item.id || index}>
+                          <TableCell>{item.product_name || 'N/A'}</TableCell>
+                          <TableCell align="right">{item.quantity || 0}</TableCell>
+                          <TableCell align="right">{formatCurrency(item.unit_cost || 0)}</TableCell>
+                          <TableCell align="right">{formatCurrency((item.quantity || 0) * (item.unit_cost || 0))}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {activeTab === 4 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Vehicle Fleet</Typography>
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  Total Vehicles: {vehicles.length} | Active: {vehicles.filter(v => v.status === 'active').length}
                 </Alert>
                 <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
                   <Table size="small">
@@ -585,25 +611,50 @@ const ManagerPage = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {vehicles.map((vehicle, index) => {
-                        const vehicleBranch = branches.find(b => 
-                          b.id === (Array.isArray(vehicle.current_branch_id) ? vehicle.current_branch_id[0] : vehicle.current_branch_id)
-                        );
-                        return (
-                          <TableRow key={vehicle.id || index}>
-                            <TableCell>{vehicle.plate_number || 'N/A'}</TableCell>
-                            <TableCell>{vehicle.vehicle_type || 'N/A'}</TableCell>
-                            <TableCell>{vehicleBranch?.branch_name || 'Unassigned'}</TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={vehicle.status || 'Unknown'} 
-                                size="small"
-                                color={vehicle.status === 'active' ? 'success' : 'warning'}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                      {vehicles.map((vehicle, index) => (
+                        <TableRow key={vehicle.id || index}>
+                          <TableCell>{vehicle.plate_number || 'N/A'}</TableCell>
+                          <TableCell>{vehicle.vehicle_type || 'N/A'}</TableCell>
+                          <TableCell>{getBranchName(vehicle.current_branch_id)}</TableCell>
+                          <TableCell>
+                            <Chip label={vehicle.status || 'Unknown'} size="small" color={vehicle.status === 'active' ? 'success' : 'warning'} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Trip Records</Typography>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Total Trips: {trips.length} | Total Cost: {formatCurrency(trips.reduce((sum, t) => sum + (t.trip_cost || 0), 0))}
+                </Alert>
+                <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Vehicle</TableCell>
+                        <TableCell>Driver</TableCell>
+                        <TableCell>Route</TableCell>
+                        <TableCell align="right">Cost</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {trips.slice(0, 20).map((trip, index) => (
+                        <TableRow key={trip.id || index}>
+                          <TableCell>{trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'N/A'}</TableCell>
+                          <TableCell>{getVehiclePlate(trip.vehicle_id)}</TableCell>
+                          <TableCell>{getEmployeeName(trip.driver_id)}</TableCell>
+                          <TableCell>{trip.route || 'N/A'}</TableCell>
+                          <TableCell align="right">{formatCurrency(trip.trip_cost || 0)}</TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
