@@ -32,6 +32,7 @@ import {
   AccountBalance
 } from '@mui/icons-material';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
+import FinancialDashboard from '../components/FinancialDashboard';
 import { useQuery } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -263,6 +264,7 @@ const ManagerPage = () => {
           <Tab label="Staff" />
           <Tab label="Inventory" />
           <Tab label="Quick Actions" />
+          <Tab label="Financial Analytics" />
         </Tabs>
       </Box>
 
@@ -526,6 +528,10 @@ const ManagerPage = () => {
             </Card>
           </Grid>
         </Grid>
+      )}
+
+      {activeTab === 4 && (
+        <FinancialDashboard userRole={user?.role} />
       )}
 
       {/* Historical Data Viewer */}

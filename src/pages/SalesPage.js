@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -33,11 +33,25 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { salesAPI, stockAPI, branchesAPI, logisticsAPI, expensesAPI } from '../services/api';
 import { formatCurrency } from '../theme';
+import { useAuth } from '../contexts/AuthContext';
+import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const SalesPage = () => {
+  const { user } = useAuth();
+  const { branchId: urlBranchId } = useParams();
   const queryClient = useQueryClient();
-  const [selectedBranchId, setSelectedBranchId] = useState('');
+  
+  // Auto-set branch for sales users
+  const userBranchId = user?.branchId || user?.branch_id || (user?.branch_id && user.branch_id[0]);
+  const initialBranchId = urlBranchId || userBranchId || '';
+  const [selectedBranchId, setSelectedBranchId] = useState(initialBranchId);
+  
+  // Update selectedBranchId when URL or user changes
+  useEffect(() => {
+    const newBranchId = urlBranchId || userBranchId || '';
+    setSelectedBranchId(newBranchId);
+  }, [urlBranchId, userBranchId]);
   const [showStockModal, setShowStockModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showFundsModal, setShowFundsModal] = useState(false);
@@ -417,25 +431,34 @@ const SalesPage = () => {
           Sales Management
         </Typography>
         
-        {/* Branch Selection */}
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Select Branch</InputLabel>
-          <Select
-            value={selectedBranchId}
-            onChange={(e) => setSelectedBranchId(e.target.value)}
-            label="Select Branch"
-            startAdornment={<Business sx={{ mr: 1, color: 'action.active' }} />}
-          >
-            <MenuItem value="">
-              <em>All Branches</em>
-            </MenuItem>
-            {branches.map((branch) => (
-              <MenuItem key={branch.id} value={branch.id}>
-                {branch.branch_name}
+        {/* Branch Selection - Hide for sales users */}
+        {user?.role !== 'sales' && (
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Select Branch</InputLabel>
+            <Select
+              value={selectedBranchId}
+              onChange={(e) => setSelectedBranchId(e.target.value)}
+              label="Select Branch"
+              startAdornment={<Business sx={{ mr: 1, color: 'action.active' }} />}
+            >
+              <MenuItem value="">
+                <em>All Branches</em>
               </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+              {branches.map((branch) => (
+                <MenuItem key={branch.id} value={branch.id}>
+                  {branch.branch_name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+        
+        {/* Show current branch for sales users */}
+        {user?.role === 'sales' && selectedBranchId && (
+          <Typography variant="h6" sx={{ color: 'primary.main' }}>
+            Branch: {branches.find(b => b.id === selectedBranchId)?.branch_name || 'Unknown'}
+          </Typography>
+        )}
       </Box>
 
       {/* Summary Cards */}
@@ -502,13 +525,7 @@ const SalesPage = () => {
         <Button
           variant="outlined"
           startIcon={<Receipt />}
-          onClick={() => {
-            if (!selectedBranchId) {
-              toast.error('Please select a branch first to record expenses');
-              return;
-            }
-            setShowExpenseModal(true);
-          }}
+          onClick={() => window.open('/expenses', '_blank')}
         >
           Record Expense
         </Button>

@@ -243,6 +243,12 @@ stockAPI.transfer = (data) => api.post('/stock/transfer', data).then(res => res.
 stockAPI.approveTransfer = (transferId) => api.patch(`/stock/transfers/${transferId}/approve`).then(res => res.data);
 stockAPI.rejectTransfer = (transferId) => api.patch(`/stock/transfers/${transferId}/reject`).then(res => res.data);
 
+// Finance API
+export const financeAPI = {
+  getAnalytics: (params) => api.get('/finance/analytics', { params }).then(res => res.data),
+  getProductCosts: () => api.get('/finance/product-costs').then(res => res.data),
+};
+
 // Enhanced Sales API
 export const salesAPIEnhanced = {
   ...salesAPI,

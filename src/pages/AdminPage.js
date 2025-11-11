@@ -34,6 +34,7 @@ import ReceiptCustomizer from '../components/ReceiptCustomizer';
 import ReportsGenerator from '../components/ReportsGenerator';
 import DocumentManager from '../components/DocumentManager';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
+import FinancialDashboard from '../components/FinancialDashboard';
 import { useForm } from 'react-hook-form';
 import { hrAPI, branchesAPI, stockAPI } from '../services/api';
 import { formatCurrency } from '../theme';
@@ -590,6 +591,7 @@ const AdminPage = () => {
           <Tab label="Reports" />
           <Tab label="Documents" />
           <Tab label="Historical Data" />
+          <Tab label="Financial Analytics" />
         </Tabs>
       </Box>
 
@@ -844,6 +846,10 @@ const AdminPage = () => {
             Open Historical Data
           </Button>
         </Box>
+      )}
+
+      {activeTab === 9 && (
+        <FinancialDashboard userRole={user?.role} />
       )}
 
       <Dialog open={showAddUser} onClose={handleCloseDialog} maxWidth="sm" fullWidth>

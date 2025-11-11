@@ -656,26 +656,23 @@ const HRPage = () => {
                   sx={{ minWidth: 150 }}
                 />
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   startIcon={<Send />}
                   onClick={() => {
-                    if (selectedPayrollIds.length > 0) {
-                      sendPayslipsMutation.mutate(selectedPayrollIds);
+                    const pendingIds = payroll
+                      .filter(p => p.payment_status === 'pending')
+                      .map(p => p.id);
+                    if (pendingIds.length > 0) {
+                      sendPayslipsMutation.mutate(pendingIds);
+                      toast.success(`Sending payslips to ${pendingIds.length} employees`);
                     } else {
-                      const pendingIds = payroll
-                        .filter(p => p.payment_status === 'pending')
-                        .map(p => p.id);
-                      if (pendingIds.length > 0) {
-                        sendPayslipsMutation.mutate(pendingIds);
-                      } else {
-                        toast.info('No pending payroll to send');
-                      }
+                      toast.info('No pending payroll to send');
                     }
                   }}
-                  disabled={pendingPayroll === 0 && selectedPayrollIds.length === 0}
-                  sx={{ color: '#FF6B35', borderColor: '#FF6B35' }}
+                  disabled={pendingPayroll === 0 || sendPayslipsMutation.isLoading}
+                  sx={{ bgcolor: '#FF6B35', '&:hover': { bgcolor: '#E55A2B' } }}
                 >
-                  Send Payslips
+                  📱 Send All Payslips ({pendingPayroll})
                 </Button>
               </Box>
             </Box>

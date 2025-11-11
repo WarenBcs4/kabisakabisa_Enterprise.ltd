@@ -184,7 +184,13 @@ function DashboardRedirect() {
       return <Navigate to="/admin" replace />;
     case 'sales':
       console.log('Redirecting to sales page');
-      return <Navigate to={`/sales/${user.branchId}`} replace />;
+      const branchId = user.branchId || user.branch_id || (user.branch_id && user.branch_id[0]);
+      if (branchId) {
+        return <Navigate to={`/sales/${branchId}`} replace />;
+      } else {
+        console.log('No branch ID found for sales user, redirecting to home');
+        return <Navigate to="/" replace />;
+      }
     case 'logistics':
       console.log('Redirecting to logistics page');
       return <Navigate to="/logistics" replace />;
