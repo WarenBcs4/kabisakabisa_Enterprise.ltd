@@ -241,163 +241,196 @@ const SalesPage = () => {
     createSaleMutation.mutate(data);
   };
 
-  // Expense form state
-  const [expenseForm, setExpenseForm] = useState({
+  // New Expense Management System
+  const [expenses, setExpenses] = useState([]);
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [newExpense, setNewExpense] = useState({
     expense_date: new Date().toISOString().split('T')[0],
     category: '',
     amount: '',
-    vehicle_id: '',
-    description: ''
+    vehicle_plate_number: '',
+    description: '',
+    receipt_number: ''
   });
 
-  // Get vehicles for dropdown
+  // Get vehicles and expenses
   const { data: vehicles = [] } = useQuery('vehicles', () => 
     logisticsAPI.getVehicles().catch(() => [])
   );
 
-  const handleExpenseChange = (field, value) => {
-    setExpenseForm(prev => ({ ...prev, [field]: value }));
+  const { data: branchExpenses = [] } = useQuery(
+    ['expenses', selectedBranchId],
+    () => selectedBranchId ? api.get(`/data/Expenses?filter=${encodeURIComponent(`FIND('${selectedBranchId}', ARRAYJOIN({branch_id}))`)}`).then(res => res.data) : [],
+    { enabled: !!selectedBranchId }
+  );
+
+  // Expense categories for sales
+  const expenseCategories = [
+    { value: 'fuel', label: 'Fuel & Transportation' },
+    { value: 'office_supplies', label: 'Office Supplies' },
+    { value: 'utilities', label: 'Utilities (Phone, Internet)' },
+    { value: 'maintenance', label: 'Equipment Maintenance' },
+    { value: 'marketing', label: 'Marketing & Advertising' },
+    { value: 'meals', label: 'Business Meals' },
+    { value: 'travel', label: 'Travel Expenses' },
+    { value: 'other', label: 'Other Business Expenses' }
+  ];
+
+  const handleExpenseSubmit = async (expenseData) => {
+    try {
+      const payload = {
+        ...expenseData,
+        amount: parseFloat(expenseData.amount),
+        branch_id: selectedBranchId ? [selectedBranchId] : undefined,
+        created_by: [JSON.parse(localStorage.getItem('userData') || '{}').id || 'system'],
+        created_at: new Date().toISOString()
+      };
+      
+      if (editingExpense) {
+        await api.put(`/data/Expenses/${editingExpense.id}`, payload);
+        toast.success('Expense updated successfully!');
+        setEditingExpense(null);
+      } else {
+        await api.post('/data/Expenses', payload);
+        toast.success('Expense recorded successfully!');
+      }
+      
+      setNewExpense({
+        expense_date: new Date().toISOString().split('T')[0],
+        category: '',
+        amount: '',
+        vehicle_plate_number: '',
+        description: '',
+        receipt_number: ''
+      });
+      
+      queryClient.invalidateQueries(['expenses', selectedBranchId]);
+      setShowExpenseModal(false);
+    } catch (error) {
+      toast.error('Failed to save expense');
+    }
   };
 
-  const resetExpenseForm = () => {
-    setExpenseForm({
-      expense_date: new Date().toISOString().split('T')[0],
-      category: '',
-      amount: '',
-      vehicle_id: '',
-      description: ''
-    });
-  };
-
-  const handleExpenseSubmit = (e) => {
-    e.preventDefault();
+  const ExpenseForm = ({ expense = newExpense, isEditing = false }) => {
+    const [formData, setFormData] = useState(expense);
     
-    if (!expenseForm.expense_date || !expenseForm.category || !expenseForm.amount) {
-      toast.error('Please fill in Date, Category, and Amount');
-      return;
-    }
-    
-    if (parseFloat(expenseForm.amount) <= 0) {
-      toast.error('Amount must be greater than 0');
-      return;
-    }
-    
-    const selectedVehicle = vehicles.find(v => v.id === expenseForm.vehicle_id);
-    
-    const expenseData = {
-      expense_date: expenseForm.expense_date,
-      category: expenseForm.category,
-      amount: parseFloat(expenseForm.amount),
-      description: expenseForm.description || undefined
+    const handleChange = (field, value) => {
+      setFormData(prev => ({ ...prev, [field]: value }));
     };
     
-    // Add vehicle data if selected
-    if (selectedVehicle) {
-      expenseData.vehicle_id = [selectedVehicle.id]; // Airtable link format
-      expenseData.vehicle_plate_number = selectedVehicle.plate_number;
-    }
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      if (!formData.expense_date || !formData.category || !formData.amount) {
+        toast.error('Please fill in Date, Category, and Amount');
+        return;
+      }
+      if (parseFloat(formData.amount) <= 0) {
+        toast.error('Amount must be greater than 0');
+        return;
+      }
+      handleExpenseSubmit(formData);
+    };
     
-    recordExpenseMutation.mutate(expenseData);
-  };
-
-  const ExpenseForm = () => (
-    <Box component="form" onSubmit={handleExpenseSubmit} sx={{ mt: 2 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Expense Date *"
-            type="date"
-            value={expenseForm.expense_date}
-            onChange={(e) => handleExpenseChange('expense_date', e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth required>
-            <InputLabel>Category *</InputLabel>
-            <Select
-              value={expenseForm.category}
-              onChange={(e) => handleExpenseChange('category', e.target.value)}
-              label="Category *"
-            >
-              <MenuItem value="fuel">Fuel</MenuItem>
-              <MenuItem value="utilities">Utilities</MenuItem>
-              <MenuItem value="maintenance">Maintenance</MenuItem>
-              <MenuItem value="vehicle_related">Vehicle Related</MenuItem>
-              <MenuItem value="office_supplies">Office Supplies</MenuItem>
-              <MenuItem value="rent">Rent</MenuItem>
-              <MenuItem value="insurance">Insurance</MenuItem>
-              <MenuItem value="marketing">Marketing</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Amount *"
-            type="number"
-            value={expenseForm.amount}
-            onChange={(e) => handleExpenseChange('amount', e.target.value)}
-            step="0.01"
-            inputProps={{ min: 0.01 }}
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <InputLabel>Vehicle</InputLabel>
-            <Select
-              value={expenseForm.vehicle_id}
-              onChange={(e) => handleExpenseChange('vehicle_id', e.target.value)}
-              label="Vehicle"
-            >
-              <MenuItem value="">
-                <em>No Vehicle</em>
-              </MenuItem>
-              {vehicles.map((vehicle) => (
-                <MenuItem key={vehicle.id} value={vehicle.id}>
-                  {vehicle.plate_number} - {vehicle.vehicle_type}
+    return (
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Expense Date *"
+              type="date"
+              value={formData.expense_date}
+              onChange={(e) => handleChange('expense_date', e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth required>
+              <InputLabel>Category *</InputLabel>
+              <Select
+                value={formData.category}
+                onChange={(e) => handleChange('category', e.target.value)}
+                label="Category *"
+              >
+                {expenseCategories.map((cat) => (
+                  <MenuItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Amount *"
+              type="number"
+              value={formData.amount}
+              onChange={(e) => handleChange('amount', e.target.value)}
+              step="0.01"
+              inputProps={{ min: 0.01 }}
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Receipt Number"
+              value={formData.receipt_number}
+              onChange={(e) => handleChange('receipt_number', e.target.value)}
+              placeholder="Receipt/Invoice number"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Vehicle (Optional)</InputLabel>
+              <Select
+                value={formData.vehicle_plate_number}
+                onChange={(e) => handleChange('vehicle_plate_number', e.target.value)}
+                label="Vehicle (Optional)"
+              >
+                <MenuItem value="">
+                  <em>No Vehicle</em>
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                {vehicles.map((vehicle) => (
+                  <MenuItem key={vehicle.id} value={vehicle.plate_number}>
+                    {vehicle.plate_number} - {vehicle.vehicle_type}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Description *"
+              multiline
+              rows={3}
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              placeholder="Describe the business purpose of this expense..."
+              required
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Description"
-            multiline
-            rows={3}
-            value={expenseForm.description}
-            onChange={(e) => handleExpenseChange('description', e.target.value)}
-            placeholder="Add details about this expense..."
-          />
-        </Grid>
-      </Grid>
-      
-      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-        <Button
-          onClick={() => {
-            resetExpenseForm();
-            setShowExpenseModal(false);
-          }}
-          disabled={recordExpenseMutation.isLoading}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={recordExpenseMutation.isLoading}
-        >
-          {recordExpenseMutation.isLoading ? 'Recording...' : 'Record Expense'}
-        </Button>
+        
+        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+          <Button
+            onClick={() => {
+              setEditingExpense(null);
+              setShowExpenseModal(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained">
+            {isEditing ? 'Update Expense' : 'Record Expense'}
+          </Button>
+        </Box>
       </Box>
-    </Box>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -534,7 +567,7 @@ const SalesPage = () => {
             setShowExpensesModal(true);
           }}
         >
-          View Expenses
+          Manage Expenses
         </Button>
         <Button
           variant="outlined"
@@ -763,10 +796,10 @@ const SalesPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Expense Modal */}
-      <Dialog open={showExpenseModal} onClose={() => setShowExpenseModal(false)} maxWidth="sm" fullWidth>
+      {/* Expense Form Modal */}
+      <Dialog open={showExpenseModal} onClose={() => setShowExpenseModal(false)} maxWidth="md" fullWidth>
         <DialogTitle>
-          Record Expense
+          {editingExpense ? 'Edit Expense' : 'Record New Expense'}
           {selectedBranchId && (
             <Typography variant="body2" color="text.secondary">
               Branch: {branches.find(b => b.id === selectedBranchId)?.branch_name || 'Unknown'}
@@ -775,7 +808,7 @@ const SalesPage = () => {
         </DialogTitle>
         <DialogContent>
           {selectedBranchId ? (
-            <ExpenseForm />
+            <ExpenseForm expense={editingExpense} isEditing={!!editingExpense} />
           ) : (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography color="error">
@@ -784,9 +817,6 @@ const SalesPage = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowExpenseModal(false)}>Cancel</Button>
-        </DialogActions>
       </Dialog>
 
       {/* Sales Search Modal */}
@@ -927,47 +957,74 @@ const SalesPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Expenses Modal */}
-      <Dialog open={showExpensesModal} onClose={() => setShowExpensesModal(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Branch Expenses</DialogTitle>
+      {/* Expenses Management Modal */}
+      <Dialog open={showExpensesModal} onClose={() => setShowExpensesModal(false)} maxWidth="lg" fullWidth>
+        <DialogTitle>
+          Branch Expenses Management
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => {
+              setEditingExpense(null);
+              setShowExpenseModal(true);
+            }}
+            sx={{ ml: 2 }}
+          >
+            Add New Expense
+          </Button>
+        </DialogTitle>
         <DialogContent>
-          <TableContainer sx={{ maxHeight: 400 }}>
+          <TableContainer sx={{ maxHeight: 500 }}>
             <Table size="small">
               <TableHead>
                 <TableRow>
                   <TableCell>Date</TableCell>
                   <TableCell>Category</TableCell>
                   <TableCell>Amount</TableCell>
+                  <TableCell>Receipt #</TableCell>
                   <TableCell>Vehicle</TableCell>
                   <TableCell>Description</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {expenses.map((expense) => (
+                {branchExpenses.map((expense) => (
                   <TableRow key={expense.id} hover>
                     <TableCell>
                       {expense.expense_date ? new Date(expense.expense_date).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell>
                       <Chip 
-                        label={expense.category || 'N/A'} 
+                        label={expenseCategories.find(c => c.value === expense.category)?.label || expense.category} 
                         size="small"
                         color={expense.category === 'fuel' ? 'warning' : 'default'}
                       />
                     </TableCell>
                     <TableCell>{formatCurrency(expense.amount || 0)}</TableCell>
+                    <TableCell>{expense.receipt_number || '-'}</TableCell>
+                    <TableCell>{expense.vehicle_plate_number || 'N/A'}</TableCell>
                     <TableCell>
-                      {expense.vehicle_plate_number || 
-                       (expense.vehicle_id && vehicles.find(v => v.id === (Array.isArray(expense.vehicle_id) ? expense.vehicle_id[0] : expense.vehicle_id))?.plate_number) || 
-                       'N/A'}
+                      <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                        {expense.description || 'N/A'}
+                      </Typography>
                     </TableCell>
-                    <TableCell>{expense.description || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          setEditingExpense(expense);
+                          setShowExpenseModal(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
-                {expenses.length === 0 && (
+                {branchExpenses.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      <Typography color="text.secondary">
+                    <TableCell colSpan={7} align="center">
+                      <Typography color="text.secondary" sx={{ py: 4 }}>
                         No expenses recorded for this branch
                       </Typography>
                     </TableCell>
