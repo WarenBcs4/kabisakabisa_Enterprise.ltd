@@ -26,7 +26,7 @@ import {
   Paper,
   IconButton
 } from '@mui/material';
-import { Add, Edit, Delete, Receipt, TrendingUp, Business } from '@mui/icons-material';
+import { Add, Edit, Delete, TrendingUp, Business } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { expensesAPI, branchesAPI, logisticsAPI } from '../services/api';

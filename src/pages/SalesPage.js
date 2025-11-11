@@ -32,7 +32,6 @@ import QuickUpload from '../components/QuickUpload';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { salesAPI, stockAPI, branchesAPI, logisticsAPI, expensesAPI } from '../services/api';
-import api from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
