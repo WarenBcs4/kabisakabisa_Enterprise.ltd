@@ -32,7 +32,7 @@ import { Add, Edit, Delete, SwapHoriz, Inventory, History } from '@mui/icons-mat
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
-import { stockAPI, branchesAPI, dataAPI } from '../services/api';
+
 import { formatCurrency } from '../theme';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import toast from 'react-hot-toast';

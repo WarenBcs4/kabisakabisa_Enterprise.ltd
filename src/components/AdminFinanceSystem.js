@@ -48,12 +48,7 @@ const AdminFinanceSystem = () => {
     { refetchInterval: 10000, retry: false }
   );
 
-  const { data: orders = [] } = useQuery(
-    'orders-finance-admin',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Orders`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
-    { refetchInterval: 30000, retry: false }
-  );
+
 
   const { data: orderItems = [] } = useQuery(
     'order-items-finance',
