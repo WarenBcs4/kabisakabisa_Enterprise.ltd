@@ -15,7 +15,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+
   Chip,
   LinearProgress,
   Alert,
@@ -44,8 +44,8 @@ import {
   Visibility,
   MonetizationOn,
   CreditCard,
-  Inventory,
-  LocalShipping,
+
+
   PieChart,
   BarChart,
   Timeline
@@ -60,7 +60,7 @@ import XeroBankingModule from '../components/XeroBankingModule';
 const XeroFinancePage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('current-month');
+
 
   // Fetch all financial data
   const { data: sales = [], isLoading: salesLoading } = useQuery(
@@ -98,7 +98,7 @@ const XeroFinancePage = () => {
     { refetchInterval: 30000, retry: false }
   );
 
-  const { data: payroll = [] } = useQuery(
+  useQuery(
     'xero-payroll',
     () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Payroll`)
       .then(res => res.ok ? res.json() : []).catch(() => []),

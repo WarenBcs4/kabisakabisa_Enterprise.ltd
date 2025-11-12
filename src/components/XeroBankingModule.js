@@ -13,14 +13,14 @@ import {
   TableHead,
   TableRow,
   Chip,
-  IconButton,
+
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
   Alert,
-  Divider
+
 } from '@mui/material';
 import { 
   AccountBalance, 
@@ -30,7 +30,7 @@ import {
   TrendingDown,
   CreditCard,
   MonetizationOn,
-  Receipt,
+
   SwapHoriz
 } from '@mui/icons-material';
 import { formatCurrency } from '../theme';

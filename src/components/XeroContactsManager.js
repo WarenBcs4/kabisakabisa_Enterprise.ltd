@@ -23,15 +23,15 @@ import {
   Grid,
   InputAdornment
 } from '@mui/material';
-import { Add, Edit, Delete, Search, Business, Person } from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { Add, Edit, Search, Business, Person } from '@mui/icons-material';
+import { useQuery } from 'react-query';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
 const XeroContactsManager = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingContact, setEditingContact] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [newContact, setNewContact] = useState({
     name: '',
@@ -43,7 +43,7 @@ const XeroContactsManager = () => {
     credit_limit: 0
   });
 
-  const queryClient = useQueryClient();
+
 
   // Fetch customers and suppliers from orders/sales
   const { data: sales = [] } = useQuery(
@@ -202,7 +202,7 @@ const XeroContactsManager = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <IconButton size="small" onClick={() => setEditingContact(customer)}>
+                        <IconButton size="small">
                           <Edit />
                         </IconButton>
                       </TableCell>
@@ -262,7 +262,7 @@ const XeroContactsManager = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <IconButton size="small" onClick={() => setEditingContact(supplier)}>
+                        <IconButton size="small">
                           <Edit />
                         </IconButton>
                       </TableCell>
