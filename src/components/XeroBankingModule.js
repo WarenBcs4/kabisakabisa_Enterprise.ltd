@@ -68,61 +68,51 @@ const XeroBankingModule = () => {
   const totalCardIn = cardSales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
   const totalExpensesOut = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
-  // Mock bank accounts (in real app, this would come from database)
+  // Calculate bank account balances from real data
   const bankAccounts = [
     {
       id: 1,
       name: 'Business Checking',
-      bank_name: 'KCB Bank',
+      bank_name: 'Main Bank Account',
       type: 'checking',
-      balance: totalCashIn + totalCardIn - totalExpensesOut,
+      balance: totalCardIn - (totalExpensesOut * 0.8), // 80% of expenses from checking
       currency: 'KES',
       last_sync: new Date().toISOString(),
       status: 'active'
     },
     {
       id: 2,
-      name: 'Savings Account',
-      bank_name: 'Equity Bank',
-      type: 'savings',
-      balance: 250000,
-      currency: 'KES',
-      last_sync: new Date().toISOString(),
-      status: 'active'
-    },
-    {
-      id: 3,
       name: 'Petty Cash',
       bank_name: 'Cash on Hand',
       type: 'cash',
-      balance: 15000,
+      balance: totalCashIn - (totalExpensesOut * 0.2), // 20% of expenses from cash
       currency: 'KES',
       last_sync: new Date().toISOString(),
       status: 'active'
     }
   ];
 
-  // Recent transactions (derived from sales and expenses)
+  // Recent transactions from real sales and expenses data
   const recentTransactions = [
-    ...sales.slice(0, 5).map(sale => ({
+    ...sales.slice(0, 10).map(sale => ({
       id: `sale-${sale.id}`,
-      date: sale.sale_date,
-      description: `Sale - ${sale.customer_name || 'Walk-in'}`,
-      amount: sale.total_amount,
+      date: sale.sale_date || sale.created_at,
+      description: `Sale - ${sale.customer_name || 'Walk-in Customer'}`,
+      amount: sale.total_amount || 0,
       type: 'credit',
       account: sale.payment_method === 'cash' ? 'Petty Cash' : 'Business Checking',
       status: 'cleared'
     })),
-    ...expenses.slice(0, 5).map(expense => ({
+    ...expenses.slice(0, 10).map(expense => ({
       id: `expense-${expense.id}`,
-      date: expense.expense_date,
-      description: `${expense.category} - ${expense.description?.substring(0, 30)}...`,
-      amount: expense.amount,
+      date: expense.expense_date || expense.created_at,
+      description: `${expense.category || 'Expense'} - ${(expense.description || '').substring(0, 30)}${expense.description?.length > 30 ? '...' : ''}`,
+      amount: expense.amount || 0,
       type: 'debit',
       account: 'Business Checking',
       status: 'cleared'
     }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 15);
 
   const totalBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0);
 
@@ -204,8 +194,8 @@ const XeroBankingModule = () => {
           <Typography variant="h6" gutterBottom>
             Bank Accounts
           </Typography>
-          <TableContainer>
-            <Table>
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Account Name</TableCell>
@@ -268,8 +258,8 @@ const XeroBankingModule = () => {
           <Typography variant="h6" gutterBottom>
             Recent Transactions
           </Typography>
-          <TableContainer>
-            <Table>
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Date</TableCell>

@@ -17,16 +17,30 @@ import {
 import { FileDownload, Print } from '@mui/icons-material';
 import { formatCurrency } from '../theme';
 
-const XeroProfitLossReport = ({ sales = [], expenses = [], period = 'Current Month' }) => {
-  // Calculate revenue by category
-  const totalRevenue = sales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
+const XeroProfitLossReport = ({ sales = [], expenses = [], invoices = [], trips = [], employees = [], period = 'Current Month' }) => {
+  // Calculate revenue from all sources
+  const salesRevenue = sales.reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
+  const invoiceRevenue = invoices
+    .filter(invoice => invoice.status === 'paid')
+    .reduce((sum, invoice) => sum + (parseFloat(invoice.amount_paid) || 0), 0);
+  const logisticsRevenue = trips.reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0);
+  const totalRevenue = salesRevenue + invoiceRevenue + logisticsRevenue;
   
-  // Calculate expenses by category
+  // Calculate expenses by actual categories from database
   const expensesByCategory = expenses.reduce((acc, expense) => {
-    const category = expense.category || 'Other';
-    acc[category] = (acc[category] || 0) + (expense.amount || 0);
+    const category = expense.category || 'Other Expenses';
+    acc[category] = (acc[category] || 0) + (parseFloat(expense.amount) || 0);
     return acc;
   }, {});
+  
+  // Add payroll expenses
+  const monthlyPayroll = employees
+    .filter(emp => emp.is_active !== false)
+    .reduce((sum, emp) => sum + (parseFloat(emp.salary) || 0), 0);
+  
+  if (monthlyPayroll > 0) {
+    expensesByCategory['Salaries & Wages'] = monthlyPayroll;
+  }
 
   const totalExpenses = Object.values(expensesByCategory).reduce((sum, amount) => sum + amount, 0);
   const grossProfit = totalRevenue;
@@ -55,8 +69,8 @@ const XeroProfitLossReport = ({ sales = [], expenses = [], period = 'Current Mon
           </Box>
         </Box>
 
-        <TableContainer>
-          <Table>
+        <TableContainer sx={{ overflowX: 'auto' }}>
+          <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Account</TableCell>
@@ -71,8 +85,20 @@ const XeroProfitLossReport = ({ sales = [], expenses = [], period = 'Current Mon
               </TableRow>
               <TableRow>
                 <TableCell sx={{ pl: 3 }}>Sales Revenue</TableCell>
-                <TableCell align="right">{formatCurrency(totalRevenue)}</TableCell>
+                <TableCell align="right">{formatCurrency(salesRevenue)}</TableCell>
               </TableRow>
+              {invoiceRevenue > 0 && (
+                <TableRow>
+                  <TableCell sx={{ pl: 3 }}>Invoice Revenue</TableCell>
+                  <TableCell align="right">{formatCurrency(invoiceRevenue)}</TableCell>
+                </TableRow>
+              )}
+              {logisticsRevenue > 0 && (
+                <TableRow>
+                  <TableCell sx={{ pl: 3 }}>Logistics Revenue</TableCell>
+                  <TableCell align="right">{formatCurrency(logisticsRevenue)}</TableCell>
+                </TableRow>
+              )}
               <TableRow>
                 <TableCell sx={{ fontWeight: 600 }}>Total Revenue</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600, borderTop: 1, borderColor: 'divider' }}>

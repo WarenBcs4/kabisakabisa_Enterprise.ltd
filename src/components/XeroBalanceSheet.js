@@ -22,37 +22,64 @@ const XeroBalanceSheet = ({
   orders = [], 
   employees = [],
   vehicles = [],
+  invoices = [],
+  stock = [],
+  trips = [],
   period = 'Current Month' 
 }) => {
-  // Assets Calculations
+  // Assets Calculations from all data sources
   const cashFromSales = sales
     .filter(sale => sale.payment_method !== 'credit')
-    .reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
+    .reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
+  
+  const cashFromTrips = trips
+    .reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0);
   
   const accountsReceivable = sales
     .filter(sale => sale.payment_method === 'credit')
-    .reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
+    .reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0) +
+    invoices
+    .filter(invoice => invoice.status !== 'paid' && invoice.status !== 'cancelled')
+    .reduce((sum, invoice) => sum + (parseFloat(invoice.balance_due) || 0), 0);
+  
+  const inventoryAssets = stock.reduce((sum, item) => 
+    sum + ((parseFloat(item.quantity_available) || 0) * (parseFloat(item.unit_price) || 0)), 0
+  );
 
-  const vehicleAssets = vehicles.length * 50000; // Estimated vehicle value
-  const totalCurrentAssets = cashFromSales + accountsReceivable;
+  // Calculate vehicle assets from actual vehicle data
+  const vehicleAssets = vehicles.reduce((sum, vehicle) => {
+    // Estimate vehicle value based on type and age
+    const baseValue = vehicle.vehicle_type === 'truck' ? 800000 : 
+                     vehicle.vehicle_type === 'van' ? 500000 : 
+                     vehicle.vehicle_type === 'car' ? 300000 : 150000;
+    const purchaseYear = vehicle.purchase_date ? new Date(vehicle.purchase_date).getFullYear() : new Date().getFullYear();
+    const age = new Date().getFullYear() - purchaseYear;
+    const depreciation = Math.min(age * 0.15, 0.8); // 15% per year, max 80%
+    return sum + (baseValue * (1 - depreciation));
+  }, 0);
+  
+  const totalCurrentAssets = cashFromSales + cashFromTrips + accountsReceivable + inventoryAssets;
   const totalFixedAssets = vehicleAssets;
   const totalAssets = totalCurrentAssets + totalFixedAssets;
 
-  // Liabilities Calculations
+  // Liabilities Calculations from real data
   const accountsPayable = orders
-    .filter(order => order.status !== 'completed')
-    .reduce((sum, order) => sum + ((order.total_amount || 0) - (order.amount_paid || 0)), 0);
+    .filter(order => order.status !== 'completed' && order.status !== 'paid')
+    .reduce((sum, order) => sum + ((parseFloat(order.total_amount) || 0) - (parseFloat(order.amount_paid) || 0)), 0);
 
-  const payrollLiabilities = employees
+  // Calculate actual payroll liabilities
+  const monthlyPayroll = employees
     .filter(emp => emp.is_active !== false)
-    .reduce((sum, emp) => sum + (emp.salary || 0), 0) * 0.3; // Estimated payroll taxes
+    .reduce((sum, emp) => sum + (parseFloat(emp.salary) || 0), 0);
+  const payrollLiabilities = monthlyPayroll * 0.25; // 25% for taxes and benefits
 
   const totalCurrentLiabilities = accountsPayable + payrollLiabilities;
   const totalLiabilities = totalCurrentLiabilities;
 
-  // Equity Calculations
-  const retainedEarnings = sales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0) - 
-                          expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+  // Equity Calculations from real financial data
+  const totalRevenue = sales.reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
+  const totalExpenses = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+  const retainedEarnings = totalRevenue - totalExpenses - (monthlyPayroll * 12); // Subtract annual payroll
   const totalEquity = retainedEarnings;
 
   const totalLiabilitiesAndEquity = totalLiabilities + totalEquity;
@@ -79,8 +106,8 @@ const XeroBalanceSheet = ({
           </Box>
         </Box>
 
-        <TableContainer>
-          <Table>
+        <TableContainer sx={{ overflowX: 'auto' }}>
+          <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Account</TableCell>
@@ -103,11 +130,15 @@ const XeroBalanceSheet = ({
               </TableRow>
               <TableRow>
                 <TableCell sx={{ pl: 4 }}>Cash and Cash Equivalents</TableCell>
-                <TableCell align="right">{formatCurrency(cashFromSales)}</TableCell>
+                <TableCell align="right">{formatCurrency(cashFromSales + cashFromTrips)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell sx={{ pl: 4 }}>Accounts Receivable</TableCell>
                 <TableCell align="right">{formatCurrency(accountsReceivable)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ pl: 4 }}>Inventory</TableCell>
+                <TableCell align="right">{formatCurrency(inventoryAssets)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell sx={{ fontWeight: 600, pl: 2, borderTop: 1, borderColor: 'divider' }}>

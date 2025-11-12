@@ -60,38 +60,39 @@ const XeroContactsManager = () => {
     { refetchInterval: 30000, retry: false }
   );
 
-  // Extract unique customers and suppliers
+  // Extract unique customers from real sales data
   const customers = [...new Set(sales.map(sale => sale.customer_name).filter(Boolean))]
     .map(name => {
       const customerSales = sales.filter(sale => sale.customer_name === name);
-      const totalSpent = customerSales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
-      const lastPurchase = customerSales.sort((a, b) => new Date(b.sale_date) - new Date(a.sale_date))[0];
+      const totalSpent = customerSales.reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
+      const lastPurchase = customerSales.sort((a, b) => new Date(b.sale_date || b.created_at) - new Date(a.sale_date || a.created_at))[0];
       
       return {
-        id: name,
+        id: name.replace(/\s+/g, '_').toLowerCase(),
         name,
         type: 'customer',
         total_spent: totalSpent,
-        last_purchase: lastPurchase?.sale_date,
+        last_purchase: lastPurchase?.sale_date || lastPurchase?.created_at,
         transactions: customerSales.length,
-        outstanding: customerSales.filter(sale => sale.payment_method === 'credit').reduce((sum, sale) => sum + (sale.total_amount || 0), 0)
+        outstanding: customerSales.filter(sale => sale.payment_method === 'credit').reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0)
       };
     });
 
+  // Extract unique suppliers from real orders data
   const suppliers = [...new Set(orders.map(order => order.supplier_name).filter(Boolean))]
     .map(name => {
       const supplierOrders = orders.filter(order => order.supplier_name === name);
-      const totalOrdered = supplierOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
-      const lastOrder = supplierOrders.sort((a, b) => new Date(b.order_date) - new Date(a.order_date))[0];
+      const totalOrdered = supplierOrders.reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0);
+      const lastOrder = supplierOrders.sort((a, b) => new Date(b.order_date || b.created_at) - new Date(a.order_date || a.created_at))[0];
       
       return {
-        id: name,
+        id: name.replace(/\s+/g, '_').toLowerCase(),
         name,
         type: 'supplier',
         total_ordered: totalOrdered,
-        last_order: lastOrder?.order_date,
+        last_order: lastOrder?.order_date || lastOrder?.created_at,
         transactions: supplierOrders.length,
-        outstanding: supplierOrders.reduce((sum, order) => sum + ((order.total_amount || 0) - (order.amount_paid || 0)), 0)
+        outstanding: supplierOrders.reduce((sum, order) => sum + ((parseFloat(order.total_amount) || 0) - (parseFloat(order.amount_paid) || 0)), 0)
       };
     });
 
@@ -162,8 +163,8 @@ const XeroContactsManager = () => {
             <Typography variant="h6" gutterBottom>
               Customer Directory
             </Typography>
-            <TableContainer>
-              <Table>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Customer Name</TableCell>
@@ -222,8 +223,8 @@ const XeroContactsManager = () => {
             <Typography variant="h6" gutterBottom>
               Supplier Directory
             </Typography>
-            <TableContainer>
-              <Table>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Supplier Name</TableCell>

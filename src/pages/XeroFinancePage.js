@@ -62,7 +62,7 @@ const XeroFinancePage = () => {
   const [anchorEl, setAnchorEl] = useState(null);
 
 
-  // Fetch all financial data
+  // Fetch all database tables for comprehensive financial data
   const { data: sales = [], isLoading: salesLoading } = useQuery(
     'xero-sales',
     () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sales`)
@@ -98,41 +98,113 @@ const XeroFinancePage = () => {
     { refetchInterval: 30000, retry: false }
   );
 
-  useQuery(
+  const { data: payroll = [] } = useQuery(
     'xero-payroll',
     () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Payroll`)
       .then(res => res.ok ? res.json() : []).catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
-  // Financial calculations
+  const { data: invoices = [] } = useQuery(
+    'xero-invoices',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Invoices`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: invoiceItems = [] } = useQuery(
+    'xero-invoice-items',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Invoice_Items`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: stock = [] } = useQuery(
+    'xero-stock',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: vehicles = [] } = useQuery(
+    'xero-vehicles',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Vehicles`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: trips = [] } = useQuery(
+    'xero-trips',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Trips`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: chartOfAccounts = [] } = useQuery(
+    'xero-chart-accounts',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Chart_of_Accounts`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  // Financial calculations from real data
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
-  const monthlyRevenue = sales
+  // Calculate total monthly revenue from all sources
+  const salesRevenue = sales
     .filter(sale => {
-      const saleDate = new Date(sale.sale_date);
+      const saleDate = new Date(sale.sale_date || sale.created_at);
       return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
     })
-    .reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
+    .reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
+
+  const invoiceRevenue = invoices
+    .filter(invoice => {
+      const invoiceDate = new Date(invoice.invoice_date || invoice.created_at);
+      return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear && invoice.status === 'paid';
+    })
+    .reduce((sum, invoice) => sum + (parseFloat(invoice.amount_paid) || 0), 0);
+
+  const monthlyRevenue = salesRevenue + invoiceRevenue + logisticsRevenue;
 
   const monthlyExpenses = expenses
     .filter(expense => {
-      const expenseDate = new Date(expense.expense_date);
+      const expenseDate = new Date(expense.expense_date || expense.created_at);
       return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
     })
-    .reduce((sum, expense) => sum + (expense.amount || 0), 0);
+    .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
 
   const monthlyProfit = monthlyRevenue - monthlyExpenses;
   const profitMargin = monthlyRevenue > 0 ? (monthlyProfit / monthlyRevenue) * 100 : 0;
 
-  const totalReceivables = sales
+  // Calculate receivables from both sales and invoices
+  const salesReceivables = sales
     .filter(sale => sale.payment_method === 'credit')
-    .reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
+    .reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
+  
+  const invoiceReceivables = invoices
+    .filter(invoice => invoice.status !== 'paid' && invoice.status !== 'cancelled')
+    .reduce((sum, invoice) => sum + (parseFloat(invoice.balance_due) || 0), 0);
+  
+  const totalReceivables = salesReceivables + invoiceReceivables;
 
   const totalPayables = orders
-    .filter(order => order.status !== 'completed')
-    .reduce((sum, order) => sum + ((order.total_amount || 0) - (order.amount_paid || 0)), 0);
+    .filter(order => order.status !== 'completed' && order.status !== 'paid')
+    .reduce((sum, order) => sum + ((parseFloat(order.total_amount) || 0) - (parseFloat(order.amount_paid) || 0)), 0);
+
+  // Calculate logistics revenue from trips
+  const logisticsRevenue = trips
+    .filter(trip => {
+      const tripDate = new Date(trip.trip_date || trip.created_at);
+      return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0);
+
+  // Calculate total inventory value
+  const inventoryValue = stock.reduce((sum, item) => 
+    sum + ((parseFloat(item.quantity_available) || 0) * (parseFloat(item.unit_price) || 0)), 0
+  );
 
   const cashFlow = monthlyRevenue - monthlyExpenses;
 
@@ -176,7 +248,7 @@ const XeroFinancePage = () => {
   );
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 1, sm: 2, md: 3 } }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
@@ -431,7 +503,10 @@ const XeroFinancePage = () => {
             <Grid item xs={12} lg={6}>
               <XeroProfitLossReport 
                 sales={sales} 
-                expenses={expenses} 
+                expenses={expenses}
+                invoices={invoices}
+                trips={trips}
+                employees={employees}
                 period="Current Month"
               />
             </Grid>
@@ -441,7 +516,10 @@ const XeroFinancePage = () => {
                 expenses={expenses}
                 orders={orders}
                 employees={employees}
-                vehicles={[]}
+                vehicles={vehicles}
+                invoices={invoices}
+                stock={stock}
+                trips={trips}
                 period="Current Month"
               />
             </Grid>
@@ -504,8 +582,8 @@ const XeroFinancePage = () => {
           {/* Purchase Orders Table */}
           <Card>
             <CardContent>
-              <TableContainer>
-                <Table>
+              <TableContainer sx={{ overflowX: 'auto' }}>
+                <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Order Date</TableCell>
@@ -518,26 +596,37 @@ const XeroFinancePage = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {orders.map((order, index) => (
-                      <TableRow key={order.id || index}>
-                        <TableCell>{order.order_date ? new Date(order.order_date).toLocaleDateString() : 'N/A'}</TableCell>
-                        <TableCell>{order.supplier_name || 'N/A'}</TableCell>
-                        <TableCell align="right">{formatCurrency(order.total_amount || 0)}</TableCell>
-                        <TableCell align="right">{formatCurrency(order.amount_paid || 0)}</TableCell>
+                    {[...orders, ...invoices.map(inv => ({
+                      id: `inv-${inv.id}`,
+                      order_date: inv.invoice_date,
+                      supplier_name: inv.customer_name,
+                      total_amount: inv.total_amount,
+                      amount_paid: inv.amount_paid,
+                      status: inv.status,
+                      expected_delivery_date: inv.due_date,
+                      type: 'invoice'
+                    }))].map((item, index) => (
+                      <TableRow key={item.id || index}>
+                        <TableCell>{item.order_date ? new Date(item.order_date).toLocaleDateString() : 'N/A'}</TableCell>
+                        <TableCell>
+                          {item.type === 'invoice' ? `[INV] ${item.supplier_name}` : item.supplier_name || 'N/A'}
+                        </TableCell>
+                        <TableCell align="right">{formatCurrency(parseFloat(item.total_amount) || 0)}</TableCell>
+                        <TableCell align="right">{formatCurrency(parseFloat(item.amount_paid) || 0)}</TableCell>
                         <TableCell align="right">
-                          <Typography color={(order.total_amount || 0) - (order.amount_paid || 0) > 0 ? 'error.main' : 'success.main'}>
-                            {formatCurrency((order.total_amount || 0) - (order.amount_paid || 0))}
+                          <Typography color={(parseFloat(item.total_amount) || 0) - (parseFloat(item.amount_paid) || 0) > 0 ? 'error.main' : 'success.main'}>
+                            {formatCurrency((parseFloat(item.total_amount) || 0) - (parseFloat(item.amount_paid) || 0))}
                           </Typography>
                         </TableCell>
                         <TableCell>
                           <Chip 
-                            label={order.status || 'Unknown'} 
-                            color={order.status === 'completed' ? 'success' : order.status === 'paid' ? 'info' : 'warning'} 
+                            label={item.status || 'Unknown'} 
+                            color={item.status === 'completed' || item.status === 'paid' ? 'success' : item.status === 'delivered' ? 'info' : 'warning'} 
                             size="small" 
                           />
                         </TableCell>
                         <TableCell>
-                          {order.expected_delivery_date ? new Date(order.expected_delivery_date).toLocaleDateString() : 'N/A'}
+                          {item.expected_delivery_date ? new Date(item.expected_delivery_date).toLocaleDateString() : 'N/A'}
                         </TableCell>
                       </TableRow>
                     ))}
