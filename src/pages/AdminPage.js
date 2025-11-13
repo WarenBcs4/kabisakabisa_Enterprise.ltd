@@ -78,69 +78,63 @@ const AdminPage = () => {
   const { register: registerBranch, handleSubmit: handleSubmitBranch, reset: resetBranch, setValue: setValueBranch } = useForm();
   const { register: registerProduct, handleSubmit: handleSubmitProduct, reset: resetProduct, setValue: setValueProduct, watch: watchProduct } = useForm();
 
-  const { data: pageData, isLoading } = useQuery(
-    ['adminPageData', selectedBranchId],
-    async () => {
-      try {
-        // Load data directly from APIs
-        const [employeesData, branchesData] = await Promise.all([
-          hrAPI.getEmployees().catch(() => []),
-          branchesAPI.getAll().catch(() => [])
-        ]);
-        
-        // Load stock data from all branches
-        let allProducts = [];
-        let salesData = [];
-        let stockMovements = [];
-        
-        try {
-          for (const branch of branchesData) {
-            const branchStock = await stockAPI.getByBranch(branch.id).catch(() => []);
-            allProducts = [...allProducts, ...branchStock];
-          }
-          
-          // Load sales analytics data
-          const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sale_Items`);
-          if (response.ok) {
-            salesData = await response.json();
-          }
-          
-          // Load stock movements
-          const movementsResponse = await fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements`);
-          if (movementsResponse.ok) {
-            stockMovements = await movementsResponse.json();
-          }
-        } catch (err) {
-          console.error('Failed to load analytics data:', err);
-        }
-        
-        return {
-          employees: employeesData,
-          branches: branchesData,
-          products: allProducts,
-          salesAnalytics: salesData,
-          stockMovements: stockMovements
-        };
-      } catch (err) {
-        console.error('Admin data loading failed:', err);
-        return {
-          employees: [],
-          branches: [],
-          products: []
-        };
-      }
-    },
-    {
-      retry: false,
-      staleTime: 5 * 60 * 1000
-    }
+  // Direct database queries for real-time data
+  const { data: employees = [], isLoading: employeesLoading } = useQuery(
+    'admin-employees',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
   );
 
-  const employees = pageData?.employees || [];
-  const branches = pageData?.branches || [];
-  const products = pageData?.products || [];
-  const salesAnalytics = pageData?.salesAnalytics || [];
-  const stockMovements = pageData?.stockMovements || [];
+  const { data: branches = [], isLoading: branchesLoading } = useQuery(
+    'admin-branches',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Branches`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: products = [], isLoading: productsLoading } = useQuery(
+    'admin-stock',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: sales = [] } = useQuery(
+    'admin-sales',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sales`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: expenses = [] } = useQuery(
+    'admin-expenses',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: stockMovements = [] } = useQuery(
+    'admin-stock-movements',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: salesAnalytics = [] } = useQuery(
+    'admin-sale-items',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sale_Items`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const isLoading = employeesLoading || branchesLoading || productsLoading;
+
+  // Calculate real-time metrics
+  const totalRevenue = sales.reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
+  const totalExpenses = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+  const netProfit = totalRevenue - totalExpenses;
+  const lowStockItems = products.filter(item => (parseFloat(item.quantity_available) || 0) <= (parseFloat(item.reorder_level) || 10));
 
   const createUserMutation = useMutation(
     (data) => hrAPI.createEmployee(data),
@@ -149,7 +143,7 @@ const AdminPage = () => {
         toast.success('User created successfully!');
         setShowAddUser(false);
         reset();
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-employees');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to create user');
@@ -164,7 +158,7 @@ const AdminPage = () => {
         toast.success('User updated successfully!');
         setEditingUser(null);
         reset();
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-employees');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update user');
@@ -177,7 +171,7 @@ const AdminPage = () => {
     {
       onSuccess: () => {
         toast.success('User deactivated successfully!');
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-employees');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to deactivate user');
@@ -192,7 +186,7 @@ const AdminPage = () => {
         toast.success('Branch created successfully!');
         setShowAddBranch(false);
         resetBranch();
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-branches');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to create branch');
@@ -208,7 +202,7 @@ const AdminPage = () => {
         setEditingBranch(null);
         setShowAddBranch(false);
         resetBranch();
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-branches');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update branch');
@@ -221,7 +215,7 @@ const AdminPage = () => {
     {
       onSuccess: () => {
         toast.success('Branch deleted successfully!');
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-branches');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to delete branch');
@@ -236,7 +230,7 @@ const AdminPage = () => {
         toast.success('Product added successfully!');
         setShowAddProduct(false);
         resetProduct();
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-stock');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to add product');
@@ -252,7 +246,7 @@ const AdminPage = () => {
         setEditingProduct(null);
         setShowAddProduct(false);
         resetProduct();
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-stock');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update product');
@@ -265,7 +259,7 @@ const AdminPage = () => {
     {
       onSuccess: () => {
         toast.success('Product deleted successfully!');
-        queryClient.invalidateQueries(['adminPageData', selectedBranchId]);
+        queryClient.invalidateQueries('admin-stock');
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to delete product');
@@ -424,7 +418,7 @@ const AdminPage = () => {
 
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', m: 0 }}>
           kabisakabisa enterprise - Admin Dashboard
@@ -437,12 +431,12 @@ const AdminPage = () => {
           <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
             System Navigation
           </Typography>
-          <Grid container spacing={2}>
+          <Grid container spacing={{ xs: 1, sm: 2 }}>
             <Grid item xs={12} sm={6} md={3}>
               <Button
                 fullWidth
                 variant="contained"
-                onClick={() => window.open('/hr', '_blank')}
+                onClick={() => window.location.href = '/hr'}
                 sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#45a049' } }}
               >
                 HR Management
@@ -452,7 +446,7 @@ const AdminPage = () => {
               <Button
                 fullWidth
                 variant="contained"
-                onClick={() => window.open('/logistics', '_blank')}
+                onClick={() => window.location.href = '/logistics'}
                 sx={{ bgcolor: '#ff9800', '&:hover': { bgcolor: '#f57c00' } }}
               >
                 Logistics
@@ -462,7 +456,7 @@ const AdminPage = () => {
               <Button
                 fullWidth
                 variant="contained"
-                onClick={() => window.open('/orders', '_blank')}
+                onClick={() => window.location.href = '/orders'}
                 sx={{ bgcolor: '#9c27b0', '&:hover': { bgcolor: '#7b1fa2' } }}
               >
                 Purchase Orders
@@ -472,19 +466,19 @@ const AdminPage = () => {
               <Button
                 fullWidth
                 variant="contained"
-                onClick={() => window.open('/boss', '_blank')}
+                onClick={() => window.location.href = '/boss'}
                 sx={{ bgcolor: '#f44336', '&:hover': { bgcolor: '#d32f2f' } }}
               >
                 Boss Dashboard
               </Button>
             </Grid>
           </Grid>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mt: 1 }}>
             <Grid item xs={12} sm={6} md={4}>
               <Button
                 fullWidth
                 variant="outlined"
-                onClick={() => setActiveTab(4)}
+                onClick={() => window.location.href = '/finance'}
                 sx={{ color: '#13B5EA', borderColor: '#13B5EA' }}
               >
                 Xero Accounting
@@ -494,7 +488,7 @@ const AdminPage = () => {
               <Button
                 fullWidth
                 variant="outlined"
-                onClick={() => window.open('/data', '_blank')}
+                onClick={() => window.location.href = '/data'}
                 sx={{ color: '#607d8b', borderColor: '#607d8b' }}
               >
                 Data Management
@@ -516,7 +510,7 @@ const AdminPage = () => {
       
       {/* Summary Cards */}
       <Box sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
@@ -557,7 +551,7 @@ const AdminPage = () => {
                   {products.length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  In inventory
+                  {lowStockItems.length} low stock
                 </Typography>
               </CardContent>
             </Card>
@@ -568,11 +562,11 @@ const AdminPage = () => {
                 <Typography color="textSecondary" gutterBottom variant="body2">
                   System Status
                 </Typography>
-                <Typography variant="h5" color="success.main">
-                  Online
+                <Typography variant="h5" color={netProfit >= 0 ? 'success.main' : 'error.main'}>
+                  {formatCurrency(netProfit)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  All systems operational
+                  Net profit this period
                 </Typography>
               </CardContent>
             </Card>

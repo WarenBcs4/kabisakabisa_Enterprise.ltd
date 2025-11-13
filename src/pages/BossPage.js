@@ -124,7 +124,7 @@ const BossPage = () => {
       </Box>
 
       {/* Summary Cards */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 4 }}>
         <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -196,7 +196,7 @@ const BossPage = () => {
       </Grid>
 
       {/* Export Buttons */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap' }}>
         <Button
           variant="outlined"
           startIcon={<GetApp />}
@@ -254,7 +254,7 @@ const BossPage = () => {
 
       {/* Overview Tab */}
       {activeTab === 0 && (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
           <Grid item xs={12} lg={8}>
             <Card>
               <CardContent>
@@ -308,7 +308,7 @@ const BossPage = () => {
 
       {/* Branch Performance Tab */}
       {activeTab === 1 && (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
           <Grid item xs={12}>
             <Card>
               <CardContent>
@@ -381,7 +381,7 @@ const BossPage = () => {
 
       {/* Financial Analysis Tab */}
       {activeTab === 2 && (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
@@ -481,7 +481,7 @@ const BossPage = () => {
 
       {/* ROT Analysis Tab */}
       {activeTab === 3 && (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>

@@ -317,7 +317,7 @@ const StockPage = () => {
       </Typography>
 
       {/* Summary Cards */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 4 }}>
         <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -374,7 +374,7 @@ const StockPage = () => {
       </Grid>
 
       {/* Action Buttons */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap' }}>
         <Button
           variant="contained"
           startIcon={<Add />}

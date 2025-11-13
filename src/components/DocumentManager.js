@@ -57,16 +57,38 @@ const DocumentManager = () => {
     { value: 'general', label: 'General' }
   ];
 
-  // Queries
+  // Query documents using the documents API endpoint
   const { data: documents = [], isLoading, refetch } = useQuery(
     ['documents', category, searchTerm],
-    () => documentsAPI.getDocuments({ category, search: searchTerm }),
-    { refetchOnWindowFocus: false }
+    () => {
+      const params = new URLSearchParams();
+      if (category !== 'all') params.append('category', category);
+      if (searchTerm) params.append('search', searchTerm);
+      
+      return fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/documents?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then(res => res.ok ? res.json() : [])
+      .catch(() => []);
+    },
+    { refetchInterval: 30000, retry: false }
   );
 
-  // Mutations
+  // Airtable attachment upload mutation
   const uploadMutation = useMutation(
-    (formData) => documentsAPI.uploadDocument(formData),
+    async (formData) => {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/documents/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData // Don't set Content-Type header for FormData
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
+    },
     {
       onSuccess: () => {
         toast.success('Document uploaded successfully!');
@@ -76,20 +98,29 @@ const DocumentManager = () => {
         queryClient.invalidateQueries('documents');
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Upload failed');
+        toast.error(error.message || 'Upload failed');
       }
     }
   );
 
   const deleteMutation = useMutation(
-    (documentId) => documentsAPI.deleteDocument(documentId),
+    async (documentId) => {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/documents/${documentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Delete failed');
+      return response.json();
+    },
     {
       onSuccess: () => {
         toast.success('Document deleted successfully!');
         queryClient.invalidateQueries('documents');
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Delete failed');
+        toast.error(error.message || 'Delete failed');
       }
     }
   );
@@ -108,11 +139,16 @@ const DocumentManager = () => {
     }
 
     setUploading(true);
+    
+    // Create FormData for Airtable attachment upload
     const formData = new FormData();
     formData.append('document', selectedFile);
     formData.append('category', uploadData.category);
     formData.append('description', uploadData.description);
     formData.append('tags', uploadData.tags);
+    formData.append('subcategory', uploadData.subcategory || '');
+    formData.append('display_name', uploadData.display_name || '');
+    formData.append('is_public', uploadData.is_public || false);
 
     try {
       await uploadMutation.mutateAsync(formData);
@@ -121,10 +157,16 @@ const DocumentManager = () => {
     }
   };
 
-  const handleDownload = async (documentId, fileName) => {
+  const handleDownload = async (doc) => {
     try {
-      window.open(`/api/documents/download/${documentId}`, '_blank');
-      toast.success('Download started');
+      if (doc.attachments && doc.attachments.length > 0) {
+        // Use Airtable's direct download URL
+        const attachment = doc.attachments[0];
+        window.open(attachment.url, '_blank');
+        toast.success('Download started');
+      } else {
+        toast.error('No file attachment found');
+      }
     } catch (error) {
       toast.error('Download failed');
     }
@@ -242,7 +284,7 @@ const DocumentManager = () => {
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Folder sx={{ mr: 1, color: 'text.secondary' }} />
-                          {doc.fileName}
+                          {doc.file_name || (doc.attachments && doc.attachments[0]?.filename)}
                         </Box>
                       </TableCell>
                       <TableCell>
@@ -253,14 +295,16 @@ const DocumentManager = () => {
                         />
                       </TableCell>
                       <TableCell>{doc.description || '-'}</TableCell>
-                      <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
                       <TableCell>
-                        {new Date(doc.uploadedAt).toLocaleDateString()}
+                        {doc.attachments && doc.attachments[0] ? formatFileSize(doc.attachments[0].size) : formatFileSize(doc.file_size)}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(doc.uploaded_at || doc.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
                         <IconButton
                           size="small"
-                          onClick={() => handleDownload(doc.id, doc.fileName)}
+                          onClick={() => handleDownload(doc)}
                           color="primary"
                         >
                           <Download />

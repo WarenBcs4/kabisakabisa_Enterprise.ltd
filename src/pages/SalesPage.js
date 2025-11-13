@@ -354,7 +354,7 @@ const SalesPage = () => {
     
     return (
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={{ xs: 1, sm: 2 }}>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -507,7 +507,7 @@ const SalesPage = () => {
       </Box>
 
       {/* Summary Cards */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 4 }}>
         <Grid item xs={6} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -604,7 +604,7 @@ const SalesPage = () => {
         <QuickUpload defaultCategory="receipts" buttonText="Upload Receipt" />
       </Box>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={{ xs: 1, sm: 2 }}>
         {/* Sales Entry Form */}
         <Grid item xs={12} lg={8}>
           <Card>
@@ -616,7 +616,7 @@ const SalesPage = () => {
               <Box component="form" onSubmit={handleSubmit(onSubmitSale)}>
                 {/* Sale Items */}
                 {fields.map((field, index) => (
-                  <Grid container spacing={2} key={field.id} sx={{ mb: 2 }}>
+                  <Grid container spacing={{ xs: 1, sm: 2 }} key={field.id} sx={{ mb: 2 }}>
                     <Grid item xs={12} sm={4}>
                       <FormControl fullWidth>
                         <InputLabel>Product</InputLabel>
@@ -685,7 +685,7 @@ const SalesPage = () => {
                   Add Item
                 </Button>
 
-                <Grid container spacing={2} sx={{ mt: 2 }}>
+                <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mt: 2 }}>
                   <Grid item xs={12} sm={4}>
                     <TextField
                       fullWidth

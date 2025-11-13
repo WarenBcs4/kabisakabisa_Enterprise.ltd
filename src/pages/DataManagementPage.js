@@ -3,321 +3,267 @@ import {
   Container,
   Typography,
   Box,
-  Grid,
+  Card,
+  CardContent,
+  Tabs,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
   Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField
+  Grid,
+  Alert,
+  LinearProgress
 } from '@mui/material';
-import { Add, Refresh, GetApp } from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { genericDataAPI } from '../services/api';
-import { getTableConfig, getAvailableTables } from '../utils/tableConfigs';
-import DataTable from '../components/DataTable';
-import toast from 'react-hot-toast';
+import { Refresh, Download, Visibility } from '@mui/icons-material';
+import { useQuery } from 'react-query';
+import { formatCurrency } from '../theme';
 
 const DataManagementPage = () => {
-  const queryClient = useQueryClient();
-  const [selectedTable, setSelectedTable] = useState('Employees');
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingRecord, setEditingRecord] = useState(null);
-  const [formData, setFormData] = useState({});
+  const [activeTab, setActiveTab] = useState(0);
 
-  const tableConfig = getTableConfig(selectedTable);
-  const availableTables = getAvailableTables();
+  const tables = [
+    'Branches', 'Employees', 'Stock', 'Stock_Movements', 'Sales', 'Sale_Items',
+    'Expenses', 'Vehicles', 'Trips', 'Vehicle_Maintenance', 'Orders', 'Order_Items',
+    'Payroll', 'Invoices', 'Invoice_Items', 'Chart_of_Accounts', 'Documents'
+  ];
 
-  // Queries
-  const { data: tableData = [], error } = useQuery(
-    ['tableData', selectedTable],
-    () => genericDataAPI.getAll(selectedTable),
-    { enabled: !!selectedTable }
+  // Fetch data for all tables
+  const tableQueries = tables.map(table => 
+    useQuery(
+      `data-${table.toLowerCase()}`,
+      () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/${table}`)
+        .then(res => res.ok ? res.json() : []).catch(() => []),
+      { refetchInterval: 30000, retry: false }
+    )
   );
 
-  // Mutations
-  const createMutation = useMutation(
-    (data) => genericDataAPI.create(selectedTable, data),
-    {
-      onSuccess: () => {
-        toast.success('Record created successfully!');
-        setShowAddDialog(false);
-        setFormData({});
-        queryClient.invalidateQueries(['tableData', selectedTable]);
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to create record');
-      }
+  const isLoading = tableQueries.some(query => query.isLoading);
+  const currentTableData = tableQueries[activeTab]?.data || [];
+
+  const renderTableContent = (data, tableName) => {
+    if (!data || data.length === 0) {
+      return (
+        <Alert severity="info">
+          No data available in {tableName} table
+        </Alert>
+      );
     }
-  );
 
-  const updateMutation = useMutation(
-    ({ id, data }) => genericDataAPI.update(selectedTable, id, data),
-    {
-      onSuccess: () => {
-        toast.success('Record updated successfully!');
-        setEditingRecord(null);
-        setFormData({});
-        queryClient.invalidateQueries(['tableData', selectedTable]);
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to update record');
-      }
-    }
-  );
-
-  const deleteMutation = useMutation(
-    (id) => genericDataAPI.delete(selectedTable, id),
-    {
-      onSuccess: () => {
-        toast.success('Record deleted successfully!');
-        queryClient.invalidateQueries(['tableData', selectedTable]);
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to delete record');
-      }
-    }
-  );
-
-  const handleTableChange = (tableName) => {
-    setSelectedTable(tableName);
-    setFormData({});
-    setEditingRecord(null);
-  };
-
-  const handleAdd = () => {
-    setEditingRecord(null);
-    setFormData({});
-    setShowAddDialog(true);
-  };
-
-  const handleEdit = (record) => {
-    setEditingRecord(record);
-    setFormData(record);
-    setShowAddDialog(true);
-  };
-
-  const handleDelete = (record) => {
-    if (window.confirm('Are you sure you want to delete this record?')) {
-      deleteMutation.mutate(record.id);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (editingRecord) {
-      updateMutation.mutate({ id: editingRecord.id, data: formData });
-    } else {
-      createMutation.mutate(formData);
-    }
-  };
-
-  const handleRefresh = () => {
-    queryClient.invalidateQueries(['tableData', selectedTable]);
-  };
-
-  const handleExport = () => {
-    // Convert data to CSV
-    const headers = tableConfig.columns.map(col => col.headerName).join(',');
-    const rows = tableData.map(row => 
-      tableConfig.columns.map(col => row[col.field] || '').join(',')
-    ).join('\n');
+    const columns = Object.keys(data[0] || {});
     
-    const csv = `${headers}\n${rows}`;
+    return (
+      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <Table size="small" sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
+          <TableHead>
+            <TableRow>
+              {columns.map((column) => (
+                <TableCell key={column} sx={{ fontWeight: 700, bgcolor: 'grey.100' }}>
+                  {column.replace(/_/g, ' ').toUpperCase()}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.slice(0, 100).map((row, index) => (
+              <TableRow key={row.id || index}>
+                {columns.map((column) => (
+                  <TableCell key={column}>
+                    {renderCellValue(row[column], column)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  const renderCellValue = (value, column) => {
+    if (value === null || value === undefined) return '-';
+    
+    // Handle currency fields
+    if (column.includes('amount') || column.includes('price') || column.includes('salary') || column.includes('cost')) {
+      return formatCurrency(parseFloat(value) || 0);
+    }
+    
+    // Handle dates
+    if (column.includes('date') || column.includes('_at')) {
+      return new Date(value).toLocaleDateString();
+    }
+    
+    // Handle boolean values
+    if (typeof value === 'boolean') {
+      return (
+        <Chip 
+          label={value ? 'Yes' : 'No'} 
+          color={value ? 'success' : 'default'} 
+          size="small" 
+        />
+      );
+    }
+    
+    // Handle arrays (Airtable links)
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    
+    // Handle status fields
+    if (column === 'status') {
+      const statusColors = {
+        active: 'success',
+        inactive: 'default',
+        pending: 'warning',
+        completed: 'success',
+        cancelled: 'error',
+        paid: 'success',
+        unpaid: 'error'
+      };
+      return (
+        <Chip 
+          label={value} 
+          color={statusColors[value?.toLowerCase()] || 'default'} 
+          size="small" 
+        />
+      );
+    }
+    
+    return String(value);
+  };
+
+  const exportTableData = (tableName, data) => {
+    if (!data || data.length === 0) return;
+    
+    const csv = [
+      Object.keys(data[0]).join(','),
+      ...data.map(row => Object.values(row).map(val => 
+        typeof val === 'string' ? `"${val}"` : val
+      ).join(','))
+    ].join('\n');
+    
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${selectedTable}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `${tableName}_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
 
-  const renderFormField = (column) => {
-    const value = formData[column.field] || '';
-    
-    switch (column.type) {
-      case 'boolean':
-        return (
-          <FormControl fullWidth margin="normal" key={column.field}>
-            <InputLabel>{column.headerName}</InputLabel>
-            <Select
-              value={value}
-              onChange={(e) => setFormData(prev => ({ ...prev, [column.field]: e.target.value }))}
-              label={column.headerName}
-            >
-              <MenuItem value={true}>Yes</MenuItem>
-              <MenuItem value={false}>No</MenuItem>
-            </Select>
-          </FormControl>
-        );
-      
-      case 'date':
-        return (
-          <TextField
-            key={column.field}
-            fullWidth
-            label={column.headerName}
-            type="date"
-            margin="normal"
-            value={value ? value.split('T')[0] : ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, [column.field]: e.target.value }))}
-            InputLabelProps={{ shrink: true }}
-          />
-        );
-      
-      case 'currency':
-        return (
-          <TextField
-            key={column.field}
-            fullWidth
-            label={column.headerName}
-            type="number"
-            step="0.01"
-            margin="normal"
-            value={value}
-            onChange={(e) => setFormData(prev => ({ ...prev, [column.field]: parseFloat(e.target.value) || 0 }))}
-          />
-        );
-      
-      case 'status':
-        const statusOptions = ['active', 'inactive', 'pending', 'completed', 'cancelled'];
-        return (
-          <FormControl fullWidth margin="normal" key={column.field}>
-            <InputLabel>{column.headerName}</InputLabel>
-            <Select
-              value={value}
-              onChange={(e) => setFormData(prev => ({ ...prev, [column.field]: e.target.value }))}
-              label={column.headerName}
-            >
-              {statusOptions.map(option => (
-                <MenuItem key={option} value={option}>{option}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        );
-      
-      default:
-        return (
-          <TextField
-            key={column.field}
-            fullWidth
-            label={column.headerName}
-            margin="normal"
-            value={value}
-            onChange={(e) => setFormData(prev => ({ ...prev, [column.field]: e.target.value }))}
-            multiline={column.field.includes('description') || column.field.includes('address')}
-            rows={column.field.includes('description') || column.field.includes('address') ? 3 : 1}
-          />
-        );
-    }
-  };
-
-  if (error) {
-    return (
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        <Typography color="error">Error loading data: {error.message}</Typography>
-      </Container>
-    );
-  }
-
   return (
-    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
-      <Typography variant="h4" gutterBottom>
-        Data Management
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 1, sm: 2, md: 3 } }}>
+      <Typography variant="h4" gutterBottom sx={{ color: 'primary.main' }}>
+        Database Management
+      </Typography>
+      
+      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
+        View and manage all database tables
       </Typography>
 
-      {/* Table Selection and Controls */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Select Table</InputLabel>
-          <Select
-            value={selectedTable}
-            onChange={(e) => handleTableChange(e.target.value)}
-            label="Select Table"
-          >
-            {availableTables.map(table => (
-              <MenuItem key={table} value={table}>{table}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAdd}
-        >
-          Add Record
-        </Button>
-        
+      {/* Summary Cards */}
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">Total Tables</Typography>
+              <Typography variant="h5">{tables.length}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">Current Table</Typography>
+              <Typography variant="h6">{tables[activeTab]}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">Records</Typography>
+              <Typography variant="h5">{currentTableData.length}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">Status</Typography>
+              <Typography variant="h6" color={isLoading ? 'warning.main' : 'success.main'}>
+                {isLoading ? 'Loading' : 'Ready'}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Action Buttons */}
+      <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Button
           variant="outlined"
           startIcon={<Refresh />}
-          onClick={handleRefresh}
+          onClick={() => tableQueries[activeTab]?.refetch()}
         >
-          Refresh
+          Refresh Data
         </Button>
-        
         <Button
           variant="outlined"
-          startIcon={<GetApp />}
-          onClick={handleExport}
+          startIcon={<Download />}
+          onClick={() => exportTableData(tables[activeTab], currentTableData)}
+          disabled={currentTableData.length === 0}
         >
           Export CSV
         </Button>
+        <Button
+          variant="outlined"
+          startIcon={<Visibility />}
+          onClick={() => window.open('/admin', '_blank')}
+        >
+          Admin Panel
+        </Button>
       </Box>
 
-      {/* Data Table */}
-      <DataTable
-        data={tableData}
-        columns={tableConfig.columns}
-        title={tableConfig.title}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onExport={handleExport}
-        searchable={true}
-        filterable={true}
-        paginated={true}
-        dense={false}
-      />
+      {isLoading && <LinearProgress sx={{ mb: 3 }} />}
 
-      {/* Add/Edit Dialog */}
-      <Dialog 
-        open={showAddDialog} 
-        onClose={() => setShowAddDialog(false)} 
-        maxWidth="md" 
-        fullWidth
-      >
-        <DialogTitle>
-          {editingRecord ? 'Edit Record' : 'Add New Record'}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <Grid container spacing={2}>
-              {tableConfig.columns
-                .filter(col => !['id', 'created_at', 'updated_at'].includes(col.field))
-                .map(column => (
-                  <Grid item xs={12} sm={6} key={column.field}>
-                    {renderFormField(column)}
-                  </Grid>
-                ))}
-            </Grid>
+      {/* Table Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, newValue) => setActiveTab(newValue)}
+          variant="scrollable"
+          scrollButtons="auto"
+        >
+          {tables.map((table, index) => (
+            <Tab 
+              key={table} 
+              label={`${table} (${tableQueries[index]?.data?.length || 0})`}
+            />
+          ))}
+        </Tabs>
+      </Box>
+
+      {/* Table Content */}
+      <Card>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">
+              {tables[activeTab]} Table
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Showing {Math.min(currentTableData.length, 100)} of {currentTableData.length} records
+            </Typography>
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowAddDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="contained"
-            disabled={createMutation.isLoading || updateMutation.isLoading}
-          >
-            {editingRecord ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          
+          {renderTableContent(currentTableData, tables[activeTab])}
+        </CardContent>
+      </Card>
     </Container>
   );
 };

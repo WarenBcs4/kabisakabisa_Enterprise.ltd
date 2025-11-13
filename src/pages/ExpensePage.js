@@ -26,18 +26,21 @@ import {
   Paper,
   IconButton
 } from '@mui/material';
-import { Add, Edit, Delete, TrendingUp, Business } from '@mui/icons-material';
+import { Add, Edit, Delete, TrendingUp, Business, AttachFile } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { expensesAPI, branchesAPI, logisticsAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
+import DocumentUploader from '../components/DocumentUploader';
 
 const ExpensePage = () => {
   const queryClient = useQueryClient();
   const [selectedBranchId, setSelectedBranchId] = useState('');
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [showDocumentUploader, setShowDocumentUploader] = useState(false);
+  const [selectedExpenseForDocs, setSelectedExpenseForDocs] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
@@ -181,13 +184,13 @@ const ExpensePage = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">
           Expense Management
         </Typography>
         
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>Branch Filter</InputLabel>
             <Select
@@ -218,7 +221,7 @@ const ExpensePage = () => {
       {/* Date Range Filter */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={{ xs: 1, sm: 2 }} alignItems="center">
             <Grid item xs={12} sm={3}>
               <TextField
                 fullWidth
@@ -256,11 +259,11 @@ const ExpensePage = () => {
 
       {/* Summary Cards */}
       {expenseSummary && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 3 }}>
           {expenseSummary.summary.slice(0, 4).map((categorySum) => {
             const category = categories.find(c => c.value === categorySum.category);
             return (
-              <Grid item xs={12} sm={6} md={3} key={categorySum.category}>
+              <Grid item xs={6} sm={6} md={3} key={categorySum.category}>
                 <Card>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom variant="body2">
@@ -330,6 +333,17 @@ const ExpensePage = () => {
                           <Edit />
                         </IconButton>
                         <IconButton 
+                          onClick={() => {
+                            setSelectedExpenseForDocs(expense);
+                            setShowDocumentUploader(true);
+                          }} 
+                          size="small"
+                          color="primary"
+                          title="Upload Documents"
+                        >
+                          <AttachFile />
+                        </IconButton>
+                        <IconButton 
                           onClick={() => deleteExpenseMutation.mutate(expense.id)} 
                           size="small"
                           color="error"
@@ -362,7 +376,7 @@ const ExpensePage = () => {
         </DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
-            <Grid container spacing={2}>
+            <Grid container spacing={{ xs: 1, sm: 2 }}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -452,6 +466,22 @@ const ExpensePage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Document Uploader */}
+      <DocumentUploader
+        tableName="Expenses"
+        recordId={selectedExpenseForDocs?.id}
+        open={showDocumentUploader}
+        onClose={() => {
+          setShowDocumentUploader(false);
+          setSelectedExpenseForDocs(null);
+        }}
+        title={`Upload Documents - ${selectedExpenseForDocs?.description || 'Expense'}`}
+        allowedFields={[
+          { field: 'receipt_attachment', label: 'Receipt/Invoice', required: true },
+          { field: 'supporting_documents', label: 'Supporting Documents', required: false }
+        ]}
+      />
     </Container>
   );
 };
