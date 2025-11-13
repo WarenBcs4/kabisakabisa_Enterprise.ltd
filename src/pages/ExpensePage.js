@@ -71,7 +71,21 @@ const ExpensePage = () => {
 
   const { data: branches = [] } = useQuery('branches', () => branchesAPI.getAll());
   const { data: vehicles = [] } = useQuery('vehicles', () => logisticsAPI.getVehicles().catch(() => []));
-  const { data: categories = [] } = useQuery('expenseCategories', () => expensesAPI.getCategories());
+  // Predefined expense categories
+  const categories = [
+    { value: 'office_supplies', label: 'Office Supplies', icon: '📝' },
+    { value: 'travel', label: 'Travel', icon: '✈️' },
+    { value: 'marketing', label: 'Marketing', icon: '📢' },
+    { value: 'utilities', label: 'Utilities', icon: '💡' },
+    { value: 'rent', label: 'Rent', icon: '🏢' },
+    { value: 'insurance', label: 'Insurance', icon: '🛡️' },
+    { value: 'maintenance', label: 'Maintenance', icon: '🔧' },
+    { value: 'fuel', label: 'Fuel', icon: '⛽' },
+    { value: 'equipment', label: 'Equipment', icon: '💻' },
+    { value: 'professional_services', label: 'Professional Services', icon: '👔' },
+    { value: 'training', label: 'Training', icon: '📚' },
+    { value: 'other', label: 'Other', icon: '📦' }
+  ];
 
   const { data: expenseSummary } = useQuery(
     ['expenseSummary', selectedBranchId, dateRange],

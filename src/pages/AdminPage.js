@@ -32,7 +32,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 
 import { useForm } from 'react-hook-form';
-import { hrAPI, branchesAPI, stockAPI } from '../services/api';
+import { hrAPI, branchesAPI, stockAPI, genericDataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
@@ -77,36 +77,31 @@ const AdminPage = () => {
   // Direct database queries for real-time data
   const { data: employees = [], isLoading: employeesLoading } = useQuery(
     'admin-employees',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => hrAPI.getEmployees(),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: branches = [], isLoading: branchesLoading } = useQuery(
     'admin-branches',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Branches`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => branchesAPI.getAll(),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: products = [], isLoading: productsLoading } = useQuery(
     'admin-stock',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => stockAPI.getAll(),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: sales = [] } = useQuery(
     'admin-sales',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sales`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => genericDataAPI.getAll('Sales'),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: expenses = [] } = useQuery(
     'admin-expenses',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => genericDataAPI.getAll('Expenses'),
     { refetchInterval: 30000, retry: false }
   );
 

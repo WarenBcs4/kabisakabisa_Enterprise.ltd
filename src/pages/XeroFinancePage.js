@@ -15,17 +15,20 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
   TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Chip,
   LinearProgress,
-  Alert,
   IconButton,
   Menu,
-  MenuItem,
   Divider,
   List,
   ListItem,
@@ -33,13 +36,10 @@ import {
   ListItemText
 } from '@mui/material';
 import {
-  Dashboard,
   Receipt,
   TrendingUp,
   AccountBalance,
   Assessment,
-  Business,
-  People,
   Settings,
   Add,
   MoreVert,
@@ -48,8 +48,6 @@ import {
   Visibility,
   MonetizationOn,
   CreditCard,
-
-
   PieChart,
   BarChart,
   Timeline
@@ -58,8 +56,6 @@ import { useQuery } from 'react-query';
 import { formatCurrency } from '../theme';
 import XeroProfitLossReport from '../components/XeroProfitLossReport';
 import XeroBalanceSheet from '../components/XeroBalanceSheet';
-import XeroContactsManager from '../components/XeroContactsManager';
-import XeroBankingModule from '../components/XeroBankingModule';
 
 const XeroFinancePage = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -317,22 +313,12 @@ const XeroFinancePage = () => {
 
       {isLoading && <LinearProgress sx={{ mb: 3 }} />}
 
-      {/* Xero-style Navigation Tabs */}
+      {/* Navigation Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs 
-          value={activeTab} 
-          onChange={(e, newValue) => setActiveTab(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab icon={<Dashboard />} label="Dashboard" />
-          <Tab icon={<Assessment />} label="Reports" />
-          <Tab icon={<Receipt />} label="Purchase Orders" />
-          <Tab icon={<TrendingUp />} label="Cash Flow" />
-          <Tab icon={<AccountBalance />} label="Banking" />
-          <Tab icon={<People />} label="Contacts" />
-          <Tab icon={<Business />} label="Business Snapshot" />
-          <Tab icon={<Settings />} label="System" />
+        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+          <Tab label="Dashboard" />
+          <Tab label="Reports" />
+          <Tab label="Transactions" />
         </Tabs>
       </Box>
 
@@ -570,321 +556,114 @@ const XeroFinancePage = () => {
         </Box>
       )}
 
-      {/* Purchase Orders Tab */}
+      {/* Transactions Tab */}
       {activeTab === 2 && (
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6">Purchase Orders Management</Typography>
-            <Button variant="contained" startIcon={<Add />} onClick={() => window.location.href = '/orders'}>
-              New Purchase Order
-            </Button>
-          </Box>
-          
-          {/* Purchase Orders Summary */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="primary.main">Total Orders</Typography>
-                  <Typography variant="h4" fontWeight={700}>{orders.length}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="warning.main">Pending</Typography>
-                  <Typography variant="h4" fontWeight={700}>
-                    {orders.filter(o => o.status !== 'completed').length}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="success.main">Completed</Typography>
-                  <Typography variant="h4" fontWeight={700}>
-                    {orders.filter(o => o.status === 'completed').length}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="error.main">Outstanding</Typography>
-                  <Typography variant="h4" fontWeight={700}>
-                    {formatCurrency(totalPayables)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Purchase Orders Table */}
-          <Card>
-            <CardContent>
-              <TableContainer sx={{ overflowX: 'auto' }}>
-                <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Order Date</TableCell>
-                      <TableCell>Supplier</TableCell>
-                      <TableCell align="right">Total Amount</TableCell>
-                      <TableCell align="right">Amount Paid</TableCell>
-                      <TableCell align="right">Balance</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Expected Delivery</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {[...orders, ...invoices.map(inv => ({
-                      id: `inv-${inv.id}`,
-                      order_date: inv.invoice_date,
-                      supplier_name: inv.customer_name,
-                      total_amount: inv.total_amount,
-                      amount_paid: inv.amount_paid,
-                      status: inv.status,
-                      expected_delivery_date: inv.due_date,
-                      type: 'invoice'
-                    }))].map((item, index) => (
-                      <TableRow key={item.id || index}>
-                        <TableCell>{item.order_date ? new Date(item.order_date).toLocaleDateString() : 'N/A'}</TableCell>
-                        <TableCell>
-                          {item.type === 'invoice' ? `[INV] ${item.supplier_name}` : item.supplier_name || 'N/A'}
-                        </TableCell>
-                        <TableCell align="right">{formatCurrency(parseFloat(item.total_amount) || 0)}</TableCell>
-                        <TableCell align="right">{formatCurrency(parseFloat(item.amount_paid) || 0)}</TableCell>
-                        <TableCell align="right">
-                          <Typography color={(parseFloat(item.total_amount) || 0) - (parseFloat(item.amount_paid) || 0) > 0 ? 'error.main' : 'success.main'}>
-                            {formatCurrency((parseFloat(item.total_amount) || 0) - (parseFloat(item.amount_paid) || 0))}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={item.status || 'Unknown'} 
-                            color={item.status === 'completed' || item.status === 'paid' ? 'success' : item.status === 'delivered' ? 'info' : 'warning'} 
-                            size="small" 
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {item.expected_delivery_date ? new Date(item.expected_delivery_date).toLocaleDateString() : 'N/A'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Box>
-      )}
-
-      {/* Cash Flow Tab */}
-      {activeTab === 3 && (
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Alert severity="info" sx={{ mb: 3 }}>
-              Cash flow shows the movement of money in and out of your business
-            </Alert>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom color="success.main">
-                  Money Coming In
-                </Typography>
-                <Typography variant="h4" fontWeight={700} sx={{ mb: 2 }}>
-                  {formatCurrency(monthlyRevenue)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  This month's revenue from all sources
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom color="error.main">
-                  Money Going Out
-                </Typography>
-                <Typography variant="h4" fontWeight={700} sx={{ mb: 2 }}>
-                  {formatCurrency(monthlyExpenses)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  This month's expenses and payments
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      )}
-
-      {/* Banking Tab */}
-      {activeTab === 4 && (
-        <XeroBankingModule />
-      )}
-
-      {/* Contacts Tab */}
-      {activeTab === 5 && (
-        <XeroContactsManager />
-      )}
-
-      {/* Business Snapshot Tab */}
-      {activeTab === 6 && (
-        <Box>
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Business Snapshot
-          </Typography>
-          
-          {/* Key Performance Indicators */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom color="primary.main">
-                    Financial Health Score
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h2" fontWeight={700} color="success.main" sx={{ mr: 2 }}>
-                      {profitMargin > 20 ? 'A+' : profitMargin > 10 ? 'B+' : profitMargin > 0 ? 'C' : 'D'}
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">Transaction Management</Typography>
+              <Button variant="contained" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
+                Add Transaction
+              </Button>
+            </Box>
+            
+            {/* Transaction Summary */}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: 'success.light' }}>
+                  <CardContent>
+                    <Typography variant="body2" color="success.dark">Total Income</Typography>
+                    <Typography variant="h6" color="success.dark">
+                      {formatCurrency(monthlyRevenue)}
                     </Typography>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">Based on profit margin</Typography>
-                      <Typography variant="h6" color="success.main">{profitMargin.toFixed(1)}%</Typography>
-                    </Box>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Your business is {profitMargin > 10 ? 'performing well' : profitMargin > 0 ? 'stable' : 'needs attention'}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom color="info.main">
-                    Cash Position
-                  </Typography>
-                  <Typography variant="h3" fontWeight={700} color={cashFlow >= 0 ? 'success.main' : 'error.main'}>
-                    {formatCurrency(cashFlow)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {cashFlow >= 0 ? 'Positive cash flow' : 'Negative cash flow'} this month
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Business Metrics */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">Active Branches</Typography>
-                  <Typography variant="h4" fontWeight={700}>{branches.length}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">Total Employees</Typography>
-                  <Typography variant="h4" fontWeight={700}>
-                    {employees.filter(emp => emp.is_active !== false).length}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">Monthly Transactions</Typography>
-                  <Typography variant="h4" fontWeight={700}>{sales.length + expenses.length}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">Growth Rate</Typography>
-                  <Typography variant="h4" fontWeight={700} color="success.main">+12.5%</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Quick Insights */}
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Business Insights
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Alert severity={profitMargin > 10 ? 'success' : profitMargin > 0 ? 'info' : 'warning'}>
-                    <Typography variant="body2">
-                      <strong>Profitability:</strong> {profitMargin > 10 ? 'Excellent profit margins' : profitMargin > 0 ? 'Healthy profit margins' : 'Consider cost optimization'}
-                    </Typography>
-                  </Alert>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Alert severity={totalReceivables > 0 ? 'warning' : 'success'}>
-                    <Typography variant="body2">
-                      <strong>Receivables:</strong> {totalReceivables > 0 ? `${formatCurrency(totalReceivables)} outstanding` : 'All payments collected'}
-                    </Typography>
-                  </Alert>
-                </Grid>
+                  </CardContent>
+                </Card>
               </Grid>
-            </CardContent>
-          </Card>
-        </Box>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: 'error.light' }}>
+                  <CardContent>
+                    <Typography variant="body2" color="error.dark">Total Expenses</Typography>
+                    <Typography variant="h6" color="error.dark">
+                      {formatCurrency(monthlyExpenses)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: 'primary.light' }}>
+                  <CardContent>
+                    <Typography variant="body2" color="primary.dark">Net Profit</Typography>
+                    <Typography variant="h6" color="primary.dark">
+                      {formatCurrency(monthlyProfit)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: 'info.light' }}>
+                  <CardContent>
+                    <Typography variant="body2" color="info.dark">Cash Flow</Typography>
+                    <Typography variant="h6" color="info.dark">
+                      {formatCurrency(cashFlow)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+
+            <TableContainer component={Paper}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell align="right">Amount</TableCell>
+                    <TableCell>Category</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {[...sales.slice(0, 10).map(sale => ({
+                    id: sale.id,
+                    date: sale.sale_date || sale.created_at,
+                    type: 'Income',
+                    description: `Sale - ${sale.customer_name || 'Walk-in'}`,
+                    amount: sale.total_amount,
+                    category: 'Sales Revenue'
+                  })), ...expenses.slice(0, 10).map(expense => ({
+                    id: expense.id,
+                    date: expense.expense_date || expense.created_at,
+                    type: 'Expense',
+                    description: expense.description || 'Expense',
+                    amount: expense.amount,
+                    category: expense.category || 'General'
+                  }))].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 20).map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={transaction.type} 
+                          color={transaction.type === 'Income' ? 'success' : 'error'} 
+                          size="small" 
+                        />
+                      </TableCell>
+                      <TableCell>{transaction.description}</TableCell>
+                      <TableCell align="right">
+                        <Typography color={transaction.type === 'Income' ? 'success.main' : 'error.main'}>
+                          {formatCurrency(transaction.amount)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{transaction.category}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Settings Tab */}
-      {activeTab === 7 && (
-        <Box>
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Finance System Settings
-          </Typography>
-          
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Data Integration
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    All financial data is automatically integrated from your business operations
-                  </Typography>
-                  <Button variant="outlined" fullWidth disabled>
-                    Auto-Sync Enabled
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Currency Settings
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Default currency: Kenyan Shilling (KES)
-                  </Typography>
-                  <Button variant="outlined" fullWidth disabled>
-                    KES - Kenyan Shilling
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
-      )}
+
 
       {/* New Transaction Dialog */}
       <Dialog open={showNewTransaction} onClose={() => setShowNewTransaction(false)} maxWidth="sm" fullWidth>
@@ -935,13 +714,27 @@ const XeroFinancePage = () => {
             </Grid>
             {newTransaction.type === 'expense' && (
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Category"
-                  value={newTransaction.category}
-                  onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
-                  placeholder="e.g., Office Supplies, Travel, Marketing"
-                />
+                <FormControl fullWidth>
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={newTransaction.category}
+                    onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
+                    label="Category"
+                  >
+                    <MenuItem value="Office Supplies">Office Supplies</MenuItem>
+                    <MenuItem value="Travel">Travel</MenuItem>
+                    <MenuItem value="Marketing">Marketing</MenuItem>
+                    <MenuItem value="Utilities">Utilities</MenuItem>
+                    <MenuItem value="Rent">Rent</MenuItem>
+                    <MenuItem value="Insurance">Insurance</MenuItem>
+                    <MenuItem value="Maintenance">Maintenance</MenuItem>
+                    <MenuItem value="Fuel">Fuel</MenuItem>
+                    <MenuItem value="Equipment">Equipment</MenuItem>
+                    <MenuItem value="Professional Services">Professional Services</MenuItem>
+                    <MenuItem value="Training">Training</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
             )}
           </Grid>

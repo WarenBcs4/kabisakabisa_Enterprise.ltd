@@ -43,7 +43,7 @@ import { useNavigate } from 'react-router-dom';
 import QuickUpload from '../components/QuickUpload';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import { useForm } from 'react-hook-form';
-import { hrAPI } from '../services/api';
+import { hrAPI, branchesAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
@@ -67,22 +67,19 @@ const HRPage = () => {
   // Queries - Load employees and branches with real-time data
   const { data: allEmployees = [], isLoading: employeesLoading } = useQuery(
     'employees',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => hrAPI.getEmployees(),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: allPayroll = [], isLoading: payrollLoading } = useQuery(
     'payroll',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Payroll`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => hrAPI.getPayroll(),
     { refetchInterval: 30000, retry: false }
   );
   
   const { data: branches = [], isLoading: branchesLoading } = useQuery(
     'branches',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Branches`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => branchesAPI.getAll(),
     { retry: false }
   );
 
@@ -147,11 +144,7 @@ const HRPage = () => {
 
   // Mutations
   const createEmployeeMutation = useMutation(
-    (data) => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).then(res => res.json()),
+    (data) => hrAPI.createEmployee(data),
     {
       onSuccess: (response) => {
         toast.success(`Employee ${response.full_name || 'created'} successfully!`);
@@ -166,11 +159,7 @@ const HRPage = () => {
   );
 
   const updateEmployeeMutation = useMutation(
-    ({ id, data }) => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).then(res => res.json()),
+    ({ id, data }) => hrAPI.updateEmployee(id, data),
     {
       onSuccess: (response) => {
         toast.success(`Employee updated successfully!`);
@@ -199,11 +188,7 @@ const HRPage = () => {
   );
 
   const generatePayrollMutation = useMutation(
-    (data) => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Payroll`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).then(res => res.json()),
+    (data) => hrAPI.generatePayroll(data),
     {
       onSuccess: () => {
         toast.success('Payroll generated successfully!');
