@@ -7,18 +7,16 @@ import {
   Card,
   CardContent,
   Button,
-  AppBar,
-  Toolbar,
+  IconButton,
   Menu,
   MenuItem,
   Collapse
 } from '@mui/material';
 import {
+  Search,
   Phone,
   Email,
-  LocationOn,
-  Construction,
-  ExpandMore
+  LocationOn
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -31,33 +29,50 @@ const HomePage = () => {
   const { data: branches = [] } = useQuery('publicBranches', branchesAPI.getPublic);
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f5' }}>
-      {/* Navigation Bar */}
-      <AppBar position="static" sx={{ bgcolor: '#2c5530', boxShadow: 'none' }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-            BSN CONSTRUCTION
-          </Typography>
-          <Button color="inherit" sx={{ mx: 1 }}>HOME</Button>
-          <Button 
-            color="inherit" 
-            sx={{ mx: 1 }}
-            onClick={(e) => setStoreAnchor(e.currentTarget)}
-            endIcon={<ExpandMore />}
-          >
-            STORE
-          </Button>
-          <Button color="inherit" sx={{ mx: 1 }}>ABOUT US</Button>
-          <Button color="inherit" sx={{ mx: 1 }}>CONTACT</Button>
-          <Button 
-            variant="outlined" 
-            sx={{ ml: 2, borderColor: 'white', color: 'white' }}
-            onClick={() => navigate('/login')}
-          >
-            LOGIN
-          </Button>
-        </Toolbar>
-      </AppBar>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'white' }}>
+      {/* Navigation */}
+      <Box sx={{ borderBottom: '1px solid #e5e7eb', py: 3 }}>
+        <Container maxWidth="xl" sx={{ px: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: '-0.025em' }}>
+              BSN CONSTRUCTION
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Button 
+                sx={{ 
+                  color: 'black', 
+                  fontSize: '0.875rem', 
+                  letterSpacing: '0.05em',
+                  '&:hover': { opacity: 0.7 }
+                }}
+                onClick={(e) => setStoreAnchor(e.currentTarget)}
+              >
+                STORE
+              </Button>
+              <Button 
+                sx={{ 
+                  color: 'black', 
+                  fontSize: '0.875rem', 
+                  letterSpacing: '0.05em',
+                  '&:hover': { opacity: 0.7 }
+                }}
+              >
+                ABOUT US
+              </Button>
+              <IconButton 
+                sx={{ 
+                  p: 1.5, 
+                  '&:hover': { bgcolor: '#f9fafb' },
+                  borderRadius: 2
+                }}
+                onClick={() => navigate('/login')}
+              >
+                <Search sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
 
       {/* Store Dropdown Menu */}
       <Menu
@@ -74,72 +89,184 @@ const HomePage = () => {
           </MenuItem>
         ))}
       </Menu>
+
       {/* Hero Section */}
-      <Box
-        sx={{
-          background: 'linear-gradient(rgba(44,85,48,0.8), rgba(44,85,48,0.8)), url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiPjxyZWN0IGZpbGw9IiNmZmYiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIi8+PHJlY3QgZmlsbD0iI2VlZSIgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCBmaWxsPSJ1cmwoI2EpIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIi8+PC9zdmc+)',
-          minHeight: '70vh',
-          display: 'flex',
-          alignItems: 'center',
-          color: 'white'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Grid container spacing={4} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Typography variant="h2" sx={{ fontWeight: 700, mb: 2 }}>
-                Premium Floor Tiles
+      <Container maxWidth="xl" sx={{ px: 4, py: 10 }}>
+        <Grid container spacing={8} alignItems="center">
+          {/* Left Content */}
+          <Grid item xs={12} lg={6}>
+            <Box sx={{ mb: 4 }}>
+              <Typography 
+                variant="h1" 
+                sx={{ 
+                  fontSize: { xs: '3rem', md: '4.5rem' },
+                  fontWeight: 700,
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.025em',
+                  mb: 4
+                }}
+              >
+                NEW TILES<br />COLLECTION
               </Typography>
-              <Typography variant="h5" sx={{ mb: 3, color: '#e8f5e8' }}>
-                Construction Materials Specialist
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 4, fontSize: '1.1rem', lineHeight: 1.6 }}>
-                We deal with construction materials and specialize in premium floor tiles. 
-                Quality ceramic, porcelain, and natural stone tiles for your projects.
+              <Typography variant="h5" sx={{ color: '#6b7280', mb: 4 }}>
+                Dealers in tiles collection,
               </Typography>
               <Button
-                variant="contained"
+                variant="outlined"
                 size="large"
-                sx={{ bgcolor: '#ff6b35', '&:hover': { bgcolor: '#e55a2b' }, px: 4, py: 1.5 }}
+                onClick={() => navigate('/login')}
+                sx={{
+                  px: 4,
+                  py: 2,
+                  border: '2px solid black',
+                  borderRadius: '50px',
+                  color: 'black',
+                  fontSize: '0.875rem',
+                  letterSpacing: '0.05em',
+                  '&:hover': {
+                    bgcolor: 'black',
+                    color: 'white',
+                    border: '2px solid black'
+                  }
+                }}
               >
-                View Products
+                Access system
               </Button>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Construction sx={{ fontSize: 120, color: '#ff6b35', mb: 2 }} />
-                <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                  Quality Materials
-                </Typography>
-              </Box>
-            </Grid>
+            </Box>
           </Grid>
-        </Container>
-      </Box>
+
+          {/* Right Images */}
+          <Grid item xs={12} lg={6}>
+            <Box sx={{ position: 'relative' }}>
+              <Grid container spacing={2}>
+                {/* Top Left - Gray tile */}
+                <Grid item xs={6}>
+                  <Box sx={{ 
+                    aspectRatio: '1',
+                    bgcolor: '#d1d5db',
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 4
+                  }}>
+                    <Box sx={{ 
+                      width: '100%',
+                      height: '66%',
+                      border: '4px solid white',
+                      borderRadius: 1
+                    }} />
+                  </Box>
+                </Grid>
+                
+                {/* Top Right - Navy blue */}
+                <Grid item xs={6}>
+                  <Box sx={{ 
+                    aspectRatio: '1',
+                    bgcolor: '#1e3a8a',
+                    borderRadius: 2
+                  }} />
+                </Grid>
+                
+                {/* Bottom Left - Navy sofa scene */}
+                <Grid item xs={6}>
+                  <Box sx={{ 
+                    aspectRatio: '1',
+                    background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)',
+                    borderRadius: 2,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <Box sx={{ 
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: '33%',
+                      bgcolor: '#374151'
+                    }} />
+                    <Box sx={{ 
+                      position: 'absolute',
+                      bottom: 16,
+                      right: 16,
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      bgcolor: '#60a5fa'
+                    }} />
+                  </Box>
+                </Grid>
+                
+                {/* Bottom Right - Light room scene */}
+                <Grid item xs={6}>
+                  <Box sx={{ 
+                    aspectRatio: '1',
+                    bgcolor: '#f3f4f6',
+                    borderRadius: 2,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <Box sx={{ 
+                      position: 'absolute',
+                      top: 16,
+                      right: 16,
+                      width: 80,
+                      height: 96,
+                      border: '4px solid #fde68a',
+                      borderRadius: 1
+                    }} />
+                    <Box sx={{ 
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: '25%',
+                      bgcolor: '#fef3c7'
+                    }} />
+                  </Box>
+                </Grid>
+              </Grid>
+              
+              {/* Overlapping center circle */}
+              <Box sx={{ 
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 128,
+                height: 128,
+                bgcolor: '#60a5fa',
+                borderRadius: '50%',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+              }} />
+            </Box>
+          </Grid>
+        </Grid>
+      </Container>
 
       {/* Store Branches Section */}
       <Collapse in={showBranches}>
-        <Box sx={{ bgcolor: 'white', py: 4, borderTop: '3px solid #2c5530' }}>
-          <Container maxWidth="lg">
-            <Typography variant="h4" sx={{ color: '#2c5530', fontWeight: 600, mb: 3, textAlign: 'center' }}>
+        <Box sx={{ bgcolor: '#f9fafb', py: 6 }}>
+          <Container maxWidth="xl" sx={{ px: 4 }}>
+            <Typography variant="h4" sx={{ fontWeight: 600, mb: 4, textAlign: 'center' }}>
               Our Store Locations
             </Typography>
             <Grid container spacing={3} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
               {branches.map((branch) => (
                 <Grid item xs={10} sm={6} md={4} key={branch.id}>
-                  <Card sx={{ border: '1px solid #2c5530', '&:hover': { boxShadow: 3 } }}>
+                  <Card sx={{ border: '1px solid #e5e7eb', '&:hover': { boxShadow: 2 } }}>
                     <CardContent>
-                      <Typography variant="h6" sx={{ color: '#2c5530', mb: 1 }}>
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
                         {branch.name}
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <LocationOn sx={{ color: '#ff6b35', mr: 1, fontSize: 18 }} />
-                        <Typography variant="body2">{branch.address}</Typography>
+                        <LocationOn sx={{ color: '#6b7280', mr: 1, fontSize: 18 }} />
+                        <Typography variant="body2" color="text.secondary">{branch.address}</Typography>
                       </Box>
                       {branch.phone && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <Phone sx={{ color: '#ff6b35', mr: 1, fontSize: 18 }} />
-                          <Typography variant="body2">{branch.phone}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Phone sx={{ color: '#6b7280', mr: 1, fontSize: 18 }} />
+                          <Typography variant="body2" color="text.secondary">{branch.phone}</Typography>
                         </Box>
                       )}
                     </CardContent>
@@ -151,111 +278,18 @@ const HomePage = () => {
         </Box>
       </Collapse>
 
-      {/* About Us Section */}
-      <Box sx={{ bgcolor: 'white', py: 8 }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Typography variant="h3" sx={{ color: '#2c5530', fontWeight: 600, mb: 3 }}>
-                About Us
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 3, fontSize: '1.1rem', lineHeight: 1.7 }}>
-                We deal with construction materials and specialize in floor tiles. Our company 
-                has been serving the construction industry with premium quality materials for 
-                over a decade.
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 3, fontSize: '1.1rem', lineHeight: 1.7 }}>
-                We specifically focus on floor tiles including ceramic, porcelain, marble, 
-                and natural stone tiles. Our extensive inventory ensures we meet all your 
-                construction and renovation needs.
-              </Typography>
-              <Button 
-                variant="contained" 
-                sx={{ bgcolor: '#ff6b35', '&:hover': { bgcolor: '#e55a2b' } }}
-              >
-                Learn More
-              </Button>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Card sx={{ p: 3, textAlign: 'center', bgcolor: '#f8f9fa' }}>
-                    <Typography variant="h4" sx={{ color: '#2c5530', fontWeight: 700 }}>10+</Typography>
-                    <Typography variant="body2">Years Experience</Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={6}>
-                  <Card sx={{ p: 3, textAlign: 'center', bgcolor: '#f8f9fa' }}>
-                    <Typography variant="h4" sx={{ color: '#ff6b35', fontWeight: 700 }}>500+</Typography>
-                    <Typography variant="body2">Happy Clients</Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={6}>
-                  <Card sx={{ p: 3, textAlign: 'center', bgcolor: '#f8f9fa' }}>
-                    <Typography variant="h4" sx={{ color: '#2c5530', fontWeight: 700 }}>50+</Typography>
-                    <Typography variant="body2">Tile Varieties</Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={6}>
-                  <Card sx={{ p: 3, textAlign: 'center', bgcolor: '#f8f9fa' }}>
-                    <Typography variant="h4" sx={{ color: '#ff6b35', fontWeight: 700 }}>24/7</Typography>
-                    <Typography variant="body2">Support</Typography>
-                  </Card>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-
-
-      {/* Contact Section */}
-      <Box sx={{ bgcolor: '#2c5530', color: 'white', py: 6 }}>
-        <Container maxWidth="lg">
-          <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontWeight: 600 }}>
-            Contact Us
-          </Typography>
-          <Grid container spacing={4} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Phone sx={{ fontSize: 40, mb: 2 }} />
-                <Typography variant="h6">Call Us</Typography>
-                <Typography>+254 700 000 000</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Email sx={{ fontSize: 40, mb: 2 }} />
-                <Typography variant="h6">Email</Typography>
-                <Typography>info@bsnconstruction.com</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <LocationOn sx={{ fontSize: 40, mb: 2 }} />
-                <Typography variant="h6">Visit Us</Typography>
-                <Button 
-                  variant="outlined" 
-                  sx={{ borderColor: 'white', color: 'white', mt: 1 }}
-                  onClick={() => setShowBranches(true)}
-                >
-                  View Stores
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-      {/* Footer */}
-      <Box sx={{ bgcolor: '#1a1a1a', color: 'white', py: 4 }}>
-        <Container maxWidth="lg">
-          <Typography variant="body2" textAlign="center">
-            © 2024 BSN Construction Materials. All rights reserved.
-          </Typography>
-        </Container>
-      </Box>
+      {/* Decorative Element */}
+      <Box sx={{ 
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        width: 256,
+        height: 256,
+        bgcolor: '#f3f4f6',
+        borderTopRightRadius: '50%',
+        opacity: 0.5,
+        zIndex: -1
+      }} />
     </Box>
   );
 };
