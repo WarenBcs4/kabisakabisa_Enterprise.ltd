@@ -34,14 +34,25 @@ const DataManagementPage = () => {
   ];
 
   // Fetch data for all tables
-  const tableQueries = tables.map(table => 
-    useQuery(
-      `data-${table.toLowerCase()}`,
-      () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/${table}`)
-        .then(res => res.ok ? res.json() : []).catch(() => []),
-      { refetchInterval: 30000, retry: false }
-    )
-  );
+  const branchesQuery = useQuery('data-branches', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Branches`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const employeesQuery = useQuery('data-employees', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const stockQuery = useQuery('data-stock', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const stockMovementsQuery = useQuery('data-stock_movements', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const salesQuery = useQuery('data-sales', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sales`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const saleItemsQuery = useQuery('data-sale_items', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sale_Items`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const expensesQuery = useQuery('data-expenses', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const vehiclesQuery = useQuery('data-vehicles', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Vehicles`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const tripsQuery = useQuery('data-trips', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Trips`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const vehicleMaintenanceQuery = useQuery('data-vehicle_maintenance', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Vehicle_Maintenance`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const ordersQuery = useQuery('data-orders', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Orders`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const orderItemsQuery = useQuery('data-order_items', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Order_Items`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const payrollQuery = useQuery('data-payroll', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Payroll`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const invoicesQuery = useQuery('data-invoices', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Invoices`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const invoiceItemsQuery = useQuery('data-invoice_items', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Invoice_Items`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const chartOfAccountsQuery = useQuery('data-chart_of_accounts', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Chart_of_Accounts`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+  const documentsQuery = useQuery('data-documents', () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Documents`).then(res => res.ok ? res.json() : []).catch(() => []), { refetchInterval: 30000, retry: false });
+
+  const tableQueries = [branchesQuery, employeesQuery, stockQuery, stockMovementsQuery, salesQuery, saleItemsQuery, expensesQuery, vehiclesQuery, tripsQuery, vehicleMaintenanceQuery, ordersQuery, orderItemsQuery, payrollQuery, invoicesQuery, invoiceItemsQuery, chartOfAccountsQuery, documentsQuery];
 
   const isLoading = tableQueries.some(query => query.isLoading);
   const currentTableData = tableQueries[activeTab]?.data || [];
