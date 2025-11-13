@@ -30,7 +30,7 @@ import {
 } from '@mui/material';
 import { CloudUpload, Download, Delete, Search, Folder } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { documentsAPI } from '../services/api';
+
 import toast from 'react-hot-toast';
 
 const DocumentManager = () => {

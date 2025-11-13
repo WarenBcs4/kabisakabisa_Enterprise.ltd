@@ -43,7 +43,7 @@ import toast from 'react-hot-toast';
 const AdminPage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedBranchId] = useState('');
+
   const [activeTab, setActiveTab] = useState(0);
   
   // Handle Xero callback

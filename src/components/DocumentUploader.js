@@ -6,14 +6,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Typography,
   LinearProgress,
-  Chip,
   Grid,
   Alert,
   IconButton,
@@ -22,7 +20,7 @@ import {
   ListItemText,
   ListItemSecondaryAction
 } from '@mui/material';
-import { CloudUpload, Delete, Download, AttachFile } from '@mui/icons-material';
+import { CloudUpload, Download, AttachFile } from '@mui/icons-material';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 
