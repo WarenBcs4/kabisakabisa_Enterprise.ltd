@@ -34,7 +34,7 @@ import {
 import { useQuery } from 'react-query';
 import QuickUpload from '../components/QuickUpload';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
-import { branchesAPI, hrAPI, dataAPI } from '../services/api';
+
 import { formatCurrency } from '../theme';
 import {
   LineChart,
@@ -57,22 +57,62 @@ const BossPage = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [showHistoricalData, setShowHistoricalData] = useState(false);
 
-  // Queries
-  const { data: pageData, isLoading, error } = useQuery(
-    ['bossPageData', selectedPeriod],
-    () => {
-      console.log('Fetching boss page data for period:', selectedPeriod);
-      return dataAPI.getPageData('boss', null, { period: selectedPeriod });
-    }
+  // Queries - using direct API calls instead of non-existent boss endpoint
+  const { data: sales = [], isLoading: salesLoading } = useQuery(
+    'boss-sales',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sales`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
   );
 
-  const dashboard = pageData?.dashboard;
-  const rotAnalysis = pageData?.rotAnalysis;
+  const { data: expenses = [] } = useQuery(
+    'boss-expenses',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: trips = [] } = useQuery(
+    'boss-trips',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Trips`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  // Calculate dashboard metrics from real data
+  const totalRevenue = sales.reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0) +
+                      trips.reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0);
+  const totalExpenses = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+  const totalProfit = totalRevenue - totalExpenses;
+  const averageROT = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
+  const dashboard = {
+    totalRevenue,
+    totalExpenses,
+    totalProfit
+  };
   
-  console.log('Boss page data:', { dashboard, rotAnalysis });
+  const rotAnalysis = {
+    averageROT
+  };
+
+  const isLoading = salesLoading;
   
-  const { data: branches = [] } = useQuery('branches', () => branchesAPI.getAll());
-  const { data: employees = [] } = useQuery('employees', () => hrAPI.getEmployees());
+
+  
+  const { data: branches = [] } = useQuery(
+    'boss-branches',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Branches`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { retry: false }
+  );
+  
+  const { data: employees = [] } = useQuery(
+    'boss-employees',
+    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees`)
+      .then(res => res.ok ? res.json() : []).catch(() => []),
+    { retry: false }
+  );
 
   // Sample data for charts (replace with real data from API)
   const salesData = [
@@ -106,13 +146,7 @@ const BossPage = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        <Typography color="error">Error loading dashboard data</Typography>
-      </Container>
-    );
-  }
+
 
   return (
     <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>

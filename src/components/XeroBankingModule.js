@@ -46,6 +46,39 @@ const XeroBankingModule = () => {
     bank_name: ''
   });
 
+  const handleAddAccount = async () => {
+    if (!newAccount.name.trim() || !newAccount.bank_name.trim()) {
+      alert('Please fill in account name and bank name');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: `Bank Account Setup: ${newAccount.name} - ${newAccount.bank_name}`,
+          category: 'Banking Setup',
+          amount: 0,
+          expense_date: new Date().toISOString().split('T')[0]
+        })
+      });
+
+      if (response.ok) {
+        alert('Bank account setup recorded successfully!');
+        setNewAccount({ name: '', type: 'checking', balance: 0, bank_name: '' });
+        setShowAddAccount(false);
+      } else {
+        alert('Failed to record bank account setup');
+      }
+    } catch (error) {
+      console.error('Error adding bank account:', error);
+      alert('Error adding bank account');
+    }
+  };
+
   // Fetch financial data for banking calculations
   const { data: sales = [] } = useQuery(
     'banking-sales',
@@ -351,7 +384,7 @@ const XeroBankingModule = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowAddAccount(false)}>Cancel</Button>
-          <Button variant="contained">Add Account</Button>
+          <Button variant="contained" onClick={handleAddAccount}>Add Account</Button>
         </DialogActions>
       </Dialog>
 

@@ -15,7 +15,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Chip,
   LinearProgress,
   Alert,
@@ -60,6 +64,63 @@ import XeroBankingModule from '../components/XeroBankingModule';
 const XeroFinancePage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [showNewTransaction, setShowNewTransaction] = useState(false);
+  const [newTransaction, setNewTransaction] = useState({
+    type: 'expense',
+    amount: '',
+    description: '',
+    category: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  const handleAddTransaction = async () => {
+    if (!newTransaction.amount || !newTransaction.description) {
+      alert('Please fill in amount and description');
+      return;
+    }
+
+    try {
+      const endpoint = newTransaction.type === 'expense' ? 'Expenses' : 'Sales';
+      const data = newTransaction.type === 'expense' ? {
+        amount: parseFloat(newTransaction.amount),
+        description: newTransaction.description,
+        category: newTransaction.category || 'General',
+        expense_date: newTransaction.date
+      } : {
+        total_amount: parseFloat(newTransaction.amount),
+        customer_name: 'Manual Entry',
+        sale_date: newTransaction.date,
+        payment_method: 'cash'
+      };
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        alert(`${newTransaction.type} added successfully!`);
+        setShowNewTransaction(false);
+        setNewTransaction({
+          type: 'expense',
+          amount: '',
+          description: '',
+          category: '',
+          date: new Date().toISOString().split('T')[0]
+        });
+        // Refresh data
+        window.location.reload();
+      } else {
+        alert(`Failed to add ${newTransaction.type}`);
+      }
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      alert('Error adding transaction');
+    }
+  };
 
 
   // Fetch all database tables for comprehensive financial data
@@ -242,7 +303,7 @@ const XeroFinancePage = () => {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap' }}>
-          <Button variant="contained" startIcon={<Add />}>
+          <Button variant="contained" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
             New Transaction
           </Button>
           <Button variant="outlined" startIcon={<FileDownload />}>
@@ -271,7 +332,7 @@ const XeroFinancePage = () => {
           <Tab icon={<AccountBalance />} label="Banking" />
           <Tab icon={<People />} label="Contacts" />
           <Tab icon={<Business />} label="Business Snapshot" />
-          <Tab icon={<Settings />} label="Settings" />
+          <Tab icon={<Settings />} label="System" />
         </Tabs>
       </Box>
 
@@ -367,21 +428,21 @@ const XeroFinancePage = () => {
                     Quick Actions
                   </Typography>
                   <List dense>
-                    <ListItem button>
+                    <ListItem button onClick={() => setShowNewTransaction(true)}>
                       <ListItemIcon><Add /></ListItemIcon>
-                      <ListItemText primary="Create Invoice" />
+                      <ListItemText primary="Add Transaction" />
                     </ListItem>
-                    <ListItem button>
-                      <ListItemIcon><Receipt /></ListItemIcon>
-                      <ListItemText primary="Record Expense" />
-                    </ListItem>
-                    <ListItem button>
-                      <ListItemIcon><CreditCard /></ListItemIcon>
-                      <ListItemText primary="Bank Transaction" />
-                    </ListItem>
-                    <ListItem button>
+                    <ListItem button onClick={() => setActiveTab(1)}>
                       <ListItemIcon><Assessment /></ListItemIcon>
                       <ListItemText primary="View Reports" />
+                    </ListItem>
+                    <ListItem button onClick={() => setActiveTab(4)}>
+                      <ListItemIcon><CreditCard /></ListItemIcon>
+                      <ListItemText primary="Banking" />
+                    </ListItem>
+                    <ListItem button onClick={() => setActiveTab(5)}>
+                      <ListItemIcon><Receipt /></ListItemIcon>
+                      <ListItemText primary="Contacts" />
                     </ListItem>
                   </List>
                 </CardContent>
@@ -514,7 +575,7 @@ const XeroFinancePage = () => {
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6">Purchase Orders Management</Typography>
-            <Button variant="contained" startIcon={<Add />}>
+            <Button variant="contained" startIcon={<Add />} onClick={() => window.location.href = '/orders'}>
               New Purchase Order
             </Button>
           </Box>
@@ -787,7 +848,7 @@ const XeroFinancePage = () => {
       {activeTab === 7 && (
         <Box>
           <Typography variant="h5" fontWeight={700} gutterBottom>
-            Accounting Settings
+            Finance System Settings
           </Typography>
           
           <Grid container spacing={3}>
@@ -795,13 +856,13 @@ const XeroFinancePage = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    Chart of Accounts
+                    Data Integration
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Manage your accounting categories and codes
+                    All financial data is automatically integrated from your business operations
                   </Typography>
-                  <Button variant="outlined" fullWidth>
-                    Manage Chart of Accounts
+                  <Button variant="outlined" fullWidth disabled>
+                    Auto-Sync Enabled
                   </Button>
                 </CardContent>
               </Card>
@@ -810,58 +871,13 @@ const XeroFinancePage = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    Tax Settings
+                    Currency Settings
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Configure VAT rates and tax reporting
+                    Default currency: Kenyan Shilling (KES)
                   </Typography>
-                  <Button variant="outlined" fullWidth>
-                    Configure Tax Settings
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Bank Rules
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Automate transaction categorization
-                  </Typography>
-                  <Button variant="outlined" fullWidth>
-                    Manage Bank Rules
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Fixed Assets
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Track depreciation and asset values
-                  </Typography>
-                  <Button variant="outlined" fullWidth>
-                    Manage Fixed Assets
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    General Ledger
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    View all accounting transactions and journal entries
-                  </Typography>
-                  <Button variant="contained" fullWidth>
-                    View General Ledger
+                  <Button variant="outlined" fullWidth disabled>
+                    KES - Kenyan Shilling
                   </Button>
                 </CardContent>
               </Card>
@@ -869,6 +885,72 @@ const XeroFinancePage = () => {
           </Grid>
         </Box>
       )}
+
+      {/* New Transaction Dialog */}
+      <Dialog open={showNewTransaction} onClose={() => setShowNewTransaction(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Add New Transaction</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                select
+                label="Transaction Type"
+                value={newTransaction.type}
+                onChange={(e) => setNewTransaction({...newTransaction, type: e.target.value})}
+                SelectProps={{ native: true }}
+              >
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Amount"
+                type="number"
+                value={newTransaction.amount}
+                onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Date"
+                type="date"
+                value={newTransaction.date}
+                onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Description"
+                value={newTransaction.description}
+                onChange={(e) => setNewTransaction({...newTransaction, description: e.target.value})}
+                required
+              />
+            </Grid>
+            {newTransaction.type === 'expense' && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Category"
+                  value={newTransaction.category}
+                  onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
+                  placeholder="e.g., Office Supplies, Travel, Marketing"
+                />
+              </Grid>
+            )}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowNewTransaction(false)}>Cancel</Button>
+          <Button onClick={handleAddTransaction} variant="contained">Add Transaction</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Action Menu */}
       <Menu

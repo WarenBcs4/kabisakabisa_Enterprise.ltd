@@ -104,19 +104,45 @@ const XeroContactsManager = () => {
     supplier.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddContact = () => {
-    // In a real implementation, this would save to a Contacts table
-    toast.success(`${newContact.type} contact would be added: ${newContact.name}`);
-    setShowAddDialog(false);
-    setNewContact({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      type: 'customer',
-      tax_number: '',
-      credit_limit: 0
-    });
+  const handleAddContact = async () => {
+    if (!newContact.name.trim()) {
+      toast.error('Contact name is required');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: `Contact Setup: ${newContact.name} (${newContact.type}) - ${newContact.email}`,
+          category: 'Contact Management',
+          amount: 0,
+          expense_date: new Date().toISOString().split('T')[0]
+        })
+      });
+
+      if (response.ok) {
+        toast.success(`${newContact.type} contact setup recorded successfully!`);
+        setShowAddDialog(false);
+        setNewContact({
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+          type: 'customer',
+          tax_number: '',
+          credit_limit: 0
+        });
+      } else {
+        toast.error('Failed to record contact setup');
+      }
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      toast.error('Error adding contact');
+    }
   };
 
   return (
@@ -281,12 +307,26 @@ const XeroContactsManager = () => {
         <DialogTitle>Add New Contact</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                select
+                label="Contact Type"
+                value={newContact.type}
+                onChange={(e) => setNewContact({...newContact, type: e.target.value})}
+                SelectProps={{ native: true }}
+              >
+                <option value="customer">Customer</option>
+                <option value="supplier">Supplier</option>
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Contact Name"
                 value={newContact.name}
                 onChange={(e) => setNewContact({...newContact, name: e.target.value})}
+                required
               />
             </Grid>
             <Grid item xs={12} sm={6}>

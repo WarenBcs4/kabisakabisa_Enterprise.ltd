@@ -110,19 +110,7 @@ const AdminPage = () => {
     { refetchInterval: 30000, retry: false }
   );
 
-  const { data: stockMovements = [] } = useQuery(
-    'admin-stock-movements',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
-    { refetchInterval: 30000, retry: false }
-  );
 
-  const { data: salesAnalytics = [] } = useQuery(
-    'admin-sale-items',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sale_Items`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
-    { refetchInterval: 30000, retry: false }
-  );
 
   const isLoading = employeesLoading || branchesLoading || productsLoading;
 
