@@ -243,76 +243,53 @@ const XeroFinancePage = () => {
 
   const isLoading = salesLoading;
 
-  // Xero-style dashboard cards
-  const DashboardCard = ({ title, amount, change, color, icon }) => (
-    <Card sx={{ height: '100%', position: 'relative', overflow: 'visible' }}>
-      <CardContent>
+  // Simple dashboard cards
+  const DashboardCard = ({ title, amount, icon }) => (
+    <Card sx={{ height: '100%' }}>
+      <CardContent sx={{ p: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Box sx={{ 
-            p: 1, 
-            borderRadius: 1, 
-            bgcolor: `${color}.light`, 
-            color: `${color}.main`,
-            mr: 2
-          }}>
-            {icon}
-          </Box>
-          <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600 }}>
+          {icon}
+          <Typography variant="body2" sx={{ ml: 1, fontSize: '14px', fontWeight: 600 }}>
             {title}
           </Typography>
         </Box>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '18px' }}>
           {formatCurrency(amount)}
         </Typography>
-        {change && (
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: change >= 0 ? 'success.main' : 'error.main',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            {change >= 0 ? '↗' : '↘'} {Math.abs(change).toFixed(1)}% vs last month
-          </Typography>
-        )}
       </CardContent>
     </Card>
   );
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 1, sm: 2, md: 3 } }}>
+    <Container maxWidth="lg" sx={{ mt: 2, mb: 2, px: 1 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
-            Financial Management
+          <Typography variant="h5" sx={{ fontWeight: 600, fontSize: '20px' }}>
+            Finance - Logistics
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Comprehensive business financial overview
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '14px' }}>
+            Logistics financial overview
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap' }}>
-          <Button variant="contained" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
-            New Transaction
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
+            Add
           </Button>
-          <Button variant="outlined" startIcon={<FileDownload />}>
+          <Button variant="outlined" size="small" startIcon={<FileDownload />}>
             Export
           </Button>
-          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-            <MoreVert />
-          </IconButton>
         </Box>
       </Box>
 
       {isLoading && <LinearProgress sx={{ mb: 3 }} />}
 
       {/* Navigation Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
-          <Tab label="Dashboard" />
-          <Tab label="Reports" />
-          <Tab label="Transactions" />
+          <Tab label="Dashboard" sx={{ fontSize: '14px' }} />
+          <Tab label="Reports" sx={{ fontSize: '14px' }} />
+          <Tab label="Transactions" sx={{ fontSize: '14px' }} />
         </Tabs>
       </Box>
 
@@ -320,81 +297,66 @@ const XeroFinancePage = () => {
       {activeTab === 0 && (
         <Box>
           {/* Key Metrics Cards */}
-          <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={3}>
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={6} sm={6} md={3}>
               <DashboardCard
-                title="Revenue"
-                amount={monthlyRevenue}
-                change={15.2}
-                color="success"
-                icon={<MonetizationOn />}
+                title="Logistics Revenue"
+                amount={logisticsRevenue}
+                icon={<MonetizationOn sx={{ fontSize: 20 }} />}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={6} sm={6} md={3}>
               <DashboardCard
-                title="Expenses"
+                title="Total Expenses"
                 amount={monthlyExpenses}
-                change={-8.1}
-                color="error"
-                icon={<Receipt />}
+                icon={<Receipt sx={{ fontSize: 20 }} />}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={6} sm={6} md={3}>
               <DashboardCard
                 title="Net Profit"
                 amount={monthlyProfit}
-                change={23.5}
-                color="primary"
-                icon={<TrendingUp />}
+                icon={<TrendingUp sx={{ fontSize: 20 }} />}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={6} sm={6} md={3}>
               <DashboardCard
                 title="Cash Flow"
                 amount={cashFlow}
-                change={12.3}
-                color="info"
-                icon={<AccountBalance />}
+                icon={<AccountBalance sx={{ fontSize: 20 }} />}
               />
             </Grid>
           </Grid>
 
-          {/* Business Snapshot */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          {/* Logistics Summary */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} md={8}>
               <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Business Performance
+                <CardContent sx={{ p: 2 }}>
+                  <Typography variant="body1" sx={{ fontSize: '16px', fontWeight: 600, mb: 2 }}>
+                    Logistics Performance
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
-                      <Box sx={{ p: 2, bgcolor: 'success.light', borderRadius: 1, mb: 2 }}>
-                        <Typography variant="body2" color="success.dark">Money In</Typography>
-                        <Typography variant="h5" color="success.dark" fontWeight={700}>
-                          {formatCurrency(monthlyRevenue)}
+                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Trips Revenue</Typography>
+                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
+                          {formatCurrency(logisticsRevenue)}
                         </Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={6}>
-                      <Box sx={{ p: 2, bgcolor: 'error.light', borderRadius: 1, mb: 2 }}>
-                        <Typography variant="body2" color="error.dark">Money Out</Typography>
-                        <Typography variant="h5" color="error.dark" fontWeight={700}>
+                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Total Expenses</Typography>
+                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
                           {formatCurrency(monthlyExpenses)}
                         </Typography>
                       </Box>
                     </Grid>
                   </Grid>
-                  <Divider sx={{ my: 2 }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">Net Position</Typography>
-                    <Typography 
-                      variant="h5" 
-                      sx={{ 
-                        color: monthlyProfit >= 0 ? 'success.main' : 'error.main',
-                        fontWeight: 700
-                      }}
-                    >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                    <Typography variant="body1" sx={{ fontSize: '14px' }}>Net Position</Typography>
+                    <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
                       {formatCurrency(monthlyProfit)}
                     </Typography>
                   </Box>
@@ -402,61 +364,49 @@ const XeroFinancePage = () => {
               </Card>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
+              <Card>
+                <CardContent sx={{ p: 2 }}>
+                  <Typography variant="body1" sx={{ fontSize: '16px', fontWeight: 600, mb: 2 }}>
                     Quick Actions
                   </Typography>
-                  <List dense>
-                    <ListItem button onClick={() => setShowNewTransaction(true)}>
-                      <ListItemIcon><Add /></ListItemIcon>
-                      <ListItemText primary="Add Transaction" />
-                    </ListItem>
-                    <ListItem button onClick={() => setActiveTab(1)}>
-                      <ListItemIcon><Assessment /></ListItemIcon>
-                      <ListItemText primary="View Reports" />
-                    </ListItem>
-                    <ListItem button onClick={() => setActiveTab(4)}>
-                      <ListItemIcon><CreditCard /></ListItemIcon>
-                      <ListItemText primary="Banking" />
-                    </ListItem>
-                    <ListItem button onClick={() => setActiveTab(5)}>
-                      <ListItemIcon><Receipt /></ListItemIcon>
-                      <ListItemText primary="Contacts" />
-                    </ListItem>
-                  </List>
+                  <Button variant="outlined" size="small" fullWidth sx={{ mb: 1, fontSize: '12px' }} onClick={() => setShowNewTransaction(true)}>
+                    Add Transaction
+                  </Button>
+                  <Button variant="outlined" size="small" fullWidth sx={{ mb: 1, fontSize: '12px' }} onClick={() => setActiveTab(1)}>
+                    View Reports
+                  </Button>
                 </CardContent>
               </Card>
             </Grid>
           </Grid>
 
-          {/* Accounts Overview */}
-          <Grid container spacing={3}>
+          {/* Outstanding Amounts */}
+          <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Accounts Receivable
+                <CardContent sx={{ p: 2 }}>
+                  <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
+                    Receivables
                   </Typography>
-                  <Typography variant="h4" color="warning.main" fontWeight={700}>
+                  <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600 }}>
                     {formatCurrency(totalReceivables)}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Outstanding customer payments
+                  <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
+                    Outstanding payments
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} md={6}>
               <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Accounts Payable
+                <CardContent sx={{ p: 2 }}>
+                  <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
+                    Payables
                   </Typography>
-                  <Typography variant="h4" color="error.main" fontWeight={700}>
+                  <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600 }}>
                     {formatCurrency(totalPayables)}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
                     Outstanding supplier payments
                   </Typography>
                 </CardContent>
@@ -555,49 +505,49 @@ const XeroFinancePage = () => {
         <Card>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">Transaction Management</Typography>
-              <Button variant="contained" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
-                Add Transaction
+              <Typography variant="body1" sx={{ fontSize: '16px', fontWeight: 600 }}>Transactions</Typography>
+              <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
+                Add
               </Button>
             </Box>
             
             {/* Transaction Summary */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={6} md={3}>
-                <Card sx={{ bgcolor: 'success.light' }}>
-                  <CardContent>
-                    <Typography variant="body2" color="success.dark">Total Income</Typography>
-                    <Typography variant="h6" color="success.dark">
+                <Card>
+                  <CardContent sx={{ p: 1.5 }}>
+                    <Typography variant="body2" sx={{ fontSize: '12px' }}>Total Income</Typography>
+                    <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600 }}>
                       {formatCurrency(monthlyRevenue)}
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={6} md={3}>
-                <Card sx={{ bgcolor: 'error.light' }}>
-                  <CardContent>
-                    <Typography variant="body2" color="error.dark">Total Expenses</Typography>
-                    <Typography variant="h6" color="error.dark">
+                <Card>
+                  <CardContent sx={{ p: 1.5 }}>
+                    <Typography variant="body2" sx={{ fontSize: '12px' }}>Total Expenses</Typography>
+                    <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600 }}>
                       {formatCurrency(monthlyExpenses)}
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={6} md={3}>
-                <Card sx={{ bgcolor: 'primary.light' }}>
-                  <CardContent>
-                    <Typography variant="body2" color="primary.dark">Net Profit</Typography>
-                    <Typography variant="h6" color="primary.dark">
+                <Card>
+                  <CardContent sx={{ p: 1.5 }}>
+                    <Typography variant="body2" sx={{ fontSize: '12px' }}>Net Profit</Typography>
+                    <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600 }}>
                       {formatCurrency(monthlyProfit)}
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={6} md={3}>
-                <Card sx={{ bgcolor: 'info.light' }}>
-                  <CardContent>
-                    <Typography variant="body2" color="info.dark">Cash Flow</Typography>
-                    <Typography variant="h6" color="info.dark">
+                <Card>
+                  <CardContent sx={{ p: 1.5 }}>
+                    <Typography variant="body2" sx={{ fontSize: '12px' }}>Cash Flow</Typography>
+                    <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600 }}>
                       {formatCurrency(cashFlow)}
                     </Typography>
                   </CardContent>
