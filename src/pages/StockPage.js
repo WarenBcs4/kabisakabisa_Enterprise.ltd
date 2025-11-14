@@ -36,6 +36,7 @@ import { useForm } from 'react-hook-form';
 import { formatCurrency } from '../theme';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import StockForm from '../components/forms/StockForm';
+import { stockAPI, genericDataAPI, branchesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const StockPage = () => {
@@ -50,22 +51,16 @@ const StockPage = () => {
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerTransfer, handleSubmit: handleTransferSubmit, reset: resetTransfer } = useForm();
 
-  // Queries - Fetch from both Stock and Stock_Movements tables
+  // Queries - Use authenticated API services
   const { data: stock = [], isLoading: stockLoading } = useQuery(
     ['stock', branchId],
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock`)
-      .then(res => res.ok ? res.json() : []).catch(() => [])
-      .then(data => branchId ? data.filter(item => {
-        const itemBranchId = Array.isArray(item.branch_id) ? item.branch_id[0] : item.branch_id;
-        return itemBranchId === branchId;
-      }) : data),
+    () => branchId ? stockAPI.getByBranch(branchId) : stockAPI.getAll(),
     { enabled: !!branchId, refetchInterval: 30000, retry: false }
   );
 
   const { data: stockMovements = [], isLoading: movementsLoading } = useQuery(
     ['stockMovements', branchId],
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements`)
-      .then(res => res.ok ? res.json() : []).catch(() => [])
+    () => genericDataAPI.getAll('Stock_Movements')
       .then(data => branchId ? data.filter(movement => {
         const fromBranchId = Array.isArray(movement.from_branch_id) ? movement.from_branch_id[0] : movement.from_branch_id;
         const toBranchId = Array.isArray(movement.to_branch_id) ? movement.to_branch_id[0] : movement.to_branch_id;
@@ -79,139 +74,109 @@ const StockPage = () => {
 
   const { data: branches = [] } = useQuery(
     'branches',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Branches`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => branchesAPI.getAll(),
     { retry: false }
   );
 
   const isLoading = stockLoading || movementsLoading;
   const error = null;
 
-  // Mutations
+  // Mutations - Use authenticated API services
   const addStockMutation = useMutation(
-    (data) => {
-      return fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/stock/branch/${branchId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      }).then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        return res.json();
-      });
-    },
+    (data) => stockAPI.addStock(branchId, data),
     {
       onSuccess: () => {
-        toast.success('Stock added successfully!');
+        toast.success('Product added successfully!');
         setShowAddStock(false);
         reset();
         queryClient.invalidateQueries(['stock', branchId]);
       },
-      onError: () => {
-        toast.error('Failed to add stock');
+      onError: (error) => {
+        const message = error.response?.data?.message || 'Failed to add product';
+        toast.error(message);
+        console.error('Add stock error:', error);
       }
     }
   );
 
   const updateStockMutation = useMutation(
-    ({ id, data }) => {
-      const updateData = {
-        ...data,
-        last_updated: new Date().toISOString()
-      };
-      return fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData)
-      }).then(res => res.json());
-    },
+    ({ id, data }) => stockAPI.updateStock(id, data),
     {
       onSuccess: () => {
-        toast.success('Stock updated successfully!');
+        toast.success('Product updated successfully!');
         setEditingStock(null);
         setShowAddStock(false);
         reset();
         queryClient.invalidateQueries(['stock', branchId]);
       },
-      onError: () => {
-        toast.error('Failed to update stock');
+      onError: (error) => {
+        const message = error.response?.data?.message || 'Failed to update product';
+        toast.error(message);
+        console.error('Update stock error:', error);
       }
     }
   );
 
   const deleteStockMutation = useMutation(
-    (id) => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock/${id}`, {
-      method: 'DELETE'
-    }),
+    (id) => stockAPI.deleteStock(id),
     {
       onSuccess: () => {
-        toast.success('Stock deleted successfully!');
+        toast.success('Product deleted successfully!');
         queryClient.invalidateQueries(['stock', branchId]);
       },
-      onError: () => {
-        toast.error('Failed to delete stock');
+      onError: (error) => {
+        const message = error.response?.data?.message || 'Failed to delete product';
+        toast.error(message);
+        console.error('Delete stock error:', error);
       }
     }
   );
 
   const transferStockMutation = useMutation(
-    (data) => {
-      const transferData = {
-        ...data,
-        movement_type: 'transfer',
-        movement_date: new Date().toISOString().split('T')[0],
-        status: 'pending'
-      };
-      return fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(transferData)
-      }).then(res => res.json());
-    },
+    (data) => stockAPI.transfer(data),
     {
       onSuccess: () => {
         toast.success('Stock transfer initiated successfully!');
         setShowTransfer(false);
         resetTransfer();
-        queryClient.invalidateQueries(['transfers', branchId]);
+        queryClient.invalidateQueries(['stockMovements', branchId]);
       },
-      onError: () => {
-        toast.error('Failed to initiate transfer');
+      onError: (error) => {
+        const message = error.response?.data?.message || 'Failed to initiate transfer';
+        toast.error(message);
+        console.error('Transfer stock error:', error);
       }
     }
   );
 
   const approveTransferMutation = useMutation(
-    (transferId) => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements/${transferId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved' })
-    }).then(res => res.json()),
+    (transferId) => stockAPI.approveTransfer(transferId),
     {
       onSuccess: () => {
         toast.success('Transfer approved successfully!');
-        queryClient.invalidateQueries(['transfers', branchId]);
+        queryClient.invalidateQueries(['stockMovements', branchId]);
+        queryClient.invalidateQueries(['stock', branchId]);
       },
-      onError: () => {
-        toast.error('Failed to approve transfer');
+      onError: (error) => {
+        const message = error.response?.data?.message || 'Failed to approve transfer';
+        toast.error(message);
+        console.error('Approve transfer error:', error);
       }
     }
   );
 
   const rejectTransferMutation = useMutation(
-    (transferId) => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock_Movements/${transferId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'rejected' })
-    }).then(res => res.json()),
+    (transferId) => stockAPI.rejectTransfer(transferId),
     {
       onSuccess: () => {
         toast.success('Transfer rejected successfully!');
-        queryClient.invalidateQueries(['transfers', branchId]);
+        queryClient.invalidateQueries(['stockMovements', branchId]);
+        queryClient.invalidateQueries(['stock', branchId]);
       },
-      onError: () => {
-        toast.error('Failed to reject transfer');
+      onError: (error) => {
+        const message = error.response?.data?.message || 'Failed to reject transfer';
+        toast.error(message);
+        console.error('Reject transfer error:', error);
       }
     }
   );

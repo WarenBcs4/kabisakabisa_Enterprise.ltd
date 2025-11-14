@@ -132,18 +132,20 @@ const OrdersPage = () => {
   const completeOrderMutation = useMutation(
     ({ orderId, completedItems }) => ordersAPI.completeOrder(orderId, { completedItems }),
     {
-      onSuccess: () => {
+      onSuccess: (response) => {
         toast.success('Order completed successfully! Stock has been added to branches.');
         setShowComplete(false);
         resetComplete();
+        setSelectedOrder(null);
+        // Refresh both orders and stock data
         queryClient.invalidateQueries('ordersPageData');
+        queryClient.invalidateQueries(['stock']);
+        queryClient.invalidateQueries(['stockMovements']);
       },
       onError: (error) => {
-        // Show success if some items were processed
-        toast.success('Order completion processed. Please check stock levels.');
-        setShowComplete(false);
-        resetComplete();
-        queryClient.invalidateQueries('ordersPageData');
+        const message = error.response?.data?.message || 'Failed to complete order';
+        toast.error(message);
+        console.error('Complete order error:', error);
       }
     }
   );
@@ -407,8 +409,8 @@ const OrdersPage = () => {
               <TableBody>
                 {orders
                   .filter(order => {
-                    if (activeTab === 1) return ['ordered', 'partially_paid', 'paid'].includes(order.status);
-                    if (activeTab === 2) return ['delivered', 'completed'].includes(order.status);
+                    if (activeTab === 1) return ['ordered', 'partially_paid', 'paid', 'delivered'].includes(order.status);
+                    if (activeTab === 2) return order.status === 'completed';
                     return true;
                   })
                   .map((order) => (
@@ -464,7 +466,7 @@ const OrdersPage = () => {
                             <LocalShipping />
                           </IconButton>
                         )}
-                        {['paid', 'partially_paid', 'delivered'].includes(order.status) && (
+                        {!['completed'].includes(order.status) && (
                           <Button 
                             onClick={() => {
                               setSelectedOrder(order);
@@ -474,6 +476,7 @@ const OrdersPage = () => {
                             variant="contained"
                             color="success"
                             sx={{ ml: 1 }}
+                            title="Complete Order & Add Stock"
                           >
                             Complete
                           </Button>
