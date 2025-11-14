@@ -28,7 +28,6 @@ import {
   ShoppingCart,
   People,
   Business,
-  AccountBalance,
   Receipt,
   Menu as MenuIcon
 } from '@mui/icons-material';
@@ -37,7 +36,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from 'react-query';
 import { branchesAPI } from '../services/api';
 
-const Navbar = ({ openExternalPortal }) => {
+const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -45,7 +44,6 @@ const Navbar = ({ openExternalPortal }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [salesMenuAnchor, setSalesMenuAnchor] = useState(null);
   const [stockMenuAnchor, setStockMenuAnchor] = useState(null);
-  const [kraMenuAnchor, setKraMenuAnchor] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { data: branches = [] } = useQuery('branches', branchesAPI.getAll, {
@@ -60,7 +58,6 @@ const Navbar = ({ openExternalPortal }) => {
     setAnchorEl(null);
     setSalesMenuAnchor(null);
     setStockMenuAnchor(null);
-    setKraMenuAnchor(null);
     setMobileMenuOpen(false);
   };
 
@@ -78,22 +75,12 @@ const Navbar = ({ openExternalPortal }) => {
     setStockMenuAnchor(event.currentTarget);
   };
 
-  const handleKraMenuOpen = (event) => {
-    setKraMenuAnchor(event.currentTarget);
-  };
-
-  const handleKraService = (url, title) => {
-    openExternalPortal(url, title);
-    handleMenuClose();
-  };
-
   const canAccessSales = ['sales', 'admin', 'manager', 'boss'].includes(user?.role);
   const canAccessStock = ['admin', 'manager', 'boss'].includes(user?.role);
   const canAccessLogistics = ['logistics', 'admin', 'manager', 'boss'].includes(user?.role);
   const canAccessOrders = ['admin', 'manager', 'boss'].includes(user?.role);
   const canAccessHR = ['hr', 'admin', 'manager', 'boss'].includes(user?.role);
   const canAccessExpenses = ['admin', 'boss', 'manager', 'sales'].includes(user?.role);
-  const canAccessFinance = ['admin', 'boss', 'manager'].includes(user?.role);
   const canAccessBoss = user?.role === 'boss';
   const canAccessManager = user?.role === 'manager';
   const canAccessAdmin = user?.role === 'admin';
@@ -129,7 +116,6 @@ const Navbar = ({ openExternalPortal }) => {
 
           {!isMobile && (
             <>
-              {/* Dashboard */}
               <Button
                 startIcon={<Dashboard sx={{ color: '#D3D3D3' }} />}
                 onClick={() => navigate('/dashboard')}
@@ -146,198 +132,152 @@ const Navbar = ({ openExternalPortal }) => {
                 Dashboard
               </Button>
 
-          {/* HR */}
-          {canAccessHR && (
-            <Button
-              startIcon={<People sx={{ color: '#D3D3D3' }} />}
-              onClick={() => navigate('/hr')}
-              sx={{ 
-                bgcolor: 'transparent', 
-                border: 'none',
-                color: '#000000',
-                '&:hover': {
-                  bgcolor: 'transparent',
-                  color: '#000000'
-                }
-              }}
-            >
-              HR
-            </Button>
-          )}
+              {canAccessHR && (
+                <Button
+                  startIcon={<People sx={{ color: '#D3D3D3' }} />}
+                  onClick={() => navigate('/hr')}
+                  sx={{ 
+                    bgcolor: 'transparent', 
+                    border: 'none',
+                    color: '#000000',
+                    '&:hover': {
+                      bgcolor: 'transparent',
+                      color: '#000000'
+                    }
+                  }}
+                >
+                  HR
+                </Button>
+              )}
 
-          {/* Manager */}
-          {canAccessManager && (
-            <Button
-              color="inherit"
-              startIcon={<Business />}
-              onClick={() => navigate('/manager')}
-              sx={{ bgcolor: 'transparent', border: 'none' }}
-            >
-              Manager
-            </Button>
-          )}
+              {canAccessManager && (
+                <Button
+                  color="inherit"
+                  startIcon={<Business />}
+                  onClick={() => navigate('/manager')}
+                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                >
+                  Manager
+                </Button>
+              )}
 
-          {/* Admin */}
-          {canAccessAdmin && (
-            <Button
-              color="inherit"
-              startIcon={<Business />}
-              onClick={() => navigate('/admin')}
-              sx={{ bgcolor: 'transparent', border: 'none' }}
-            >
-              Admin
-            </Button>
-          )}
+              {canAccessAdmin && (
+                <Button
+                  color="inherit"
+                  startIcon={<Business />}
+                  onClick={() => navigate('/admin')}
+                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                >
+                  Admin
+                </Button>
+              )}
 
-
-
-          {/* Sales Dropdown */}
-          {canAccessSales && (
-            <>
-              <Button
-                color="inherit"
-                startIcon={<Store />}
-                onClick={handleSalesMenuOpen}
-                sx={{ bgcolor: 'transparent', border: 'none' }}
-              >
-                Sales
-              </Button>
-              <Menu
-                anchorEl={salesMenuAnchor}
-                open={Boolean(salesMenuAnchor)}
-                onClose={handleMenuClose}
-              >
-                {branches.map((branch) => (
-                  <MenuItem
-                    key={branch.id}
-                    onClick={() => {
-                      navigate(`/sales/${branch.id}`);
-                      handleMenuClose();
-                    }}
+              {canAccessSales && (
+                <>
+                  <Button
+                    color="inherit"
+                    startIcon={<Store />}
+                    onClick={handleSalesMenuOpen}
+                    sx={{ bgcolor: 'transparent', border: 'none' }}
                   >
-                    {String(branch.branch_name || branch.name || 'Unknown Branch')}
-                  </MenuItem>
-                ))}
-              </Menu>
-            </>
-          )}
-
-          {/* Stock Dropdown */}
-          {canAccessStock && (
-            <>
-              <Button
-                color="inherit"
-                startIcon={<Inventory />}
-                onClick={handleStockMenuOpen}
-                sx={{ bgcolor: 'transparent', border: 'none' }}
-              >
-                Stock
-              </Button>
-              <Menu
-                anchorEl={stockMenuAnchor}
-                open={Boolean(stockMenuAnchor)}
-                onClose={handleMenuClose}
-              >
-                {branches.map((branch) => (
-                  <MenuItem
-                    key={branch.id}
-                    onClick={() => {
-                      navigate(`/stock/${branch.id}`);
-                      handleMenuClose();
-                    }}
+                    Sales
+                  </Button>
+                  <Menu
+                    anchorEl={salesMenuAnchor}
+                    open={Boolean(salesMenuAnchor)}
+                    onClose={handleMenuClose}
                   >
-                    {String(branch.branch_name || branch.name || 'Unknown Branch')}
-                  </MenuItem>
-                ))}
-              </Menu>
+                    {branches.map((branch) => (
+                      <MenuItem
+                        key={branch.id}
+                        onClick={() => {
+                          navigate(`/sales/${branch.id}`);
+                          handleMenuClose();
+                        }}
+                      >
+                        {String(branch.branch_name || branch.name || 'Unknown Branch')}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </>
+              )}
+
+              {canAccessStock && (
+                <>
+                  <Button
+                    color="inherit"
+                    startIcon={<Inventory />}
+                    onClick={handleStockMenuOpen}
+                    sx={{ bgcolor: 'transparent', border: 'none' }}
+                  >
+                    Stock
+                  </Button>
+                  <Menu
+                    anchorEl={stockMenuAnchor}
+                    open={Boolean(stockMenuAnchor)}
+                    onClose={handleMenuClose}
+                  >
+                    {branches.map((branch) => (
+                      <MenuItem
+                        key={branch.id}
+                        onClick={() => {
+                          navigate(`/stock/${branch.id}`);
+                          handleMenuClose();
+                        }}
+                      >
+                        {String(branch.branch_name || branch.name || 'Unknown Branch')}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </>
+              )}
+
+              {canAccessBoss && (
+                <Button
+                  color="inherit"
+                  startIcon={<Business />}
+                  onClick={() => navigate('/boss')}
+                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                >
+                  Boss
+                </Button>
+              )}
+
+              {canAccessLogistics && (
+                <Button
+                  color="inherit"
+                  startIcon={<LocalShipping />}
+                  onClick={() => navigate('/logistics')}
+                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                >
+                  Logistics
+                </Button>
+              )}
+
+              {canAccessOrders && (
+                <Button
+                  color="inherit"
+                  startIcon={<ShoppingCart />}
+                  onClick={() => navigate('/orders')}
+                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                >
+                  Orders
+                </Button>
+              )}
+
+              {canAccessExpenses && (
+                <Button
+                  color="inherit"
+                  startIcon={<Receipt />}
+                  onClick={() => navigate('/expenses')}
+                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                >
+                  Expenses
+                </Button>
+              )}
             </>
           )}
 
-          {/* Boss */}
-          {canAccessBoss && (
-            <Button
-              color="inherit"
-              startIcon={<Business />}
-              onClick={() => navigate('/boss')}
-              sx={{ bgcolor: 'transparent', border: 'none' }}
-            >
-              Boss
-            </Button>
-          )}
-
-          {/* Logistics */}
-          {canAccessLogistics && (
-            <Button
-              color="inherit"
-              startIcon={<LocalShipping />}
-              onClick={() => navigate('/logistics')}
-              sx={{ bgcolor: 'transparent', border: 'none' }}
-            >
-              Logistics
-            </Button>
-          )}
-
-          {/* Orders */}
-          {canAccessOrders && (
-            <Button
-              color="inherit"
-              startIcon={<ShoppingCart />}
-              onClick={() => navigate('/orders')}
-              sx={{ bgcolor: 'transparent', border: 'none' }}
-            >
-              Orders
-            </Button>
-          )}
-
-          {/* Expenses */}
-          {canAccessExpenses && (
-            <Button
-              color="inherit"
-              startIcon={<Receipt />}
-              onClick={() => navigate('/expenses')}
-              sx={{ bgcolor: 'transparent', border: 'none' }}
-            >
-              Expenses
-            </Button>
-          )}
-
-          {/* Finance */}
-          {canAccessFinance && (
-            <Button
-              color="inherit"
-              startIcon={<AccountBalance />}
-              onClick={() => navigate('/finance')}
-              sx={{ bgcolor: 'transparent', border: 'none' }}
-            >
-              Finance
-            </Button>
-          )}
-
-          {/* KRA Portal */}
-          <Button
-            color="inherit"
-            startIcon={<AccountBalance />}
-            onClick={handleKraMenuOpen}
-            sx={{ bgcolor: 'transparent', border: 'none' }}
-          >
-            KRA Portal
-          </Button>
-          <Menu
-            anchorEl={kraMenuAnchor}
-            open={Boolean(kraMenuAnchor)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={() => handleKraService('https://itax.kra.go.ke/KRA-Portal/', 'iTax Portal')}>iTax Portal</MenuItem>
-            <MenuItem onClick={() => handleKraService('https://itax.kra.go.ke/KRA-Portal/pinChecker.htm', 'PIN Checker')}>PIN Checker</MenuItem>
-            <MenuItem onClick={() => handleKraService('https://itax.kra.go.ke/KRA-Portal/mmTaxInvoice.htm', 'Tax Invoice')}>Tax Invoice</MenuItem>
-            <MenuItem onClick={() => handleKraService('https://itax.kra.go.ke/KRA-Portal/returns.htm', 'File Returns')}>File Returns</MenuItem>
-            <MenuItem onClick={() => handleKraService('https://itax.kra.go.ke/KRA-Portal/payTax.htm', 'Pay Tax')}>Pay Tax</MenuItem>
-            <MenuItem onClick={() => handleKraService('https://itax.kra.go.ke/KRA-Portal/ledger.htm', 'Tax Ledger')}>Tax Ledger</MenuItem>
-          </Menu>
-            </>
-          )}
-
-          {/* Profile Menu */}
           <IconButton
             size="large"
             edge="end"
@@ -368,7 +308,6 @@ const Navbar = ({ openExternalPortal }) => {
           </Menu>
         </Box>
 
-        {/* Mobile Drawer */}
         <Drawer
           anchor="left"
           open={mobileMenuOpen}
@@ -431,13 +370,6 @@ const Navbar = ({ openExternalPortal }) => {
                 <ListItem button onClick={() => { navigate('/expenses'); setMobileMenuOpen(false); }}>
                   <ListItemIcon><Receipt /></ListItemIcon>
                   <ListItemText primary="Expenses" />
-                </ListItem>
-              )}
-              
-              {canAccessFinance && (
-                <ListItem button onClick={() => { navigate('/finance'); setMobileMenuOpen(false); }}>
-                  <ListItemIcon><AccountBalance /></ListItemIcon>
-                  <ListItemText primary="Finance" />
                 </ListItem>
               )}
             </List>
