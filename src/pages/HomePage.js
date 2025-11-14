@@ -27,10 +27,10 @@ const HomePage = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'white' }}>
       {/* Navigation */}
-      <Box sx={{ borderBottom: '1px solid #e5e7eb', py: 1 }}>
-        <Container maxWidth="lg" sx={{ px: 1 }}>
+      <Box sx={{ borderBottom: '1px solid #e5e7eb', py: { xs: 0.5, sm: 1 } }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1rem', sm: '20px' } }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.25rem' } }}>
               BSN
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -75,7 +75,7 @@ const HomePage = () => {
 
 
       {/* Hero Section */}
-      <Container maxWidth="lg" sx={{ px: 1, py: 4 }}>
+      <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 }, py: { xs: 2, sm: 3, md: 4 } }}>
         <Grid container spacing={3} alignItems="center">
           {/* Left Content */}
           <Grid item xs={12} lg={6}>
@@ -83,27 +83,27 @@ const HomePage = () => {
               <Typography 
                 variant="h1" 
                 sx={{ 
-                  fontSize: { xs: '2rem', sm: '2.5rem' },
+                  fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
                   fontWeight: 700,
                   lineHeight: 1.1,
-                  mb: 2
+                  mb: { xs: 1, sm: 2 }
                 }}
               >
                 NEW TILES<br />COLLECTION
               </Typography>
-              <Typography variant="h6" sx={{ color: '#6b7280', mb: 2, fontSize: { xs: '1rem', sm: '20px' } }}>
+              <Typography variant="h6" sx={{ color: '#6b7280', mb: { xs: 1.5, sm: 2 }, fontSize: { xs: '0.9rem', sm: '1rem', md: '1.25rem' } }}>
                 Dealers in tiles collection,
               </Typography>
               <Button
                 variant="outlined"
                 onClick={() => navigate('/login')}
                 sx={{
-                  px: 2,
-                  py: 1,
+                  px: { xs: 1.5, sm: 2 },
+                  py: { xs: 0.75, sm: 1 },
                   border: '2px solid black',
                   borderRadius: '50px',
                   color: 'black',
-                  fontSize: { xs: '0.7rem', sm: '14px' },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   '&:hover': {
                     bgcolor: 'black',
                     color: 'white'
@@ -117,7 +117,7 @@ const HomePage = () => {
 
           {/* Right Images */}
           <Grid item xs={12} lg={6}>
-            <Box sx={{ position: 'relative', px: 1 }}>
+            <Box sx={{ position: 'relative', px: { xs: 0.5, sm: 1 }, mt: { xs: 2, lg: 0 } }}>
               <Grid container spacing={1}>
                 {/* Top Left - Gray tile */}
                 <Grid item xs={6}>
@@ -228,15 +228,15 @@ const HomePage = () => {
       <Collapse in={showBranches}>
         <Box sx={{ bgcolor: '#f9fafb', py: 3 }}>
           <Container maxWidth="lg" sx={{ px: 1 }}>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, textAlign: 'center', fontSize: { xs: '1.25rem', sm: '20px' } }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: { xs: 1.5, sm: 2 }, textAlign: 'center', fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' } }}>
               Our Store Locations
             </Typography>
             <Grid container spacing={2} justifyContent="center">
               {branches.map((branch) => (
                 <Grid item xs={12} sm={10} md={6} lg={4} key={branch.id}>
                   <Card sx={{ border: '1px solid #e5e7eb', '&:hover': { boxShadow: 2 } }}>
-                    <CardContent sx={{ textAlign: 'center', p: 2 }}>
-                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, fontSize: { xs: '1rem', sm: '18px' } }}>
+                    <CardContent sx={{ textAlign: 'center', p: { xs: 1.5, sm: 2 } }}>
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' } }}>
                         {branch.name}
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, justifyContent: 'center' }}>

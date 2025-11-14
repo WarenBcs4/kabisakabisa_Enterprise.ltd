@@ -99,11 +99,9 @@ export const stockAPI = {
   }),
   addStock: (branchId, data) => api.post('/data/Stock', {
     branch_id: [branchId],
-    product_id: data.product_id || `PRD_${Date.now()}`,
     product_name: data.product_name,
     quantity_available: parseInt(data.quantity_available || data.quantity || 0),
-    unit_price: parseFloat(data.unit_price || 0),
-    reorder_level: parseInt(data.reorder_level || 10)
+    unit_price: parseFloat(data.unit_price || 0)
   }).then(res => res.data),
   addQuantity: (stockId, quantity) => api.get(`/data/Stock/${stockId}`).then(stock => 
     api.put(`/data/Stock/${stockId}`, { 

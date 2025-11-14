@@ -23,6 +23,7 @@ import AdminPage from './pages/AdminPage';
 import DataManagementPage from './pages/DataManagementPage';
 import ExpensePage from './pages/ExpensePage';
 import XeroFinancePage from './pages/XeroFinancePage';
+import FinancePage from './pages/FinancePage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -144,6 +145,12 @@ function AppContent() {
           } />
 
           <Route path="/finance" element={
+            <ProtectedRoute allowedRoles={['admin', 'boss', 'manager']}>
+              <FinancePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/xero" element={
             <ProtectedRoute allowedRoles={['admin', 'boss', 'manager']}>
               <XeroFinancePage />
             </ProtectedRoute>

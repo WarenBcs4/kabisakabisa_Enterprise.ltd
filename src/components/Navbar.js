@@ -101,8 +101,19 @@ const Navbar = ({ openExternalPortal }) => {
   return (
     <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: 'transparent', color: 'black', boxShadow: 'none', border: 'none' }}>
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'orange', fontWeight: 'bold' }}>
-          kabisakabisa enterprise
+        <Typography 
+          variant="h6" 
+          component="div" 
+          sx={{ 
+            flexGrow: 1, 
+            color: '#FFD700', 
+            fontWeight: 'bold',
+            fontFamily: 'Nunito, sans-serif',
+            fontSize: '24px',
+            textTransform: 'uppercase'
+          }}
+        >
+          KABISAKABISA ENTERPRISE
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -120,10 +131,17 @@ const Navbar = ({ openExternalPortal }) => {
             <>
               {/* Dashboard */}
               <Button
-                color="inherit"
-                startIcon={<Dashboard />}
+                startIcon={<Dashboard sx={{ color: '#D3D3D3' }} />}
                 onClick={() => navigate('/dashboard')}
-                sx={{ bgcolor: 'transparent', border: 'none' }}
+                sx={{ 
+                  bgcolor: 'transparent', 
+                  border: 'none',
+                  color: '#000000',
+                  '&:hover': {
+                    bgcolor: 'transparent',
+                    color: '#000000'
+                  }
+                }}
               >
                 Dashboard
               </Button>
@@ -131,10 +149,17 @@ const Navbar = ({ openExternalPortal }) => {
           {/* HR */}
           {canAccessHR && (
             <Button
-              color="inherit"
-              startIcon={<People />}
+              startIcon={<People sx={{ color: '#D3D3D3' }} />}
               onClick={() => navigate('/hr')}
-              sx={{ bgcolor: 'transparent', border: 'none' }}
+              sx={{ 
+                bgcolor: 'transparent', 
+                border: 'none',
+                color: '#000000',
+                '&:hover': {
+                  bgcolor: 'transparent',
+                  color: '#000000'
+                }
+              }}
             >
               HR
             </Button>
@@ -322,7 +347,7 @@ const Navbar = ({ openExternalPortal }) => {
             onClick={handleProfileMenuOpen}
             color="inherit"
           >
-            <Avatar sx={{ width: 32, height: 32 }}>
+            <Avatar sx={{ width: 32, height: 32, bgcolor: '#FF8C00', color: '#FFFFFF' }}>
               {user?.fullName ? String(user.fullName).charAt(0).toUpperCase() : <AccountCircle />}
             </Avatar>
           </IconButton>
