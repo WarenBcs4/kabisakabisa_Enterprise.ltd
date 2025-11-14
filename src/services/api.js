@@ -99,9 +99,11 @@ export const stockAPI = {
   }),
   addStock: (branchId, data) => api.post('/data/Stock', {
     branch_id: [branchId],
+    product_id: data.product_id || `PRD_${Date.now()}`,
     product_name: data.product_name,
     quantity_available: parseInt(data.quantity_available || data.quantity || 0),
-    unit_price: parseFloat(data.unit_price || 0)
+    unit_price: parseFloat(data.unit_price || 0),
+    reorder_level: parseInt(data.reorder_level || 10)
   }).then(res => res.data),
   addQuantity: (stockId, quantity) => api.get(`/data/Stock/${stockId}`).then(stock => 
     api.put(`/data/Stock/${stockId}`, { 
@@ -135,7 +137,15 @@ export const salesAPI = {
     const sales = res.data || [];
     return sales.filter(sale => sale.branch_id && sale.branch_id.includes(branchId));
   }),
-  createSale: (branchId, data) => api.post('/data/Sales', { ...data, branch_id: [branchId] }).then(res => res.data),
+  createSale: (branchId, data) => api.post('/data/Sales', {
+    branch_id: [branchId],
+    employee_id: data.employee_id ? [data.employee_id] : undefined,
+    sale_date: data.sale_date || new Date().toISOString().split('T')[0],
+    total_amount: parseFloat(data.total_amount || 0),
+    payment_method: data.payment_method || 'cash',
+    customer_name: data.customer_name || '',
+    items: data.items || []
+  }).then(res => res.data),
   getDailySummary: (branchId, date) => salesAPI.getByBranch(branchId).then(sales => {
     const dailySales = sales.filter(sale => sale.sale_date === date);
     return {
@@ -282,7 +292,18 @@ export const expensesAPI = {
       return expenses;
     });
   },
-  create: (data) => api.post('/data/Expenses', data).then(res => res.data),
+  create: (data) => api.post('/data/Expenses', {
+    branch_id: data.branch_id ? [data.branch_id] : undefined,
+    expense_date: data.expense_date,
+    category: data.category,
+    amount: parseFloat(data.amount),
+    description: data.description,
+    vehicle_id: data.vehicle_id ? [data.vehicle_id] : undefined,
+    vehicle_plate_number: data.vehicle_plate_number,
+    receipt_number: data.receipt_number,
+    supplier_name: data.supplier_name,
+    created_by: data.created_by ? [data.created_by] : undefined
+  }).then(res => res.data),
   update: (id, data) => api.put(`/data/Expenses/${id}`, data).then(res => res.data),
   delete: (id) => api.delete(`/data/Expenses/${id}`).then(res => res.data),
   getCategories: () => Promise.resolve([
