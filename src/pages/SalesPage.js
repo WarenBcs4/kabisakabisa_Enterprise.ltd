@@ -22,10 +22,9 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  IconButton,
   Chip
 } from '@mui/material';
-import { Add, Delete, Visibility, Receipt, Business } from '@mui/icons-material';
+import { Add, Visibility, Receipt, Business } from '@mui/icons-material';
 
 import QuickUpload from '../components/QuickUpload';
 import SalesForm from '../components/forms/SalesForm';
@@ -61,7 +60,7 @@ const SalesPage = () => {
   const [filteredSales, setFilteredSales] = useState([]);
   const [showExpensesModal, setShowExpensesModal] = useState(false);
 
-  const { register, control, handleSubmit, watch, setValue, reset } = useForm({
+  const { register, control, handleSubmit, watch, reset } = useForm({
     defaultValues: {
       items: [{ product_id: '', product_name: '', quantity: 1, unit_price: 0 }],
       payment_method: 'cash',
@@ -194,14 +193,7 @@ const SalesPage = () => {
     }, 0);
   };
 
-  const handleProductSelect = (index, productId) => {
-    const selectedProduct = stock.find(item => item.product_id === productId);
-    if (selectedProduct) {
-      setValue(`items.${index}.product_id`, productId);
-      setValue(`items.${index}.product_name`, selectedProduct.product_name);
-      setValue(`items.${index}.unit_price`, selectedProduct.unit_price);
-    }
-  };
+
 
   const onSubmitSale = (data) => {
     // Backend validation: items array is required

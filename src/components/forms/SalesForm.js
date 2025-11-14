@@ -1,6 +1,6 @@
 import React from 'react';
 import { TextField, Grid, FormControl, InputLabel, Select, MenuItem, IconButton, Box } from '@mui/material';
-import { Add, Delete } from '@mui/icons-material';
+import { Delete } from '@mui/icons-material';
 
 const SalesForm = ({ register, control, fields, append, remove, watch, stock }) => {
   const watchedItems = watch('items');

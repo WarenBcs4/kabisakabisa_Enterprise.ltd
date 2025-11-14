@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, Grid, Box } from '@mui/material';
+import { TextField, Box } from '@mui/material';
 
 const StockForm = ({ register, errors }) => (
   <Box sx={{ mt: 2 }}>

@@ -42,8 +42,7 @@ import { useNavigate } from 'react-router-dom';
 
 import QuickUpload from '../components/QuickUpload';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
-import EmployeeForm from '../components/forms/EmployeeForm';
-import PayrollForm from '../components/forms/PayrollForm';
+
 import { useForm } from 'react-hook-form';
 import { hrAPI, branchesAPI } from '../services/api';
 import { formatCurrency } from '../theme';
