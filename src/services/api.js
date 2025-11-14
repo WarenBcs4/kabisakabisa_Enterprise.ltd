@@ -20,10 +20,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Skip CSRF for development
-    if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
-      config.headers['X-CSRF-Token'] = 'disabled-in-development';
-    }
+    // CSRF disabled for production compatibility
     
     return config;
   },
