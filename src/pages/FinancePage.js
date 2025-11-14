@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Container,
   Typography,
-  Box,
   Grid,
   Card,
   CardContent,
@@ -13,8 +12,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
-  Paper
+  TableRow
 } from '@mui/material';
 
 import { useQuery } from 'react-query';
