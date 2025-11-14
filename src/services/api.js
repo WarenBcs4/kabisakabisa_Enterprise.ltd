@@ -94,7 +94,7 @@ export const branchesAPI = {
 export const stockAPI = {
   getAll: () => api.get('/stock').then(res => res.data),
   getByBranch: (branchId) => api.get(`/stock/branch/${branchId}`).then(res => res.data),
-  addStock: (branchId, data) => api.post('/stock', { ...data, branchId }).then(res => res.data),
+  addStock: (branchId, data) => api.post('/stock', { ...data, branchId, branch_id: [branchId] }).then(res => res.data),
   addQuantity: (stockId, quantity) => api.post(`/stock/${stockId}/add-quantity`, { quantity }).then(res => res.data),
   transfer: (data) => api.post('/stock/transfer', data).then(res => res.data),
   getPendingTransfers: (branchId) => api.get(`/stock/transfers/pending/${branchId}`).then(res => res.data),
