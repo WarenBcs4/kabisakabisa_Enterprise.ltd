@@ -38,7 +38,7 @@ const queryClient = new QueryClient({
 
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [externalPortal, setExternalPortal] = useState(null);
   
   // console.log('AppContent - user:', user, 'loading:', loading);
