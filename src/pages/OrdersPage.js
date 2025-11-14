@@ -33,7 +33,6 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { ordersAPI, branchesAPI, stockAPI } from '../services/api';
 import { formatCurrency } from '../theme';
-import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import toast from 'react-hot-toast';
 
 const OrdersPage = () => {
@@ -1015,7 +1014,6 @@ const OrdersPage = () => {
       </Dialog>
 
       {/* Historical Data Viewer */}
-      <HistoricalDataViewer 
         open={showHistoricalData}
         onClose={() => setShowHistoricalData(false)}
         title="Orders Historical Data"

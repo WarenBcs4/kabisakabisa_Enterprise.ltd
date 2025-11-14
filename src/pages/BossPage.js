@@ -28,12 +28,10 @@ import {
   People, 
   Assessment,
   GetApp,
-  History,
   AccountBalance
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
-import QuickUpload from '../components/QuickUpload';
-import HistoricalDataViewer from '../components/HistoricalDataViewer';
+
 
 import { formatCurrency } from '../theme';
 import {
@@ -55,7 +53,7 @@ import {
 const BossPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
-  const [showHistoricalData, setShowHistoricalData] = useState(false);
+
 
   // Queries - using direct API calls instead of non-existent boss endpoint
   const { data: sales = [], isLoading: salesLoading } = useQuery(
@@ -154,7 +152,7 @@ const BossPage = () => {
         <Typography variant="h4">
           Executive Dashboard
         </Typography>
-        <QuickUpload defaultCategory="financial_reports" buttonText="Upload Report" />
+
       </Box>
 
       {/* Summary Cards */}
@@ -253,14 +251,7 @@ const BossPage = () => {
         >
           Xero Dashboard
         </Button>
-        <Button
-          variant="outlined"
-          startIcon={<History />}
-          onClick={() => setShowHistoricalData(true)}
-          color="info"
-        >
-          Historical Data
-        </Button>
+
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel>Period</InputLabel>
           <Select
@@ -617,12 +608,7 @@ const BossPage = () => {
         </Grid>
       )}
 
-      {/* Historical Data Viewer */}
-      <HistoricalDataViewer 
-        open={showHistoricalData}
-        onClose={() => setShowHistoricalData(false)}
-        title="Executive Historical Data"
-      />
+
     </Container>
   );
 };

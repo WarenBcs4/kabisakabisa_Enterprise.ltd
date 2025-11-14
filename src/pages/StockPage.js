@@ -34,7 +34,6 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 
 import { formatCurrency } from '../theme';
-import HistoricalDataViewer from '../components/HistoricalDataViewer';
 import StockForm from '../components/forms/StockForm';
 import { stockAPI, branchesAPI } from '../services/api';
 import api from '../services/api';
@@ -654,7 +653,6 @@ const StockPage = () => {
       </Dialog>
 
       {/* Historical Data Viewer */}
-      <HistoricalDataViewer 
         open={showHistoricalData}
         onClose={() => setShowHistoricalData(false)}
         title="Stock Historical Data"

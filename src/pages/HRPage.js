@@ -40,8 +40,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 
-import QuickUpload from '../components/QuickUpload';
-import HistoricalDataViewer from '../components/HistoricalDataViewer';
 
 import { useForm } from 'react-hook-form';
 import { hrAPI, branchesAPI } from '../services/api';
@@ -588,7 +586,6 @@ const HRPage = () => {
         >
           Historical Data
         </Button>
-        <QuickUpload defaultCategory="employee_documents" buttonText="Upload Employee Doc" />
       </Box>
 
       {/* Tabs */}
@@ -1289,7 +1286,6 @@ const HRPage = () => {
       </Dialog>
 
       {/* Historical Data Viewer */}
-      <HistoricalDataViewer 
         open={showHistoricalData}
         onClose={() => setShowHistoricalData(false)}
         title="HR Historical Data"

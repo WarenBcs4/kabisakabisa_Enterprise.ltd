@@ -27,26 +27,26 @@ import {
   Chip,
   Tabs,
   Tab,
-  Menu,
+
   InputAdornment
 } from '@mui/material';
-import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, DirectionsCar, Search } from '@mui/icons-material';
+import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, Search } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import QuickUpload from '../components/QuickUpload';
+
 
 import { useForm } from 'react-hook-form';
 import { logisticsAPI, hrAPI, dataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
-const LogisticsPage = ({ openExternalPortal }) => {
+const LogisticsPage = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState(0);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [showAddTrip, setShowAddTrip] = useState(false);
   const [showAddMaintenance, setShowAddMaintenance] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
-  const [ntsaMenuAnchor, setNtsaMenuAnchor] = useState(null);
+
 
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [selectedVehicleForTrips, setSelectedVehicleForTrips] = useState('');
@@ -388,18 +388,7 @@ const LogisticsPage = ({ openExternalPortal }) => {
     reset();
   };
 
-  const handleNtsaMenuOpen = (event) => {
-    setNtsaMenuAnchor(event.currentTarget);
-  };
 
-  const handleNtsaMenuClose = () => {
-    setNtsaMenuAnchor(null);
-  };
-
-  const handleNtsaService = (url, title) => {
-    openExternalPortal(url, title);
-    handleNtsaMenuClose();
-  };
 
   // Calculate statistics
   const totalTrips = allTrips.length;
@@ -513,28 +502,8 @@ const LogisticsPage = ({ openExternalPortal }) => {
         >
           Maintenance
         </Button>
-        <QuickUpload defaultCategory="vehicle_documents" buttonText="Upload Vehicle Doc" />
-        <Button
-          variant="outlined"
-          startIcon={<DirectionsCar />}
-          onClick={handleNtsaMenuOpen}
-          color="secondary"
-        >
-          NTSA Portal
-        </Button>
 
-        <Menu
-          anchorEl={ntsaMenuAnchor}
-          open={Boolean(ntsaMenuAnchor)}
-          onClose={handleNtsaMenuClose}
-        >
-          <MenuItem onClick={() => handleNtsaService('https://portal.ntsa.go.ke/', 'NTSA Portal')}>NTSA Portal</MenuItem>
-          <MenuItem onClick={() => handleNtsaService('https://portal.ntsa.go.ke/index.php/vehicle-search', 'Vehicle Search')}>Vehicle Search</MenuItem>
-          <MenuItem onClick={() => handleNtsaService('https://portal.ntsa.go.ke/index.php/driving-licence', 'Driving License')}>Driving License</MenuItem>
-          <MenuItem onClick={() => handleNtsaService('https://portal.ntsa.go.ke/index.php/psv-badge', 'PSV Badge')}>PSV Badge</MenuItem>
-          <MenuItem onClick={() => handleNtsaService('https://portal.ntsa.go.ke/index.php/motor-vehicle-inspection', 'Vehicle Inspection')}>Vehicle Inspection</MenuItem>
-          <MenuItem onClick={() => handleNtsaService('https://portal.ntsa.go.ke/index.php/road-transport-licence', 'Transport License')}>Transport License</MenuItem>
-        </Menu>
+
       </Box>
 
       {/* Tabs */}

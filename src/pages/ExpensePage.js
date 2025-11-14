@@ -33,14 +33,12 @@ import { expensesAPI, branchesAPI, logisticsAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 
 import toast from 'react-hot-toast';
-import DocumentUploader from '../components/DocumentUploader';
 
 const ExpensePage = () => {
   const queryClient = useQueryClient();
   const [selectedBranchId, setSelectedBranchId] = useState('');
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
-  const [showDocumentUploader, setShowDocumentUploader] = useState(false);
   const [selectedExpenseForDocs, setSelectedExpenseForDocs] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -379,7 +377,6 @@ const ExpensePage = () => {
                         <IconButton 
                           onClick={() => {
                             setSelectedExpenseForDocs(expense);
-                            setShowDocumentUploader(true);
                           }} 
                           size="small"
                           color="primary"
@@ -512,12 +509,9 @@ const ExpensePage = () => {
       </Dialog>
 
       {/* Document Uploader */}
-      <DocumentUploader
         tableName="Expenses"
         recordId={selectedExpenseForDocs?.id}
-        open={showDocumentUploader}
         onClose={() => {
-          setShowDocumentUploader(false);
           setSelectedExpenseForDocs(null);
         }}
         title={`Upload Documents - ${selectedExpenseForDocs?.description || 'Expense'}`}

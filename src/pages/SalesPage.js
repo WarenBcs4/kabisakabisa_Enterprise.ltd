@@ -26,7 +26,6 @@ import {
 } from '@mui/material';
 import { Add, Visibility, Receipt, Business } from '@mui/icons-material';
 
-import QuickUpload from '../components/QuickUpload';
 import SalesForm from '../components/forms/SalesForm';
 
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -549,7 +548,6 @@ const SalesPage = () => {
           Search Sales
         </Button>
 
-        <QuickUpload defaultCategory="receipts" buttonText="Upload Receipt" />
       </Box>
 
       <Grid container spacing={{ xs: 1, sm: 2 }}>
