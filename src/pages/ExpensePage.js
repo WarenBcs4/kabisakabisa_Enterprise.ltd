@@ -72,20 +72,20 @@ const ExpensePage = () => {
 
   const { data: branches = [] } = useQuery('branches', () => branchesAPI.getAll());
   const { data: vehicles = [] } = useQuery('vehicles', () => logisticsAPI.getVehicles().catch(() => []));
-  // Predefined expense categories
+  // Predefined expense categories (icons removed for clean interface)
   const categories = [
-    { value: 'office_supplies', label: 'Office Supplies', icon: '📝' },
-    { value: 'travel', label: 'Travel', icon: '✈️' },
-    { value: 'marketing', label: 'Marketing', icon: '📢' },
-    { value: 'utilities', label: 'Utilities', icon: '💡' },
-    { value: 'rent', label: 'Rent', icon: '🏢' },
-    { value: 'insurance', label: 'Insurance', icon: '🛡️' },
-    { value: 'maintenance', label: 'Maintenance', icon: '🔧' },
-    { value: 'fuel', label: 'Fuel', icon: '⛽' },
-    { value: 'equipment', label: 'Equipment', icon: '💻' },
-    { value: 'professional_services', label: 'Professional Services', icon: '👔' },
-    { value: 'training', label: 'Training', icon: '📚' },
-    { value: 'other', label: 'Other', icon: '📦' }
+    { value: 'office_supplies', label: 'Office Supplies' },
+    { value: 'travel', label: 'Travel' },
+    { value: 'marketing', label: 'Marketing' },
+    { value: 'utilities', label: 'Utilities' },
+    { value: 'rent', label: 'Rent' },
+    { value: 'insurance', label: 'Insurance' },
+    { value: 'maintenance', label: 'Maintenance' },
+    { value: 'fuel', label: 'Fuel' },
+    { value: 'equipment', label: 'Equipment' },
+    { value: 'professional_services', label: 'Professional Services' },
+    { value: 'training', label: 'Training' },
+    { value: 'other', label: 'Other' }
   ];
 
   const { data: expenseSummary } = useQuery(
@@ -288,7 +288,7 @@ const ExpensePage = () => {
                 <Card>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom variant="body2">
-                      {category?.icon} {category?.label || categorySum.category}
+                      {category?.label || categorySum.category}
                     </Typography>
                     <Typography variant="h6">
                       {formatCurrency(categorySum.total_amount)}
@@ -335,7 +335,7 @@ const ExpensePage = () => {
                       </TableCell>
                       <TableCell>
                         <Chip 
-                          label={`${category?.icon || ''} ${category?.label || expense.category}`}
+                          label={category?.label || expense.category}
                           size="small"
                           color={expense.category === 'fuel' ? 'warning' : 'default'}
                         />
@@ -417,7 +417,7 @@ const ExpensePage = () => {
                   >
                     {categories.map((cat) => (
                       <MenuItem key={cat.value} value={cat.value}>
-                        {cat.icon} {cat.label}
+                        {cat.label}
                       </MenuItem>
                     ))}
                   </Select>

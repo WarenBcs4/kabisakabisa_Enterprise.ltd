@@ -215,12 +215,22 @@ const HRPage = () => {
   const sendPayslipsMutation = useMutation(
     (payrollIds) => hrAPI.sendPayslips(payrollIds),
     {
-      onSuccess: () => {
-        toast.success('Payslips sent successfully!');
+      onSuccess: (response) => {
+        const successCount = response.results?.filter(r => r.status === 'success').length || 0;
+        const errorCount = response.results?.filter(r => r.status === 'error').length || 0;
+        
+        if (successCount > 0) {
+          toast.success(`📱 ${successCount} payslips sent via WhatsApp successfully!`);
+        }
+        if (errorCount > 0) {
+          toast.error(`⚠️ ${errorCount} payslips failed to send. Check employee phone numbers.`);
+        }
+        
         queryClient.invalidateQueries('payroll');
+        setSelectedPayrollIds([]);
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to send payslips');
+        toast.error(error.response?.data?.message || 'Failed to send payslips via WhatsApp');
       }
     }
   );
@@ -618,16 +628,16 @@ const HRPage = () => {
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#1976d2' }}>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Email</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Phone</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Role</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Branch</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Salary</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Hire Date</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                  <TableRow sx={{ bgcolor: '#90ee90' }}>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Name</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Email</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Phone</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Role</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Branch</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Salary</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Hire Date</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -749,20 +759,34 @@ const HRPage = () => {
                   variant="contained"
                   startIcon={<Send />}
                   onClick={() => {
-                    const pendingIds = payroll
-                      .filter(p => p.payment_status === 'pending')
-                      .map(p => p.id);
-                    if (pendingIds.length > 0) {
-                      sendPayslipsMutation.mutate(pendingIds);
-                      toast.success(`Sending payslips to ${pendingIds.length} employees`);
+                    if (selectedPayrollIds.length > 0) {
+                      // Check if employees have phone numbers
+                      const selectedPayroll = payroll.filter(p => selectedPayrollIds.includes(p.id));
+                      const withoutPhone = selectedPayroll.filter(p => !p.employee_phone || p.employee_phone.trim() === '');
+                      
+                      if (withoutPhone.length > 0) {
+                        toast.error(`${withoutPhone.length} employees don't have phone numbers. Please update employee records.`);
+                        return;
+                      }
+                      
+                      sendPayslipsMutation.mutate(selectedPayrollIds);
+                      toast.info(`📱 Sending ${selectedPayrollIds.length} payslips via WhatsApp...`);
                     } else {
-                      toast.info('No pending payroll to send');
+                      const pendingIds = payroll
+                        .filter(p => p.payment_status === 'pending')
+                        .map(p => p.id);
+                      if (pendingIds.length > 0) {
+                        sendPayslipsMutation.mutate(pendingIds);
+                        toast.info(`📱 Sending ${pendingIds.length} pending payslips via WhatsApp...`);
+                      } else {
+                        toast.info('No pending payroll to send');
+                      }
                     }
                   }}
-                  disabled={pendingPayroll === 0 || sendPayslipsMutation.isLoading}
-                  sx={{ bgcolor: '#FF6B35', '&:hover': { bgcolor: '#E55A2B' } }}
+                  disabled={sendPayslipsMutation.isLoading}
+                  sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#45a049' } }}
                 >
-                  📱 Send All Payslips ({pendingPayroll})
+                  📱 Send {selectedPayrollIds.length > 0 ? `Selected (${selectedPayrollIds.length})` : `All Pending (${pendingPayroll})`} via WhatsApp
                 </Button>
               </Box>
             </Box>
@@ -805,15 +829,16 @@ const HRPage = () => {
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#4caf50' }}>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Select</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Employee</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Period</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Gross Salary</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Deductions (%)</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Net Salary</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Generated Date</TableCell>
+                  <TableRow sx={{ bgcolor: '#90ee90' }}>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Select</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Employee</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Period</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Gross Salary</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Deductions (%)</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Net Salary</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>WhatsApp</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Generated Date</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -888,6 +913,32 @@ const HRPage = () => {
                           />
                         </TableCell>
                         <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {record.payslip_sent ? (
+                              <Chip 
+                                label="📱 SENT"
+                                color="success"
+                                size="small"
+                                title={`Sent on ${record.payslip_sent_date ? new Date(record.payslip_sent_date).toLocaleDateString() : 'Unknown'}`}
+                              />
+                            ) : record.employee_phone && record.employee_phone.trim() !== '' ? (
+                              <Chip 
+                                label="📱 READY"
+                                color="info"
+                                size="small"
+                                title={`Phone: ${record.employee_phone}`}
+                              />
+                            ) : (
+                              <Chip 
+                                label="NO PHONE"
+                                color="error"
+                                size="small"
+                                title="Employee phone number missing"
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
                           <Typography variant="body2">
                             {new Date(record.created_at).toLocaleDateString()}
                           </Typography>
@@ -897,7 +948,7 @@ const HRPage = () => {
                   })}
                   {payroll.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} align="center">
+                      <TableCell colSpan={9} align="center">
                         <Typography color="text.secondary">
                           No payroll records found
                         </Typography>
