@@ -97,14 +97,30 @@ export const stockAPI = {
     const stock = res.data || [];
     return stock.filter(item => item.branch_id && item.branch_id.includes(branchId));
   }),
-  addStock: (branchId, data) => api.post('/data/Stock', { ...data, branch_id: [branchId] }).then(res => res.data),
+  addStock: (branchId, data) => api.post('/data/Stock', {
+    branch_id: [branchId],
+    product_id: data.product_id || `PRD_${Date.now()}`,
+    product_name: data.product_name,
+    quantity_available: parseInt(data.quantity_available || data.quantity || 0),
+    unit_price: parseFloat(data.unit_price || 0),
+    reorder_level: parseInt(data.reorder_level || 10)
+  }).then(res => res.data),
   addQuantity: (stockId, quantity) => api.get(`/data/Stock/${stockId}`).then(stock => 
     api.put(`/data/Stock/${stockId}`, { 
       ...stock.data, 
       quantity_available: (stock.data.quantity_available || 0) + quantity 
     })
   ).then(res => res.data),
-  transfer: (data) => api.post('/data/Stock_Movements', data).then(res => res.data),
+  transfer: (data) => api.post('/data/Stock_Movements', {
+    from_branch_id: [data.from_branch_id],
+    to_branch_id: [data.to_branch_id],
+    product_id: data.product_id,
+    product_name: data.product_name,
+    quantity: parseInt(data.quantity),
+    status: 'pending',
+    reason: data.reason || '',
+    created_at: new Date().toISOString()
+  }).then(res => res.data),
   getPendingTransfers: (branchId) => api.get('/data/Stock_Movements').then(res => {
     const movements = res.data || [];
     return movements.filter(m => m.to_branch_id && m.to_branch_id.includes(branchId) && m.status === 'pending');
