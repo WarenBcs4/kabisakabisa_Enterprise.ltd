@@ -20,17 +20,9 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Add CSRF token for state-changing requests
+    // Skip CSRF for development
     if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
-      try {
-        const csrfResponse = await fetch(`${API_BASE_URL}/csrf-token`);
-        const csrfData = await csrfResponse.json();
-        if (csrfData.csrfToken) {
-          config.headers['X-CSRF-Token'] = csrfData.csrfToken;
-        }
-      } catch (error) {
-        console.warn('Failed to get CSRF token:', error);
-      }
+      config.headers['X-CSRF-Token'] = 'disabled-in-development';
     }
     
     return config;
