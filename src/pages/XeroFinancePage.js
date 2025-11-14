@@ -25,24 +25,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
+
   LinearProgress,
   Menu
 } from '@mui/material';
-import {
-  Receipt,
-  TrendingUp,
-  AccountBalance,
-  Settings,
-  Add,
-  FileDownload,
-  Print,
-  Visibility,
-  MonetizationOn,
-  PieChart,
-  BarChart,
-  Timeline
-} from '@mui/icons-material';
+
 import { useQuery } from 'react-query';
 import { formatCurrency } from '../theme';
 import { genericDataAPI } from '../services/api';
@@ -102,20 +89,17 @@ const XeroFinancePage = () => {
             </div>
             <div class="metric">
               <h3>Fueling Expenses</h3>
-              <p>${formatCurrency(totalFuelingExpenses)}</p>
+              <p>${formatCurrency(fuelingExpenses)}</p>
             </div>
           </div>
           <h2>Financial Breakdown</h2>
           <table>
             <tr><th>Category</th><th>Amount</th></tr>
-            <tr><td>Sales Revenue</td><td>${formatCurrency(salesRevenue)}</td></tr>
-            <tr><td>Logistics Revenue</td><td>${formatCurrency(logisticsRevenue)}</td></tr>
-            <tr><td>Invoice Revenue</td><td>${formatCurrency(invoiceRevenue)}</td></tr>
-            <tr><td>Operating Expenses</td><td>${formatCurrency(regularExpenses)}</td></tr>
+            <tr><td>Total Revenue</td><td>${formatCurrency(monthlyRevenue)}</td></tr>
+            <tr><td>Operating Expenses</td><td>${formatCurrency(monthlyExpenses)}</td></tr>
             <tr><td>Payroll Expenses</td><td>${formatCurrency(payrollExpenses)}</td></tr>
-            <tr><td>Vehicle Costs</td><td>${formatCurrency(vehicleExpenses)}</td></tr>
-            <tr><td>Fueling Expenses</td><td>${formatCurrency(totalFuelingExpenses)}</td></tr>
-            <tr><td><strong>Gross Profit</strong></td><td class="${grossProfit >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(grossProfit)}</strong></td></tr>
+            <tr><td>Fueling Expenses</td><td>${formatCurrency(fuelingExpenses)}</td></tr>
+            <tr><td>Maintenance Expenses</td><td>${formatCurrency(maintenanceExpenses)}</td></tr>
             <tr><td><strong>Net Profit</strong></td><td class="${netProfit >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(netProfit)}</strong></td></tr>
           </table>
         </body>
@@ -137,31 +121,16 @@ const XeroFinancePage = () => {
       [''],
       ['Summary'],
       ['Total Revenue', monthlyRevenue],
-      ['Total Expenses', monthlyExpenses],
+      ['Total Expenses', monthlyExpenses + payrollExpenses],
       ['Net Profit', netProfit],
-      ['Fueling Expenses', totalFuelingExpenses],
-      ['Gross Profit', grossProfit],
+      ['Fueling Expenses', fuelingExpenses],
       ['Profit Margin %', profitMargin.toFixed(2)],
       [''],
-      ['Revenue Breakdown'],
-      ['Sales Revenue', salesRevenue],
-      ['Logistics Revenue', logisticsRevenue],
-      ['Invoice Revenue', invoiceRevenue],
-      [''],
       ['Expense Breakdown'],
-      ['Operating Expenses', regularExpenses],
+      ['Operating Expenses', monthlyExpenses],
       ['Payroll Expenses', payrollExpenses],
-      ['Vehicle Costs', vehicleExpenses],
-      ['Fueling Expenses', totalFuelingExpenses],
-      [''],
-      ['Assets & Liabilities'],
-      ['Total Assets', totalAssets],
-      ['Stock Value', stockValue],
-      ['Vehicle Value', vehicleValue],
-      ['Bank Balance', bankBalance],
-      ['Total Receivables', totalReceivables],
-      ['Total Payables', totalPayables],
-      ['Working Capital', workingCapital]
+      ['Fueling Expenses', fuelingExpenses],
+      ['Maintenance Expenses', maintenanceExpenses]
     ].map(row => row.join(',')).join('\n');
 
     // Download CSV file
@@ -183,21 +152,16 @@ const XeroFinancePage = () => {
     }
 
     try {
-      const endpoint = newTransaction.type === 'expense' ? 'Expenses' : 'Sales';
-      const data = newTransaction.type === 'expense' ? {
+      const data = {
         amount: parseFloat(newTransaction.amount),
         description: newTransaction.description,
         category: newTransaction.category || 'General',
-        expense_date: newTransaction.date
-      } : {
-        total_amount: parseFloat(newTransaction.amount),
-        customer_name: 'Manual Entry',
-        sale_date: newTransaction.date,
-        payment_method: 'cash'
+        expense_date: newTransaction.date,
+        created_at: new Date().toISOString()
       };
 
-      await genericDataAPI.create(endpoint, data);
-      alert(`${newTransaction.type} added successfully!`);
+      await genericDataAPI.create('Expenses', data);
+      alert('Expense added successfully!');
       setShowNewTransaction(false);
       setNewTransaction({
         type: 'expense',
@@ -206,11 +170,10 @@ const XeroFinancePage = () => {
         category: '',
         date: new Date().toISOString().split('T')[0]
       });
-      // Refresh data
       window.location.reload();
     } catch (error) {
-      console.error('Error adding transaction:', error);
-      alert('Error adding transaction');
+      console.error('Error adding expense:', error);
+      alert('Error adding expense');
     }
   };
 
@@ -308,83 +271,28 @@ const XeroFinancePage = () => {
 
 
 
-  // Enhanced financial calculations using all linked database tables
+  // Real financial calculations from database
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
-  // Revenue calculations from multiple sources
-  const salesRevenue = sales
+  // Revenue from sales only
+  const monthlyRevenue = sales
     .filter(sale => {
       const saleDate = new Date(sale.sale_date || sale.created_at);
       return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
     })
     .reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
 
-  const logisticsRevenue = trips
-    .filter(trip => {
-      const tripDate = new Date(trip.trip_date || trip.created_at);
-      return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0);
-
-  const invoiceRevenue = invoices
-    .filter(invoice => {
-      const invoiceDate = new Date(invoice.invoice_date || invoice.created_at);
-      return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear && invoice.status === 'paid';
-    })
-    .reduce((sum, invoice) => sum + (parseFloat(invoice.amount_paid) || 0), 0);
-
-  const monthlyRevenue = salesRevenue + invoiceRevenue + logisticsRevenue;
-
-  // Cost of Goods Sold from orders and stock movements
-  const orderCosts = orders
-    .filter(order => {
-      const orderDate = new Date(order.order_date || order.created_at);
-      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear && order.status === 'completed';
-    })
-    .reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0);
-
-  const stockMovementCosts = stockMovements
-    .filter(movement => {
-      const movementDate = new Date(movement.movement_date || movement.created_at);
-      return movementDate.getMonth() === currentMonth && movementDate.getFullYear() === currentYear && movement.movement_type === 'out';
-    })
-    .reduce((sum, movement) => sum + ((parseFloat(movement.quantity) || 0) * (parseFloat(movement.unit_cost) || 0)), 0);
-
-  const totalCOGS = orderCosts + stockMovementCosts;
-
-  // Operating expenses including payroll
-  const regularExpenses = expenses
+  // All expenses from expenses table including fueling and maintenance
+  const monthlyExpenses = expenses
     .filter(expense => {
       const expenseDate = new Date(expense.expense_date || expense.created_at);
       return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
     })
     .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
 
-  const payrollExpenses = payroll
-    .filter(pay => {
-      const payDate = new Date(pay.period_start || pay.created_at);
-      return payDate.getMonth() === currentMonth && payDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, pay) => sum + (parseFloat(pay.net_salary) || 0), 0);
-
-  const vehicleExpenses = trips
-    .filter(trip => {
-      const tripDate = new Date(trip.trip_date || trip.created_at);
-      return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, trip) => sum + (parseFloat(trip.fuel_cost) || 0), 0);
-
-  // Separate fueling expenses for detailed tracking
-  const fuelingExpenses = trips
-    .filter(trip => {
-      const tripDate = new Date(trip.trip_date || trip.created_at);
-      return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, trip) => sum + (parseFloat(trip.fuel_cost) || 0), 0);
-
-  // Add fueling from expenses table if categorized as fuel
-  const additionalFuelExpenses = expenses
+  // Fueling expenses from expenses table
+  const fuelingExpenses = expenses
     .filter(expense => {
       const expenseDate = new Date(expense.expense_date || expense.created_at);
       return expenseDate.getMonth() === currentMonth && 
@@ -393,45 +301,28 @@ const XeroFinancePage = () => {
     })
     .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
 
-  const totalFuelingExpenses = fuelingExpenses + additionalFuelExpenses;
+  // Maintenance expenses from expenses table
+  const maintenanceExpenses = expenses
+    .filter(expense => {
+      const expenseDate = new Date(expense.expense_date || expense.created_at);
+      return expenseDate.getMonth() === currentMonth && 
+             expenseDate.getFullYear() === currentYear &&
+             expense.category?.toLowerCase().includes('maintenance');
+    })
+    .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
 
-  const monthlyExpenses = regularExpenses + payrollExpenses + vehicleExpenses;
-
-  // Profit calculations
-  const grossProfit = monthlyRevenue - totalCOGS;
-  const netProfit = grossProfit - monthlyExpenses;
-  const profitMargin = monthlyRevenue > 0 ? (netProfit / monthlyRevenue) * 100 : 0;
-  const monthlyProfit = netProfit; // Keep for backward compatibility
-
-  // Assets and liabilities
-  const stockValue = stock.reduce((sum, item) => sum + ((parseFloat(item.quantity_available) || 0) * (parseFloat(item.unit_price) || 0)), 0);
-  const vehicleValue = vehicles.reduce((sum, vehicle) => sum + (parseFloat(vehicle.current_value) || parseFloat(vehicle.purchase_price) || 0), 0);
-  const bankBalance = bankAccounts.reduce((sum, account) => sum + (parseFloat(account.current_balance) || 0), 0);
-  const totalAssets = stockValue + vehicleValue + bankBalance;
-
-  // Receivables and payables
-  const salesReceivables = sales
-    .filter(sale => sale.payment_method === 'credit')
-    .reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
-  
-  const invoiceReceivables = invoices
-    .filter(invoice => invoice.status !== 'paid' && invoice.status !== 'cancelled')
-    .reduce((sum, invoice) => sum + (parseFloat(invoice.balance_due) || parseFloat(invoice.total_amount) || 0), 0);
-  
-  const totalReceivables = salesReceivables + invoiceReceivables;
-
-  const orderPayables = orders
-    .filter(order => order.status !== 'completed' && order.status !== 'paid')
-    .reduce((sum, order) => sum + ((parseFloat(order.total_amount) || 0) - (parseFloat(order.amount_paid) || 0)), 0);
-
-  const payrollPayables = payroll
-    .filter(pay => pay.payment_status === 'pending')
+  // Payroll expenses
+  const payrollExpenses = payroll
+    .filter(pay => {
+      const payDate = new Date(pay.period_start || pay.created_at);
+      return payDate.getMonth() === currentMonth && payDate.getFullYear() === currentYear;
+    })
     .reduce((sum, pay) => sum + (parseFloat(pay.net_salary) || 0), 0);
 
-  const totalPayables = orderPayables + payrollPayables;
-
-  const cashFlow = monthlyRevenue - monthlyExpenses;
-  const workingCapital = totalReceivables - totalPayables;
+  // Simple profit calculation
+  const netProfit = monthlyRevenue - monthlyExpenses - payrollExpenses;
+  const profitMargin = monthlyRevenue > 0 ? (netProfit / monthlyRevenue) * 100 : 0;
+  const cashFlow = monthlyRevenue - monthlyExpenses - payrollExpenses;
 
   const isLoading = salesLoading;
 
@@ -449,15 +340,12 @@ const XeroFinancePage = () => {
   }, [isLoading, sales, expenses, payroll, orders, employees, invoices, stock, vehicles, trips, branches, saleItems, orderItems, stockMovements, bankAccounts, chartOfAccounts]);
 
   // Simple dashboard cards
-  const DashboardCard = ({ title, amount, icon }) => (
+  const DashboardCard = ({ title, amount }) => (
     <Card sx={{ height: '100%', bgcolor: '#f9fafb' }}>
       <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          {icon}
-          <Typography variant="body2" sx={{ ml: 1, fontSize: '14px', fontWeight: 600 }}>
-            {title}
-          </Typography>
-        </Box>
+        <Typography variant="body2" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
+          {title}
+        </Typography>
         <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '18px' }}>
           {formatCurrency(amount)}
         </Typography>
@@ -478,13 +366,13 @@ const XeroFinancePage = () => {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
+          <Button variant="contained" size="small" onClick={() => setShowNewTransaction(true)}>
             Add
           </Button>
-          <Button variant="outlined" size="small" startIcon={<Print />} onClick={handlePrint}>
+          <Button variant="outlined" size="small" onClick={handlePrint}>
             Print
           </Button>
-          <Button variant="outlined" size="small" startIcon={<FileDownload />} onClick={handleExport}>
+          <Button variant="outlined" size="small" onClick={handleExport}>
             Export
           </Button>
         </Box>
@@ -510,28 +398,24 @@ const XeroFinancePage = () => {
               <DashboardCard
                 title="Total Revenue"
                 amount={monthlyRevenue}
-                icon={<MonetizationOn sx={{ fontSize: 20 }} />}
               />
             </Grid>
             <Grid item xs={6} sm={6} md={3}>
               <DashboardCard
                 title="Total Expenses"
-                amount={monthlyExpenses}
-                icon={<Receipt sx={{ fontSize: 20 }} />}
+                amount={monthlyExpenses + payrollExpenses}
               />
             </Grid>
             <Grid item xs={6} sm={6} md={3}>
               <DashboardCard
                 title="Net Profit"
-                amount={monthlyProfit}
-                icon={<TrendingUp sx={{ fontSize: 20 }} />}
+                amount={netProfit}
               />
             </Grid>
             <Grid item xs={6} sm={6} md={3}>
               <DashboardCard
                 title="Cash Flow"
                 amount={cashFlow}
-                icon={<AccountBalance sx={{ fontSize: 20 }} />}
               />
             </Grid>
           </Grid>
@@ -547,45 +431,21 @@ const XeroFinancePage = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={4}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Sales Revenue</Typography>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Total Revenue</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
-                          {formatCurrency(salesRevenue)}
+                          {formatCurrency(monthlyRevenue)}
                         </Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={4}>
-                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Logistics Revenue</Typography>
-                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
-                          {formatCurrency(logisticsRevenue)}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Invoice Revenue</Typography>
-                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
-                          {formatCurrency(invoiceRevenue)}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={3}>
-                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>COGS</Typography>
-                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
-                          {formatCurrency(totalCOGS)}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={3}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
                         <Typography variant="body2" sx={{ fontSize: '12px' }}>Operating Expenses</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
-                          {formatCurrency(regularExpenses)}
+                          {formatCurrency(monthlyExpenses)}
                         </Typography>
                       </Box>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={4}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
                         <Typography variant="body2" sx={{ fontSize: '12px' }}>Payroll</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
@@ -593,30 +453,24 @@ const XeroFinancePage = () => {
                         </Typography>
                       </Box>
                     </Grid>
-                    <Grid item xs={3}>
-                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Vehicle Costs</Typography>
-                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
-                          {formatCurrency(vehicleExpenses)}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={4}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
                         <Typography variant="body2" sx={{ fontSize: '12px' }}>Fueling Expenses</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
-                          {formatCurrency(totalFuelingExpenses)}
+                          {formatCurrency(fuelingExpenses)}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Maintenance</Typography>
+                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
+                          {formatCurrency(maintenanceExpenses)}
                         </Typography>
                       </Box>
                     </Grid>
                   </Grid>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
-                    <Typography variant="body1" sx={{ fontSize: '14px' }}>Gross Profit</Typography>
-                    <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600, color: grossProfit >= 0 ? 'success.main' : 'error.main' }}>
-                      {formatCurrency(grossProfit)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                     <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600 }}>Net Profit</Typography>
                     <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600, color: netProfit >= 0 ? 'success.main' : 'error.main' }}>
                       {formatCurrency(netProfit)} ({profitMargin.toFixed(1)}%)
@@ -642,69 +496,7 @@ const XeroFinancePage = () => {
             </Grid>
           </Grid>
 
-          {/* Assets, Liabilities & Working Capital */}
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={3}>
-              <Card sx={{ bgcolor: '#f9fafb' }}>
-                <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                  <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
-                    Total Assets
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600 }}>
-                    {formatCurrency(totalAssets)}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
-                    Stock + Vehicles + Cash
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card sx={{ bgcolor: '#f9fafb' }}>
-                <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                  <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
-                    Receivables
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600 }}>
-                    {formatCurrency(totalReceivables)}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
-                    Outstanding payments
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card sx={{ bgcolor: '#f9fafb' }}>
-                <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                  <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
-                    Payables
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600 }}>
-                    {formatCurrency(totalPayables)}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
-                    Outstanding obligations
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Card sx={{ bgcolor: '#f9fafb' }}>
-                <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                  <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
-                    Working Capital
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600, color: workingCapital >= 0 ? 'success.main' : 'error.main' }}>
-                    {formatCurrency(workingCapital)}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
-                    Receivables - Payables
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+
         </Box>
       )}
 
@@ -716,14 +508,11 @@ const XeroFinancePage = () => {
             <Grid item xs={12} md={4}>
               <Card sx={{ cursor: 'pointer', '&:hover': { elevation: 4 } }}>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <PieChart sx={{ mr: 2, color: 'primary.main' }} />
-                    <Typography variant="h6">Profit & Loss</Typography>
-                  </Box>
+                  <Typography variant="h6" sx={{ mb: 2 }}>Profit & Loss</Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     Revenue and expense breakdown
                   </Typography>
-                  <Button variant="outlined" fullWidth startIcon={<Visibility />}>
+                  <Button variant="outlined" fullWidth>
                     View Report
                   </Button>
                 </CardContent>
@@ -732,14 +521,11 @@ const XeroFinancePage = () => {
             <Grid item xs={12} md={4}>
               <Card sx={{ cursor: 'pointer', '&:hover': { elevation: 4 } }}>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <BarChart sx={{ mr: 2, color: 'success.main' }} />
-                    <Typography variant="h6">Balance Sheet</Typography>
-                  </Box>
+                  <Typography variant="h6" sx={{ mb: 2 }}>Balance Sheet</Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     Assets, liabilities, and equity
                   </Typography>
-                  <Button variant="outlined" fullWidth startIcon={<Visibility />}>
+                  <Button variant="outlined" fullWidth>
                     View Report
                   </Button>
                 </CardContent>
@@ -748,14 +534,11 @@ const XeroFinancePage = () => {
             <Grid item xs={12} md={4}>
               <Card sx={{ cursor: 'pointer', '&:hover': { elevation: 4 } }}>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Timeline sx={{ mr: 2, color: 'info.main' }} />
-                    <Typography variant="h6">Cash Flow</Typography>
-                  </Box>
+                  <Typography variant="h6" sx={{ mb: 2 }}>Cash Flow</Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     Money in and out over time
                   </Typography>
-                  <Button variant="outlined" fullWidth startIcon={<Visibility />}>
+                  <Button variant="outlined" fullWidth>
                     View Report
                   </Button>
                 </CardContent>
@@ -808,7 +591,7 @@ const XeroFinancePage = () => {
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="body1" sx={{ fontSize: '16px', fontWeight: 600 }}>Transactions</Typography>
-              <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
+              <Button variant="contained" size="small" onClick={() => setShowNewTransaction(true)}>
                 Add
               </Button>
             </Box>
@@ -840,7 +623,7 @@ const XeroFinancePage = () => {
                   <CardContent sx={{ p: 1.5 }}>
                     <Typography variant="body2" sx={{ fontSize: '12px' }}>Net Profit</Typography>
                     <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600 }}>
-                      {formatCurrency(monthlyProfit)}
+                      {formatCurrency(netProfit)}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -869,37 +652,17 @@ const XeroFinancePage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {[...sales.slice(0, 10).map(sale => ({
-                    id: sale.id,
-                    date: sale.sale_date || sale.created_at,
-                    type: 'Income',
-                    description: `Sale - ${sale.customer_name || 'Walk-in'}`,
-                    amount: sale.total_amount,
-                    category: 'Sales Revenue'
-                  })), ...expenses.slice(0, 10).map(expense => ({
-                    id: expense.id,
-                    date: expense.expense_date || expense.created_at,
-                    type: 'Expense',
-                    description: expense.description || 'Expense',
-                    amount: expense.amount,
-                    category: expense.category || 'General'
-                  }))].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 20).map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={transaction.type} 
-                          color={transaction.type === 'Income' ? 'success' : 'error'} 
-                          size="small" 
-                        />
-                      </TableCell>
-                      <TableCell>{transaction.description}</TableCell>
+                  {expenses.slice(0, 20).map((expense) => (
+                    <TableRow key={expense.id}>
+                      <TableCell>{new Date(expense.expense_date || expense.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>Expense</TableCell>
+                      <TableCell>{expense.description || 'Expense'}</TableCell>
                       <TableCell align="right">
-                        <Typography color={transaction.type === 'Income' ? 'success.main' : 'error.main'}>
-                          {formatCurrency(transaction.amount)}
+                        <Typography color="error.main">
+                          {formatCurrency(expense.amount)}
                         </Typography>
                       </TableCell>
-                      <TableCell>{transaction.category}</TableCell>
+                      <TableCell>{expense.category || 'General'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -916,19 +679,7 @@ const XeroFinancePage = () => {
         <DialogTitle>Add New Transaction</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                select
-                label="Transaction Type"
-                value={newTransaction.type}
-                onChange={(e) => setNewTransaction({...newTransaction, type: e.target.value})}
-                SelectProps={{ native: true }}
-              >
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
-              </TextField>
-            </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -958,31 +709,29 @@ const XeroFinancePage = () => {
                 required
               />
             </Grid>
-            {newTransaction.type === 'expense' && (
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
-                  <Select
-                    value={newTransaction.category}
-                    onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
-                    label="Category"
-                  >
-                    <MenuItem value="Office Supplies">Office Supplies</MenuItem>
-                    <MenuItem value="Travel">Travel</MenuItem>
-                    <MenuItem value="Marketing">Marketing</MenuItem>
-                    <MenuItem value="Utilities">Utilities</MenuItem>
-                    <MenuItem value="Rent">Rent</MenuItem>
-                    <MenuItem value="Insurance">Insurance</MenuItem>
-                    <MenuItem value="Maintenance">Maintenance</MenuItem>
-                    <MenuItem value="Fuel">Fuel</MenuItem>
-                    <MenuItem value="Equipment">Equipment</MenuItem>
-                    <MenuItem value="Professional Services">Professional Services</MenuItem>
-                    <MenuItem value="Training">Training</MenuItem>
-                    <MenuItem value="Other">Other</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            )}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={newTransaction.category}
+                  onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
+                  label="Category"
+                >
+                  <MenuItem value="Office Supplies">Office Supplies</MenuItem>
+                  <MenuItem value="Travel">Travel</MenuItem>
+                  <MenuItem value="Marketing">Marketing</MenuItem>
+                  <MenuItem value="Utilities">Utilities</MenuItem>
+                  <MenuItem value="Rent">Rent</MenuItem>
+                  <MenuItem value="Insurance">Insurance</MenuItem>
+                  <MenuItem value="Maintenance">Maintenance</MenuItem>
+                  <MenuItem value="Fuel">Fuel</MenuItem>
+                  <MenuItem value="Equipment">Equipment</MenuItem>
+                  <MenuItem value="Professional Services">Professional Services</MenuItem>
+                  <MenuItem value="Training">Training</MenuItem>
+                  <MenuItem value="Other">Other</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -991,20 +740,19 @@ const XeroFinancePage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Action Menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={() => setAnchorEl(null)}
       >
         <MenuItem onClick={() => setAnchorEl(null)}>
-          <Print sx={{ mr: 1 }} /> Print Report
+          Print Report
         </MenuItem>
         <MenuItem onClick={() => setAnchorEl(null)}>
-          <FileDownload sx={{ mr: 1 }} /> Export Data
+          Export Data
         </MenuItem>
         <MenuItem onClick={() => setAnchorEl(null)}>
-          <Settings sx={{ mr: 1 }} /> Settings
+          Settings
         </MenuItem>
       </Menu>
     </Container>

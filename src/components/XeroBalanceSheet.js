@@ -13,7 +13,7 @@ import {
   Button,
 
 } from '@mui/material';
-import { FileDownload, Print } from '@mui/icons-material';
+
 import { formatCurrency } from '../theme';
 
 const XeroBalanceSheet = ({ 
@@ -97,10 +97,10 @@ const XeroBalanceSheet = ({
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button startIcon={<Print />} variant="outlined" size="small">
+            <Button variant="outlined" size="small">
               Print
             </Button>
-            <Button startIcon={<FileDownload />} variant="outlined" size="small">
+            <Button variant="outlined" size="small">
               Export
             </Button>
           </Box>
