@@ -109,9 +109,9 @@ const XeroBalanceSheet = ({
         <TableContainer sx={{ overflowX: 'auto' }}>
           <Table sx={{ '& .MuiTableCell-root': { border: '1px solid rgba(224, 224, 224, 1)', px: { xs: 1, sm: 2 } } }}>
             <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Account</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Amount</TableCell>
+              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                <TableCell sx={{ bgcolor: '#4caf50', color: 'white', fontWeight: 'bold', fontSize: '0.9rem' }}>Account</TableCell>
+                <TableCell align="right" sx={{ bgcolor: '#4caf50', color: 'white', fontWeight: 'bold', fontSize: '0.9rem' }}>Amount</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

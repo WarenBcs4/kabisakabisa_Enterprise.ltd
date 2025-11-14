@@ -62,6 +62,120 @@ const XeroFinancePage = () => {
     date: new Date().toISOString().split('T')[0]
   });
 
+  // Print functionality
+  const handlePrint = () => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Financial Report - ${new Date().toLocaleDateString()}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+            .metric { border: 1px solid #ddd; padding: 15px; text-align: center; }
+            .metric h3 { margin: 0; color: #333; }
+            .metric p { margin: 5px 0 0 0; font-size: 18px; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #4caf50; color: white; }
+            .positive { color: #4caf50; }
+            .negative { color: #f44336; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Financial Management Report</h1>
+            <p>Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+          <div class="metrics">
+            <div class="metric">
+              <h3>Total Revenue</h3>
+              <p>${formatCurrency(monthlyRevenue)}</p>
+            </div>
+            <div class="metric">
+              <h3>Total Expenses</h3>
+              <p>${formatCurrency(monthlyExpenses)}</p>
+            </div>
+            <div class="metric">
+              <h3>Net Profit</h3>
+              <p class="${netProfit >= 0 ? 'positive' : 'negative'}">${formatCurrency(netProfit)}</p>
+            </div>
+            <div class="metric">
+              <h3>Fueling Expenses</h3>
+              <p>${formatCurrency(totalFuelingExpenses)}</p>
+            </div>
+          </div>
+          <h2>Financial Breakdown</h2>
+          <table>
+            <tr><th>Category</th><th>Amount</th></tr>
+            <tr><td>Sales Revenue</td><td>${formatCurrency(salesRevenue)}</td></tr>
+            <tr><td>Logistics Revenue</td><td>${formatCurrency(logisticsRevenue)}</td></tr>
+            <tr><td>Invoice Revenue</td><td>${formatCurrency(invoiceRevenue)}</td></tr>
+            <tr><td>Operating Expenses</td><td>${formatCurrency(regularExpenses)}</td></tr>
+            <tr><td>Payroll Expenses</td><td>${formatCurrency(payrollExpenses)}</td></tr>
+            <tr><td>Vehicle Costs</td><td>${formatCurrency(vehicleExpenses)}</td></tr>
+            <tr><td>Fueling Expenses</td><td>${formatCurrency(totalFuelingExpenses)}</td></tr>
+            <tr><td><strong>Gross Profit</strong></td><td class="${grossProfit >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(grossProfit)}</strong></td></tr>
+            <tr><td><strong>Net Profit</strong></td><td class="${netProfit >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(netProfit)}</strong></td></tr>
+          </table>
+        </body>
+      </html>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  // Export functionality
+  const handleExport = () => {
+
+    // Create CSV content
+    const csvContent = [
+      ['Financial Report', new Date().toLocaleDateString()],
+      [''],
+      ['Summary'],
+      ['Total Revenue', monthlyRevenue],
+      ['Total Expenses', monthlyExpenses],
+      ['Net Profit', netProfit],
+      ['Fueling Expenses', totalFuelingExpenses],
+      ['Gross Profit', grossProfit],
+      ['Profit Margin %', profitMargin.toFixed(2)],
+      [''],
+      ['Revenue Breakdown'],
+      ['Sales Revenue', salesRevenue],
+      ['Logistics Revenue', logisticsRevenue],
+      ['Invoice Revenue', invoiceRevenue],
+      [''],
+      ['Expense Breakdown'],
+      ['Operating Expenses', regularExpenses],
+      ['Payroll Expenses', payrollExpenses],
+      ['Vehicle Costs', vehicleExpenses],
+      ['Fueling Expenses', totalFuelingExpenses],
+      [''],
+      ['Assets & Liabilities'],
+      ['Total Assets', totalAssets],
+      ['Stock Value', stockValue],
+      ['Vehicle Value', vehicleValue],
+      ['Bank Balance', bankBalance],
+      ['Total Receivables', totalReceivables],
+      ['Total Payables', totalPayables],
+      ['Working Capital', workingCapital]
+    ].map(row => row.join(',')).join('\n');
+
+    // Download CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `financial-report-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   const handleAddTransaction = async () => {
     if (!newTransaction.amount || !newTransaction.description) {
       alert('Please fill in amount and description');
@@ -261,6 +375,26 @@ const XeroFinancePage = () => {
     })
     .reduce((sum, trip) => sum + (parseFloat(trip.fuel_cost) || 0), 0);
 
+  // Separate fueling expenses for detailed tracking
+  const fuelingExpenses = trips
+    .filter(trip => {
+      const tripDate = new Date(trip.trip_date || trip.created_at);
+      return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, trip) => sum + (parseFloat(trip.fuel_cost) || 0), 0);
+
+  // Add fueling from expenses table if categorized as fuel
+  const additionalFuelExpenses = expenses
+    .filter(expense => {
+      const expenseDate = new Date(expense.expense_date || expense.created_at);
+      return expenseDate.getMonth() === currentMonth && 
+             expenseDate.getFullYear() === currentYear &&
+             (expense.category?.toLowerCase().includes('fuel') || expense.category?.toLowerCase().includes('gas'));
+    })
+    .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+
+  const totalFuelingExpenses = fuelingExpenses + additionalFuelExpenses;
+
   const monthlyExpenses = regularExpenses + payrollExpenses + vehicleExpenses;
 
   // Profit calculations
@@ -347,7 +481,10 @@ const XeroFinancePage = () => {
           <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setShowNewTransaction(true)}>
             Add
           </Button>
-          <Button variant="outlined" size="small" startIcon={<FileDownload />}>
+          <Button variant="outlined" size="small" startIcon={<Print />} onClick={handlePrint}>
+            Print
+          </Button>
+          <Button variant="outlined" size="small" startIcon={<FileDownload />} onClick={handleExport}>
             Export
           </Button>
         </Box>
@@ -461,6 +598,14 @@ const XeroFinancePage = () => {
                         <Typography variant="body2" sx={{ fontSize: '12px' }}>Vehicle Costs</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
                           {formatCurrency(vehicleExpenses)}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Fueling Expenses</Typography>
+                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
+                          {formatCurrency(totalFuelingExpenses)}
                         </Typography>
                       </Box>
                     </Grid>
@@ -713,14 +858,14 @@ const XeroFinancePage = () => {
             </Grid>
 
             <TableContainer component={Paper}>
-              <Table size="small">
+              <Table size="small" sx={{ '& .MuiTableCell-root': { border: '1px solid #e0e0e0' } }}>
                 <TableHead>
-                  <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                    <TableCell>Category</TableCell>
+                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                    <TableCell sx={{ bgcolor: '#4caf50', color: 'white', fontWeight: 'bold' }}>Date</TableCell>
+                    <TableCell sx={{ bgcolor: '#4caf50', color: 'white', fontWeight: 'bold' }}>Type</TableCell>
+                    <TableCell sx={{ bgcolor: '#4caf50', color: 'white', fontWeight: 'bold' }}>Description</TableCell>
+                    <TableCell align="right" sx={{ bgcolor: '#4caf50', color: 'white', fontWeight: 'bold' }}>Amount</TableCell>
+                    <TableCell sx={{ bgcolor: '#4caf50', color: 'white', fontWeight: 'bold' }}>Category</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
