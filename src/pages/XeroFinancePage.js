@@ -45,6 +45,8 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { formatCurrency } from '../theme';
+import { genericDataAPI, financeAPI } from '../services/api';
+import { verifyFinanceDataLinkage, formatVerificationReport } from '../utils/financeDataVerification';
 import XeroProfitLossReport from '../components/XeroProfitLossReport';
 import XeroBalanceSheet from '../components/XeroBalanceSheet';
 
@@ -80,29 +82,18 @@ const XeroFinancePage = () => {
         payment_method: 'cash'
       };
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
+      await genericDataAPI.create(endpoint, data);
+      alert(`${newTransaction.type} added successfully!`);
+      setShowNewTransaction(false);
+      setNewTransaction({
+        type: 'expense',
+        amount: '',
+        description: '',
+        category: '',
+        date: new Date().toISOString().split('T')[0]
       });
-
-      if (response.ok) {
-        alert(`${newTransaction.type} added successfully!`);
-        setShowNewTransaction(false);
-        setNewTransaction({
-          type: 'expense',
-          amount: '',
-          description: '',
-          category: '',
-          date: new Date().toISOString().split('T')[0]
-        });
-        // Refresh data
-        window.location.reload();
-      } else {
-        alert(`Failed to add ${newTransaction.type}`);
-      }
+      // Refresh data
+      window.location.reload();
     } catch (error) {
       console.error('Error adding transaction:', error);
       alert('Error adding transaction');
@@ -110,99 +101,117 @@ const XeroFinancePage = () => {
   };
 
 
-  // Fetch all financial tables from database
+  // Fetch all financial tables using authenticated API
   const { data: sales = [], isLoading: salesLoading } = useQuery(
     'finance-sales',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sales`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => genericDataAPI.getAll('Sales').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: expenses = [] } = useQuery(
-    'finance-expenses',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    'finance-expenses', 
+    () => genericDataAPI.getAll('Expenses').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: payroll = [] } = useQuery(
     'finance-payroll',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Payroll`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => genericDataAPI.getAll('Payroll').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: orders = [] } = useQuery(
     'finance-orders',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Orders`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    () => genericDataAPI.getAll('Orders').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
-
-
-
-
 
   const { data: employees = [] } = useQuery(
-    'xero-employees',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Employees`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    'finance-employees',
+    () => genericDataAPI.getAll('Employees').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
-
-
 
   const { data: invoices = [] } = useQuery(
-    'xero-invoices',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Invoices`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    'finance-invoices',
+    () => genericDataAPI.getAll('Invoices').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
-
-
   const { data: stock = [] } = useQuery(
-    'xero-stock',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Stock`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    'finance-stock',
+    () => genericDataAPI.getAll('Stock').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: vehicles = [] } = useQuery(
-    'xero-vehicles',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Vehicles`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    'finance-vehicles',
+    () => genericDataAPI.getAll('Vehicles').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
   const { data: trips = [] } = useQuery(
-    'xero-trips',
-    () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Trips`)
-      .then(res => res.ok ? res.json() : []).catch(() => []),
+    'finance-trips',
+    () => genericDataAPI.getAll('Trips').catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: branches = [] } = useQuery(
+    'finance-branches',
+    () => genericDataAPI.getAll('Branches').catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: saleItems = [] } = useQuery(
+    'finance-sale-items',
+    () => genericDataAPI.getAll('Sale_Items').catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: orderItems = [] } = useQuery(
+    'finance-order-items',
+    () => genericDataAPI.getAll('Order_Items').catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: stockMovements = [] } = useQuery(
+    'finance-stock-movements',
+    () => genericDataAPI.getAll('Stock_Movements').catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: bankAccounts = [] } = useQuery(
+    'finance-bank-accounts',
+    () => genericDataAPI.getAll('Bank_Accounts').catch(() => []),
+    { refetchInterval: 30000, retry: false }
+  );
+
+  const { data: chartOfAccounts = [] } = useQuery(
+    'finance-chart-accounts',
+    () => genericDataAPI.getAll('Chart_of_Accounts').catch(() => []),
     { refetchInterval: 30000, retry: false }
   );
 
 
 
-  // Financial calculations from real data
+  // Enhanced financial calculations using all linked database tables
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
-  // Calculate logistics revenue from trips first
-  const logisticsRevenue = trips
-    .filter(trip => {
-      const tripDate = new Date(trip.trip_date || trip.created_at);
-      return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0);
-
-  // Calculate total monthly revenue from all sources
+  // Revenue calculations from multiple sources
   const salesRevenue = sales
     .filter(sale => {
       const saleDate = new Date(sale.sale_date || sale.created_at);
       return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
     })
     .reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
+
+  const logisticsRevenue = trips
+    .filter(trip => {
+      const tripDate = new Date(trip.trip_date || trip.created_at);
+      return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, trip) => sum + (parseFloat(trip.amount_charged) || 0), 0);
 
   const invoiceRevenue = invoices
     .filter(invoice => {
@@ -213,7 +222,24 @@ const XeroFinancePage = () => {
 
   const monthlyRevenue = salesRevenue + invoiceRevenue + logisticsRevenue;
 
-  // Calculate all expenses including payroll
+  // Cost of Goods Sold from orders and stock movements
+  const orderCosts = orders
+    .filter(order => {
+      const orderDate = new Date(order.order_date || order.created_at);
+      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear && order.status === 'completed';
+    })
+    .reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0);
+
+  const stockMovementCosts = stockMovements
+    .filter(movement => {
+      const movementDate = new Date(movement.movement_date || movement.created_at);
+      return movementDate.getMonth() === currentMonth && movementDate.getFullYear() === currentYear && movement.movement_type === 'out';
+    })
+    .reduce((sum, movement) => sum + ((parseFloat(movement.quantity) || 0) * (parseFloat(movement.unit_cost) || 0)), 0);
+
+  const totalCOGS = orderCosts + stockMovementCosts;
+
+  // Operating expenses including payroll
   const regularExpenses = expenses
     .filter(expense => {
       const expenseDate = new Date(expense.expense_date || expense.created_at);
@@ -223,35 +249,70 @@ const XeroFinancePage = () => {
 
   const payrollExpenses = payroll
     .filter(pay => {
-      const payDate = new Date(pay.pay_date || pay.created_at);
+      const payDate = new Date(pay.period_start || pay.created_at);
       return payDate.getMonth() === currentMonth && payDate.getFullYear() === currentYear;
     })
-    .reduce((sum, pay) => sum + (parseFloat(pay.net_pay) || 0), 0);
+    .reduce((sum, pay) => sum + (parseFloat(pay.net_salary) || 0), 0);
 
-  const monthlyExpenses = regularExpenses + payrollExpenses;
+  const vehicleExpenses = trips
+    .filter(trip => {
+      const tripDate = new Date(trip.trip_date || trip.created_at);
+      return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, trip) => sum + (parseFloat(trip.fuel_cost) || 0), 0);
 
-  const monthlyProfit = monthlyRevenue - monthlyExpenses;
+  const monthlyExpenses = regularExpenses + payrollExpenses + vehicleExpenses;
 
-  // Calculate receivables from both sales and invoices
+  // Profit calculations
+  const grossProfit = monthlyRevenue - totalCOGS;
+  const netProfit = grossProfit - monthlyExpenses;
+  const profitMargin = monthlyRevenue > 0 ? (netProfit / monthlyRevenue) * 100 : 0;
+  const monthlyProfit = netProfit; // Keep for backward compatibility
+
+  // Assets and liabilities
+  const stockValue = stock.reduce((sum, item) => sum + ((parseFloat(item.quantity_available) || 0) * (parseFloat(item.unit_price) || 0)), 0);
+  const vehicleValue = vehicles.reduce((sum, vehicle) => sum + (parseFloat(vehicle.current_value) || parseFloat(vehicle.purchase_price) || 0), 0);
+  const bankBalance = bankAccounts.reduce((sum, account) => sum + (parseFloat(account.current_balance) || 0), 0);
+  const totalAssets = stockValue + vehicleValue + bankBalance;
+
+  // Receivables and payables
   const salesReceivables = sales
     .filter(sale => sale.payment_method === 'credit')
     .reduce((sum, sale) => sum + (parseFloat(sale.total_amount) || 0), 0);
   
   const invoiceReceivables = invoices
     .filter(invoice => invoice.status !== 'paid' && invoice.status !== 'cancelled')
-    .reduce((sum, invoice) => sum + (parseFloat(invoice.balance_due) || 0), 0);
+    .reduce((sum, invoice) => sum + (parseFloat(invoice.balance_due) || parseFloat(invoice.total_amount) || 0), 0);
   
   const totalReceivables = salesReceivables + invoiceReceivables;
 
-  const totalPayables = orders
+  const orderPayables = orders
     .filter(order => order.status !== 'completed' && order.status !== 'paid')
     .reduce((sum, order) => sum + ((parseFloat(order.total_amount) || 0) - (parseFloat(order.amount_paid) || 0)), 0);
 
+  const payrollPayables = payroll
+    .filter(pay => pay.payment_status === 'pending')
+    .reduce((sum, pay) => sum + (parseFloat(pay.net_salary) || 0), 0);
 
+  const totalPayables = orderPayables + payrollPayables;
 
   const cashFlow = monthlyRevenue - monthlyExpenses;
+  const workingCapital = totalReceivables - totalPayables;
 
   const isLoading = salesLoading;
+
+  // Verify database linkages when data is loaded
+  React.useEffect(() => {
+    if (!isLoading && sales.length > 0) {
+      const allData = {
+        sales, expenses, payroll, orders, employees, invoices,
+        stock, vehicles, trips, branches, saleItems, orderItems,
+        stockMovements, bankAccounts, chartOfAccounts
+      };
+      const verification = verifyFinanceDataLinkage(allData);
+      formatVerificationReport(verification);
+    }
+  }, [isLoading, sales, expenses, payroll, orders, employees, invoices, stock, vehicles, trips, branches, saleItems, orderItems, stockMovements, bankAccounts, chartOfAccounts]);
 
   // Simple dashboard cards
   const DashboardCard = ({ title, amount, icon }) => (
@@ -349,7 +410,7 @@ const XeroFinancePage = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={4}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Sales</Typography>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Sales Revenue</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
                           {formatCurrency(salesRevenue)}
                         </Typography>
@@ -357,7 +418,7 @@ const XeroFinancePage = () => {
                     </Grid>
                     <Grid item xs={4}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Logistics</Typography>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Logistics Revenue</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
                           {formatCurrency(logisticsRevenue)}
                         </Typography>
@@ -365,21 +426,29 @@ const XeroFinancePage = () => {
                     </Grid>
                     <Grid item xs={4}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Invoices</Typography>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Invoice Revenue</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
                           {formatCurrency(invoiceRevenue)}
                         </Typography>
                       </Box>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item xs={3}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Expenses</Typography>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>COGS</Typography>
+                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
+                          {formatCurrency(totalCOGS)}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Operating Expenses</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
                           {formatCurrency(regularExpenses)}
                         </Typography>
                       </Box>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item xs={3}>
                       <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
                         <Typography variant="body2" sx={{ fontSize: '12px' }}>Payroll</Typography>
                         <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
@@ -387,11 +456,25 @@ const XeroFinancePage = () => {
                         </Typography>
                       </Box>
                     </Grid>
+                    <Grid item xs={3}>
+                      <Box sx={{ p: 1.5, bgcolor: '#f9fafb', borderRadius: 1, mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>Vehicle Costs</Typography>
+                        <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
+                          {formatCurrency(vehicleExpenses)}
+                        </Typography>
+                      </Box>
+                    </Grid>
                   </Grid>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                    <Typography variant="body1" sx={{ fontSize: '14px' }}>Net Position</Typography>
-                    <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600 }}>
-                      {formatCurrency(monthlyProfit)}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+                    <Typography variant="body1" sx={{ fontSize: '14px' }}>Gross Profit</Typography>
+                    <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600, color: grossProfit >= 0 ? 'success.main' : 'error.main' }}>
+                      {formatCurrency(grossProfit)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                    <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600 }}>Net Profit</Typography>
+                    <Typography variant="h6" sx={{ fontSize: '16px', fontWeight: 600, color: netProfit >= 0 ? 'success.main' : 'error.main' }}>
+                      {formatCurrency(netProfit)} ({profitMargin.toFixed(1)}%)
                     </Typography>
                   </Box>
                 </CardContent>
@@ -414,9 +497,24 @@ const XeroFinancePage = () => {
             </Grid>
           </Grid>
 
-          {/* Outstanding Amounts */}
+          {/* Assets, Liabilities & Working Capital */}
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={3}>
+              <Card sx={{ bgcolor: '#f9fafb' }}>
+                <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                  <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
+                    Total Assets
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600 }}>
+                    {formatCurrency(totalAssets)}
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
+                    Stock + Vehicles + Cash
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
               <Card sx={{ bgcolor: '#f9fafb' }}>
                 <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
                   <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
@@ -431,7 +529,7 @@ const XeroFinancePage = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={3}>
               <Card sx={{ bgcolor: '#f9fafb' }}>
                 <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
                   <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
@@ -441,7 +539,22 @@ const XeroFinancePage = () => {
                     {formatCurrency(totalPayables)}
                   </Typography>
                   <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
-                    Outstanding supplier payments
+                    Outstanding obligations
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card sx={{ bgcolor: '#f9fafb' }}>
+                <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                  <Typography variant="body1" sx={{ fontSize: '14px', fontWeight: 600, mb: 1 }}>
+                    Working Capital
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600, color: workingCapital >= 0 ? 'success.main' : 'error.main' }}>
+                    {formatCurrency(workingCapital)}
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: '12px' }} color="text.secondary">
+                    Receivables - Payables
                   </Typography>
                 </CardContent>
               </Card>
@@ -514,6 +627,11 @@ const XeroFinancePage = () => {
                 invoices={invoices}
                 trips={trips}
                 employees={employees}
+                payroll={payroll}
+                orders={orders}
+                saleItems={saleItems}
+                orderItems={orderItems}
+                stockMovements={stockMovements}
                 period="Current Month"
               />
             </Grid>
@@ -527,6 +645,11 @@ const XeroFinancePage = () => {
                 invoices={invoices}
                 stock={stock}
                 trips={trips}
+                payroll={payroll}
+                branches={branches}
+                bankAccounts={bankAccounts}
+                chartOfAccounts={chartOfAccounts}
+                stockMovements={stockMovements}
                 period="Current Month"
               />
             </Grid>

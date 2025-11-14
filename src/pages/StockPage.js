@@ -35,6 +35,7 @@ import { useForm } from 'react-hook-form';
 
 import { formatCurrency } from '../theme';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
+import StockForm from '../components/forms/StockForm';
 import toast from 'react-hot-toast';
 
 const StockPage = () => {
@@ -91,12 +92,14 @@ const StockPage = () => {
     (data) => {
       return fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/stock/branch/${branchId}`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
-      }).then(res => res.json());
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      });
     },
     {
       onSuccess: () => {
@@ -214,27 +217,33 @@ const StockPage = () => {
   );
 
   const onSubmit = (data) => {
-    // Validate required fields
+    // Backend validation: product_name, quantity_available, unit_price are required
     if (!data.product_name?.trim()) {
       toast.error('Product name is required');
       return;
     }
-    if (!data.quantity_available || data.quantity_available < 0) {
-      toast.error('Valid quantity is required');
+    if (!data.quantity_available && data.quantity_available !== 0) {
+      toast.error('Quantity is required');
       return;
     }
-    if (!data.unit_price || data.unit_price <= 0) {
-      toast.error('Unit price is required and must be greater than 0');
+    if (!data.unit_price) {
+      toast.error('Unit price is required');
       return;
     }
 
     const cleanData = {
       product_name: data.product_name.trim(),
-      product_id: data.product_id?.trim(),
       quantity_available: parseInt(data.quantity_available),
-      unit_price: parseFloat(data.unit_price),
-      reorder_level: parseInt(data.reorder_level) || 10
+      unit_price: parseFloat(data.unit_price)
     };
+    
+    // Optional fields
+    if (data.product_id?.trim()) {
+      cleanData.product_id = data.product_id.trim();
+    }
+    if (data.reorder_level) {
+      cleanData.reorder_level = parseInt(data.reorder_level);
+    }
 
     if (editingStock) {
       updateStockMutation.mutate({ id: editingStock.id, data: cleanData });
@@ -583,44 +592,7 @@ const StockPage = () => {
           {editingStock ? 'Edit Stock' : 'Add New Stock'}
         </DialogTitle>
         <DialogContent>
-          <Box component="form" sx={{ mt: 2 }}>
-            <TextField
-              fullWidth
-              label="Product ID"
-              margin="normal"
-              {...register('product_id')}
-              placeholder="Auto-generated if empty"
-            />
-            <TextField
-              fullWidth
-              label="Product Name *"
-              margin="normal"
-              {...register('product_name', { required: true })}
-            />
-            <TextField
-              fullWidth
-              label="Quantity Available *"
-              type="number"
-              margin="normal"
-              {...register('quantity_available', { required: true, min: 0 })}
-            />
-            <TextField
-              fullWidth
-              label="Unit Price *"
-              type="number"
-              step="0.01"
-              margin="normal"
-              {...register('unit_price', { required: true, min: 0 })}
-            />
-            <TextField
-              fullWidth
-              label="Reorder Level"
-              type="number"
-              margin="normal"
-              defaultValue={10}
-              {...register('reorder_level')}
-            />
-          </Box>
+          <StockForm register={register} errors={{}} />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

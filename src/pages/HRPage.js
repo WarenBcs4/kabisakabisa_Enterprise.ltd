@@ -42,6 +42,8 @@ import { useNavigate } from 'react-router-dom';
 
 import QuickUpload from '../components/QuickUpload';
 import HistoricalDataViewer from '../components/HistoricalDataViewer';
+import EmployeeForm from '../components/forms/EmployeeForm';
+import PayrollForm from '../components/forms/PayrollForm';
 import { useForm } from 'react-hook-form';
 import { hrAPI, branchesAPI } from '../services/api';
 import { formatCurrency } from '../theme';
@@ -216,23 +218,16 @@ const HRPage = () => {
   );
 
   const onSubmitEmployee = (data) => {
-    if (!data.full_name?.trim()) {
-      toast.error('Full name is required');
-      return;
-    }
-    if (!data.email?.trim()) {
-      toast.error('Email is required');
-      return;
-    }
-    if (!data.role) {
-      toast.error('Role is required');
+    // Backend validation: full_name, email, role are required
+    if (!data.full_name || !data.email || !data.role) {
+      toast.error('Full name, email, and role are required');
       return;
     }
     
-    // Password validation for new employees
+    // Password validation for new employees (backend requirement)
     if (!editingEmployee) {
-      if (!data.password?.trim()) {
-        toast.error('Password is required for new employees');
+      if (!data.password || !data.password.trim()) {
+        toast.error('Password is required when creating a new employee');
         return;
       }
       if (data.password.trim().length < 8) {
@@ -244,15 +239,16 @@ const HRPage = () => {
     const cleanData = {
       full_name: data.full_name.trim(),
       email: data.email.toLowerCase().trim(),
-      phone: data.phone?.trim() || null,
-      role: data.role,
-      branch_id: data.branch_id || null,
-      salary: data.salary ? parseFloat(data.salary) : null,
-      hire_date: data.hire_date || new Date().toISOString().split('T')[0],
-      is_active: data.is_active !== false
+      role: data.role
     };
     
-    // Add password for new employees or password change for existing
+    // Optional fields
+    if (data.phone?.trim()) cleanData.phone = data.phone.trim();
+    if (data.branch_id) cleanData.branch_id = data.branch_id;
+    if (data.salary) cleanData.salary = parseFloat(data.salary);
+    if (data.hire_date) cleanData.hire_date = data.hire_date;
+    
+    // Password handling
     if (!editingEmployee && data.password?.trim()) {
       cleanData.password = data.password.trim();
     } else if (editingEmployee && data.new_password?.trim()) {

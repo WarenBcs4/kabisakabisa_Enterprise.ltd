@@ -31,6 +31,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { expensesAPI, branchesAPI, logisticsAPI } from '../services/api';
 import { formatCurrency } from '../theme';
+import ExpenseForm from '../components/forms/ExpenseForm';
 import toast from 'react-hot-toast';
 import DocumentUploader from '../components/DocumentUploader';
 
@@ -146,8 +147,9 @@ const ExpensePage = () => {
   );
 
   const onSubmit = (data) => {
+    // Backend validation: expense_date, category, amount, description are required
     if (!data.expense_date || !data.category || !data.amount || !data.description) {
-      toast.error('Please fill in all required fields');
+      toast.error('Expense date, category, amount, and description are required');
       return;
     }
 
@@ -157,9 +159,14 @@ const ExpensePage = () => {
     }
 
     const payload = {
-      ...data,
+      expense_date: data.expense_date,
+      category: data.category,
+      amount: parseFloat(data.amount),
+      description: data.description.trim(),
       branch_id: selectedBranchId || undefined,
-      vehicle_id: data.vehicle_id || undefined
+      vehicle_id: data.vehicle_id || undefined,
+      receipt_number: data.receipt_number || undefined,
+      supplier_name: data.supplier_name || undefined
     };
 
     if (editingExpense) {

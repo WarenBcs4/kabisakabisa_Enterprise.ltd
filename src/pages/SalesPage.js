@@ -28,6 +28,7 @@ import {
 import { Add, Delete, Visibility, Receipt, Business } from '@mui/icons-material';
 
 import QuickUpload from '../components/QuickUpload';
+import SalesForm from '../components/forms/SalesForm';
 
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -203,42 +204,26 @@ const SalesPage = () => {
   };
 
   const onSubmitSale = (data) => {
-    // Validate required fields
+    // Backend validation: items array is required
     if (!data.items || data.items.length === 0) {
-      toast.error('Please add at least one item to the sale');
+      toast.error('Sale items are required');
       return;
     }
 
-    // Validate stock availability
-    const validationErrors = [];
-    
-    data.items.forEach((item, index) => {
-      if (!item.product_id) {
-        validationErrors.push(`Please select a product for item ${index + 1}`);
+    // Validate each item matches backend requirements
+    for (const item of data.items) {
+      if (!item.product_name) {
+        toast.error('Product name is required for all items');
         return;
       }
       if (!item.quantity || item.quantity <= 0) {
-        validationErrors.push(`Please enter a valid quantity for item ${index + 1}`);
+        toast.error('Valid quantity is required for all items');
         return;
       }
       if (!item.unit_price || item.unit_price <= 0) {
-        validationErrors.push(`Please enter a valid price for item ${index + 1}`);
+        toast.error('Valid unit price is required for all items');
         return;
       }
-
-      const stockItem = stock.find(s => s.product_id === item.product_id);
-      if (!stockItem) {
-        validationErrors.push(`Product ${item.product_name || item.product_id} not found in stock`);
-      } else if (stockItem.quantity_available < item.quantity) {
-        validationErrors.push(
-          `Product ${item.product_name} has only ${stockItem.quantity_available} units available. You cannot sell ${item.quantity} units.`
-        );
-      }
-    });
-
-    if (validationErrors.length > 0) {
-      toast.error(validationErrors.join('\n'));
-      return;
     }
 
     createSaleMutation.mutate(data);
@@ -614,69 +599,16 @@ const SalesPage = () => {
               </Typography>
               
               <Box component="form" onSubmit={handleSubmit(onSubmitSale)}>
-                {/* Sale Items */}
-                {fields.map((field, index) => (
-                  <Grid container spacing={{ xs: 1, sm: 2 }} key={field.id} sx={{ mb: 2 }}>
-                    <Grid item xs={12} sm={4}>
-                      <FormControl fullWidth>
-                        <InputLabel>Product</InputLabel>
-                        <Select
-                          {...register(`items.${index}.product_id`)}
-                          value={watchedItems[index]?.product_id || ''}
-                          onChange={(e) => handleProductSelect(index, e.target.value)}
-                          label="Product"
-                        >
-                          {stock.map((item) => (
-                            <MenuItem key={item.product_id} value={item.product_id}>
-                              {(item.product_name || '').toLowerCase()} (Available: {item.quantity_available})
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={2}>
-                      <TextField
-                        fullWidth
-                        label="Quantity"
-                        type="number"
-                        {...register(`items.${index}.quantity`, { 
-                          required: true, 
-                          min: 1 
-                        })}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={2}>
-                      <TextField
-                        fullWidth
-                        label="Unit Price"
-                        type="number"
-                        step="0.01"
-                        {...register(`items.${index}.unit_price`, { 
-                          required: true, 
-                          min: 0 
-                        })}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={2}>
-                      <TextField
-                        fullWidth
-                        label="Subtotal"
-                        value={(watchedItems[index]?.quantity * watchedItems[index]?.unit_price || 0).toFixed(2)}
-                        InputProps={{ readOnly: true }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={2}>
-                      <IconButton
-                        onClick={() => remove(index)}
-                        disabled={fields.length === 1}
-                        color="error"
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Grid>
-                  </Grid>
-                ))}
-
+                <SalesForm 
+                  register={register}
+                  control={control}
+                  fields={fields}
+                  append={append}
+                  remove={remove}
+                  watch={watch}
+                  stock={stock}
+                />
+                
                 <Button
                   startIcon={<Add />}
                   onClick={() => append({ product_id: '', product_name: '', quantity: 1, unit_price: 0 })}
@@ -684,39 +616,6 @@ const SalesPage = () => {
                 >
                   Add Item
                 </Button>
-
-                <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mt: 2 }}>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      fullWidth
-                      label="Sale Date"
-                      type="date"
-                      defaultValue={new Date().toISOString().split('T')[0]}
-                      InputLabelProps={{ shrink: true }}
-                      {...register('sale_date')}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
-                      <InputLabel>Payment Method</InputLabel>
-                      <Select
-                        {...register('payment_method')}
-                        label="Payment Method"
-                      >
-                        <MenuItem value="cash">Cash</MenuItem>
-                        <MenuItem value="card">Card</MenuItem>
-                        <MenuItem value="credit">Credit</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      fullWidth
-                      label="Customer Name (Optional)"
-                      {...register('customer_name')}
-                    />
-                  </Grid>
-                </Grid>
 
                 <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="h6">
