@@ -96,6 +96,10 @@ const ManagerPage = () => {
     { refetchInterval: 30000, retry: false }
   );
 
+  // Placeholder data for removed queries
+  const stockMovements = [];
+  const orderItems = [];
+
   // Helper functions to get related data
   const getBranchName = (branchId) => {
     const id = Array.isArray(branchId) ? branchId[0] : branchId;
@@ -483,16 +487,13 @@ const ManagerPage = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {stockMovements.slice(0, 20).map((movement, index) => (
-                        <TableRow key={movement.id || index}>
-                          <TableCell>{movement.product_name || 'N/A'}</TableCell>
-                          <TableCell>
-                            <Chip label={movement.movement_type || 'Unknown'} size="small" />
-                          </TableCell>
-                          <TableCell align="right">{movement.quantity || 0}</TableCell>
-                          <TableCell>{movement.movement_date ? new Date(movement.movement_date).toLocaleDateString() : 'N/A'}</TableCell>
-                        </TableRow>
-                      ))}
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          <Typography color="text.secondary">
+                            Stock movements data not available
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </TableContainer>
@@ -557,14 +558,13 @@ const ManagerPage = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {orderItems.slice(0, 20).map((item, index) => (
-                        <TableRow key={item.id || index}>
-                          <TableCell>{item.product_name || 'N/A'}</TableCell>
-                          <TableCell align="right">{item.quantity || 0}</TableCell>
-                          <TableCell align="right">{formatCurrency(item.unit_cost || 0)}</TableCell>
-                          <TableCell align="right">{formatCurrency((item.quantity || 0) * (item.unit_cost || 0))}</TableCell>
-                        </TableRow>
-                      ))}
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          <Typography color="text.secondary">
+                            Order items data not available
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </TableContainer>
