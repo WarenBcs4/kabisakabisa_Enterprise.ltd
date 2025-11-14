@@ -16,9 +16,7 @@ import {
   TableRow,
   Paper
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+
 import { useQuery } from 'react-query';
 import { genericDataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
@@ -61,8 +59,7 @@ const FinancePage = () => {
   const netProfit = totalRevenue - totalExpenses;
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
         <Typography variant="h4" gutterBottom>
           Financial Overview
         </Typography>
@@ -72,19 +69,23 @@ const FinancePage = () => {
           <CardContent>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={4}>
-                <DatePicker
+                <TextField
+                  fullWidth
                   label="Start Date"
-                  value={startDate}
-                  onChange={setStartDate}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
+                  type="date"
+                  value={formatDate(startDate)}
+                  onChange={(e) => setStartDate(new Date(e.target.value))}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <DatePicker
+                <TextField
+                  fullWidth
                   label="End Date"
-                  value={endDate}
-                  onChange={setEndDate}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
+                  type="date"
+                  value={formatDate(endDate)}
+                  onChange={(e) => setEndDate(new Date(e.target.value))}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -225,7 +226,6 @@ const FinancePage = () => {
           </Grid>
         </Grid>
       </Container>
-    </LocalizationProvider>
   );
 };
 
