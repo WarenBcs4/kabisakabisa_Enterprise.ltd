@@ -348,11 +348,13 @@ export const stockAPIEnhanced = {
   getMovements: (branchId, params) => api.get(`/stock/movements/${branchId}`, { params }).then(res => res.data),
 };
 
-// Update stockAPI to include missing methods
-stockAPI.getPendingTransfers = (branchId) => api.get(`/stock/transfers/pending/${branchId}`).then(res => res.data);
-stockAPI.transfer = (data) => api.post('/stock/transfer', data).then(res => res.data);
-stockAPI.approveTransfer = (transferId) => api.patch(`/stock/transfers/${transferId}/approve`).then(res => res.data);
-stockAPI.rejectTransfer = (transferId) => api.patch(`/stock/transfers/${transferId}/reject`).then(res => res.data);
+// Update stockAPI to include missing methods using data routes
+stockAPI.getPendingTransfers = (branchId) => api.get('/data/Stock_Movements').then(res => {
+  const movements = res.data || [];
+  return movements.filter(m => m.to_branch_id && m.to_branch_id.includes(branchId) && m.status === 'pending');
+});
+stockAPI.approveTransfer = (transferId) => api.put(`/data/Stock_Movements/${transferId}`, { status: 'approved' }).then(res => res.data);
+stockAPI.rejectTransfer = (transferId) => api.put(`/data/Stock_Movements/${transferId}`, { status: 'rejected' }).then(res => res.data);
 
 // Finance API
 export const financeAPI = {
