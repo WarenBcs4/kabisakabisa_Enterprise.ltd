@@ -112,10 +112,6 @@ const FinancePage = () => {
     ['logisticsTransactions', dateRange],
     () => logisticsTransactionsAPI.getAll(dateRange).catch(() => [])
   );
-  const { data: logisticsAnalytics = {} } = useQuery(
-    ['logisticsAnalytics', dateRange],
-    () => logisticsTransactionsAPI.getAnalytics(dateRange).catch(() => ({}))
-  );
 
   // Comprehensive financial calculations
   const totalRevenue = salesData.reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
