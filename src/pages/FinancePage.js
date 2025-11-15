@@ -58,7 +58,7 @@ import {
   ShoppingCart,
   MonetizationOn,
   AccountBalanceWallet
-} from '@mui/material';
+} from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { salesAPI, expensesAPI, branchesAPI, ordersAPI, stockAPI, hrAPI, logisticsAPI, genericDataAPI } from '../services/api';
 import { formatCurrency } from '../theme';
