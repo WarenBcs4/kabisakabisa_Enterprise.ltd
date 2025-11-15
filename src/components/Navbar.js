@@ -123,7 +123,10 @@ const Navbar = () => {
                 sx={{ 
                   bgcolor: 'transparent', 
                   border: 'none',
-                  color: '#000000'
+                  color: '#000000',
+                  '&:hover': {
+                    bgcolor: 'transparent'
+                  }
                 }}
               >
                 Dashboard
@@ -136,7 +139,10 @@ const Navbar = () => {
                   sx={{ 
                     bgcolor: 'transparent', 
                     border: 'none',
-                    color: '#000000'
+                    color: '#000000',
+                    '&:hover': {
+                      bgcolor: 'transparent'
+                    }
                   }}
                 >
                   HR
@@ -147,7 +153,7 @@ const Navbar = () => {
                 <Button
                   startIcon={<Business sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/manager')}
-                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
                 >
                   Manager
                 </Button>
@@ -157,7 +163,7 @@ const Navbar = () => {
                 <Button
                   startIcon={<Business sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/admin')}
-                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
                 >
                   Admin
                 </Button>
@@ -168,7 +174,7 @@ const Navbar = () => {
                   <Button
                     startIcon={<Store sx={{ color: '#D3D3D3' }} />}
                     onClick={handleSalesMenuOpen}
-                    sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
+                    sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
                   >
                     Sales
                   </Button>
@@ -197,7 +203,7 @@ const Navbar = () => {
                   <Button
                     startIcon={<Inventory sx={{ color: '#D3D3D3' }} />}
                     onClick={handleStockMenuOpen}
-                    sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
+                    sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
                   >
                     Stock
                   </Button>
@@ -225,7 +231,7 @@ const Navbar = () => {
                 <Button
                   startIcon={<Business sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/boss')}
-                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
                 >
                   Boss
                 </Button>
@@ -235,7 +241,7 @@ const Navbar = () => {
                 <Button
                   startIcon={<LocalShipping sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/logistics')}
-                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
                 >
                   Logistics
                 </Button>
@@ -245,7 +251,7 @@ const Navbar = () => {
                 <Button
                   startIcon={<ShoppingCart sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/orders')}
-                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
                 >
                   Orders
                 </Button>
@@ -255,7 +261,7 @@ const Navbar = () => {
                 <Button
                   startIcon={<Receipt sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/expenses')}
-                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
                 >
                   Expenses
                 </Button>
