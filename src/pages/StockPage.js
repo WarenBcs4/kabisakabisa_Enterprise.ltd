@@ -653,10 +653,20 @@ const StockPage = () => {
       </Dialog>
 
       {/* Historical Data Viewer */}
+      <Dialog 
         open={showHistoricalData}
         onClose={() => setShowHistoricalData(false)}
-        title="Stock Historical Data"
-      />
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Stock Historical Data</DialogTitle>
+        <DialogContent>
+          <Typography>Historical data not available</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowHistoricalData(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

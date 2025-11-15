@@ -266,6 +266,14 @@ const Navbar = () => {
                   Expenses
                 </Button>
               )}
+
+              <Button
+                startIcon={<Receipt sx={{ color: '#D3D3D3' }} />}
+                onClick={() => navigate('/finance')}
+                sx={{ bgcolor: 'transparent', border: 'none', color: '#000000', '&:hover': { bgcolor: 'transparent' } }}
+              >
+                Finance
+              </Button>
             </>
           )}
 
@@ -363,6 +371,11 @@ const Navbar = () => {
                   <ListItemText primary="Expenses" />
                 </ListItem>
               )}
+              
+              <ListItem button onClick={() => { navigate('/finance'); setMobileMenuOpen(false); }}>
+                <ListItemIcon><Receipt /></ListItemIcon>
+                <ListItemText primary="Finance" />
+              </ListItem>
             </List>
           </Box>
         </Drawer>
