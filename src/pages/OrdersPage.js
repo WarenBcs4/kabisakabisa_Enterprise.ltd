@@ -483,7 +483,7 @@ const OrdersPage = () => {
                       </TableCell>
                       <TableCell>
                         <Chip 
-                          label={order.status.replace('_', ' ').toUpperCase()}
+                          label={(order.status || 'unknown').replace('_', ' ').toUpperCase()}
                           color={getStatusColor(order.status)}
                           size="small"
                         />
