@@ -148,12 +148,14 @@ const SalesPage = () => {
   const createSaleMutation = useMutation(
     (data) => {
       const saleData = {
-        ...data,
-        employee_id: user?.id,
+        items: data.items,
+        branchId: selectedBranchId,
+        customer_name: data.customer_name || '',
+        payment_method: data.payment_method || 'cash',
         sale_date: data.sale_date || new Date().toISOString().split('T')[0],
-        total_amount: calculateTotal()
+        employee_id: user?.id
       };
-      return salesAPI.createSale(selectedBranchId, saleData);
+      return salesAPI.createSale(saleData);
     },
     {
       onSuccess: () => {
@@ -625,7 +627,7 @@ const SalesPage = () => {
                         <TableCell>{formatCurrency(sale.total_amount || 0)}</TableCell>
                         <TableCell>
                           <Chip 
-                            label={sale.payment_method || 'N/A'} 
+                            label={sale.payment_method || 'cash'} 
                             size="small"
                             color={sale.payment_method === 'cash' ? 'success' : 'default'}
                           />

@@ -110,7 +110,7 @@ export const stockAPI = {
 // Sales API - using dedicated routes like logistics
 export const salesAPI = {
   getByBranch: (branchId, params) => api.get(`/sales/branch/${branchId}`, { params }).then(res => res.data),
-  createSale: (branchId, data) => api.post('/sales', { ...data, branchId }).then(res => res.data),
+  createSale: (data) => api.post('/sales', data).then(res => res.data),
   getDailySummary: (branchId, date) => api.get(`/sales/summary/daily/${branchId}`, { params: { date } }).then(res => res.data),
   recordExpense: (branchId, data) => api.post(`/sales/expenses/branch/${branchId}`, data).then(res => res.data),
   getExpenses: (branchId, params) => api.get(`/sales/expenses/branch/${branchId}`, { params }).then(res => res.data),
