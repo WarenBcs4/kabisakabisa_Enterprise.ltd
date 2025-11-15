@@ -315,7 +315,7 @@ const StockPage = () => {
       {/* Summary Cards */}
       <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 4 }}>
         <Grid item xs={6} sm={6} md={3}>
-          <Card>
+          <Card sx={{ backgroundColor: '#f6f4d2' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Inventory sx={{ fontSize: { xs: 30, md: 40 }, color: 'primary.main', mr: 1 }} />
@@ -332,7 +332,7 @@ const StockPage = () => {
           </Card>
         </Grid>
         <Grid item xs={6} sm={6} md={3}>
-          <Card>
+          <Card sx={{ backgroundColor: '#ffe5d9' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Total Stock Value
@@ -344,7 +344,7 @@ const StockPage = () => {
           </Card>
         </Grid>
         <Grid item xs={6} sm={6} md={3}>
-          <Card>
+          <Card sx={{ backgroundColor: '#f6f4d2' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Low Stock Items
@@ -356,7 +356,7 @@ const StockPage = () => {
           </Card>
         </Grid>
         <Grid item xs={6} sm={6} md={3}>
-          <Card>
+          <Card sx={{ backgroundColor: '#ffe5d9' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Pending Transfers
@@ -406,7 +406,7 @@ const StockPage = () => {
 
       {/* Current Stock Tab */}
       {activeTab === 0 && (
-        <Card>
+        <Card sx={{ backgroundColor: '#f6f4d2' }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Current Stock
@@ -468,7 +468,7 @@ const StockPage = () => {
 
       {/* Low Stock Tab */}
       {activeTab === 1 && (
-        <Card>
+        <Card sx={{ backgroundColor: '#ffe5d9' }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Low Stock Alerts
@@ -519,7 +519,7 @@ const StockPage = () => {
 
       {/* Pending Transfers Tab */}
       {activeTab === 2 && (
-        <Card>
+        <Card sx={{ backgroundColor: '#f6f4d2' }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Pending Transfers

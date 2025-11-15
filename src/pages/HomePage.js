@@ -25,7 +25,7 @@ const HomePage = () => {
   const { data: branches = [] } = useQuery('publicBranches', branchesAPI.getPublic);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'white' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f6f4d2' }}>
       {/* Navigation */}
       <Box sx={{ borderBottom: '1px solid #e5e7eb', py: { xs: 0.5, sm: 1 } }}>
         <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
@@ -226,7 +226,7 @@ const HomePage = () => {
 
       {/* Store Branches Section */}
       <Collapse in={showBranches}>
-        <Box sx={{ bgcolor: '#f9fafb', py: 3 }}>
+        <Box sx={{ bgcolor: '#ffe5d9', py: 3 }}>
           <Container maxWidth="lg" sx={{ px: 1 }}>
             <Typography variant="h5" sx={{ fontWeight: 600, mb: { xs: 1.5, sm: 2 }, textAlign: 'center', fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' } }}>
               Our Store Locations
@@ -234,7 +234,7 @@ const HomePage = () => {
             <Grid container spacing={2} justifyContent="center">
               {branches.map((branch) => (
                 <Grid item xs={12} sm={10} md={6} lg={4} key={branch.id}>
-                  <Card sx={{ border: '1px solid #e5e7eb', '&:hover': { boxShadow: 2 } }}>
+                  <Card sx={{ backgroundColor: '#f6f4d2', border: '1px solid #e5e7eb', '&:hover': { boxShadow: 2 } }}>
                     <CardContent sx={{ textAlign: 'center', p: { xs: 1.5, sm: 2 } }}>
                       <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' } }}>
                         {branch.name}

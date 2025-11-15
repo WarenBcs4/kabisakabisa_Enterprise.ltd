@@ -456,7 +456,7 @@ const SalesPage = () => {
       {/* Summary Cards */}
       <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 4 }}>
         <Grid item xs={6} sm={6} md={3}>
-          <Card>
+          <Card sx={{ backgroundColor: '#f6f4d2' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Today's Sales
@@ -468,7 +468,7 @@ const SalesPage = () => {
           </Card>
         </Grid>
         <Grid item xs={6} sm={6} md={3}>
-          <Card>
+          <Card sx={{ backgroundColor: '#ffe5d9' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Today's Revenue
@@ -480,7 +480,7 @@ const SalesPage = () => {
           </Card>
         </Grid>
         <Grid item xs={6} sm={6} md={3}>
-          <Card>
+          <Card sx={{ backgroundColor: '#f6f4d2' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Received Funds
@@ -492,7 +492,7 @@ const SalesPage = () => {
           </Card>
         </Grid>
         <Grid item xs={6} sm={6} md={3}>
-          <Card>
+          <Card sx={{ backgroundColor: '#ffe5d9' }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom variant="body2">
                 Outstanding Balance
@@ -553,7 +553,7 @@ const SalesPage = () => {
       <Grid container spacing={{ xs: 1, sm: 2 }}>
         {/* Sales Entry Form */}
         <Grid item xs={12} lg={8}>
-          <Card>
+          <Card sx={{ backgroundColor: '#f6f4d2' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 New Sale Entry
@@ -598,7 +598,7 @@ const SalesPage = () => {
 
         {/* Recent Sales */}
         <Grid item xs={12} lg={4}>
-          <Card>
+          <Card sx={{ backgroundColor: '#ffe5d9' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Recent Sales

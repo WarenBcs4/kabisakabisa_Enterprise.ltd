@@ -251,7 +251,7 @@ const ExpensePage = () => {
       </Box>
 
       {/* Date Range Filter */}
-      <Card sx={{ mb: 3 }}>
+      <Card sx={{ mb: 3, backgroundColor: '#f6f4d2' }}>
         <CardContent>
           <Grid container spacing={{ xs: 1, sm: 2 }} alignItems="center">
             <Grid item xs={12} sm={3}>
@@ -296,7 +296,7 @@ const ExpensePage = () => {
             const category = categories.find(c => c.value === categorySum.category);
             return (
               <Grid item xs={6} sm={6} md={3} key={categorySum.category}>
-                <Card>
+                <Card sx={{ backgroundColor: categorySum.category === 'fuel' ? '#ffe5d9' : '#f6f4d2' }}>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom variant="body2">
                       {category?.label || categorySum.category}
@@ -316,7 +316,7 @@ const ExpensePage = () => {
       )}
 
       {/* Expenses Table */}
-      <Card>
+      <Card sx={{ backgroundColor: '#ffe5d9' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Expense Records
