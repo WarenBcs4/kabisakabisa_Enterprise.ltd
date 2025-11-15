@@ -263,10 +263,17 @@ const FinancePage = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 }, mb: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}>
+    <Container maxWidth="xl" sx={{ 
+      mt: { xs: 2, md: 4 }, 
+      mb: { xs: 2, md: 4 }, 
+      px: { xs: 1, sm: 2 },
+      backgroundColor: '#f5f5f5',
+      minHeight: '100vh',
+      fontFamily: 'Nunito, sans-serif'
+    }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2', fontFamily: 'Nunito, sans-serif' }}>
           Financial Management System
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -294,7 +301,7 @@ const FinancePage = () => {
       </Box>
 
       {/* Enhanced Filters */}
-      <Card sx={{ mb: 3, p: 2 }}>
+      <Card sx={{ mb: 3, p: 1.5, backgroundColor: '#f5f5f5', boxShadow: 1 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6} md={2}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>Filters:</Typography>
@@ -352,97 +359,97 @@ const FinancePage = () => {
       </Card>
 
       {/* Comprehensive Financial Metrics */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Grid container spacing={1.5} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', height: '100%' }}>
-            <CardContent>
+          <Card sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', height: 'auto', backgroundColor: '#f5f5f5', boxShadow: 1 }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Total Revenue</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', mt: 1 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem' }}>Total Revenue</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 0.5, fontFamily: 'Nunito, sans-serif' }}>
                     {formatCurrency(totalRevenue)}
                   </Typography>
-                  <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.7rem' }}>
                     Sales: {salesData.length}
                   </Typography>
                 </Box>
-                <MonetizationOn sx={{ fontSize: 35, opacity: 0.8 }} />
+                <MonetizationOn sx={{ fontSize: 28, opacity: 0.8 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', height: '100%' }}>
-            <CardContent>
+          <Card sx={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', height: 'auto', backgroundColor: '#f5f5f5', boxShadow: 1 }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Total Expenses</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', mt: 1 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem' }}>Total Expenses</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 0.5, fontFamily: 'Nunito, sans-serif' }}>
                     {formatCurrency(totalExpenses)}
                   </Typography>
-                  <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.7rem' }}>
                     Items: {expensesData.length}
                   </Typography>
                 </Box>
-                <Receipt sx={{ fontSize: 35, opacity: 0.8 }} />
+                <Receipt sx={{ fontSize: 28, opacity: 0.8 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', height: '100%' }}>
-            <CardContent>
+          <Card sx={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', height: 'auto', backgroundColor: '#f5f5f5', boxShadow: 1 }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Stock Value</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', mt: 1 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem' }}>Stock Value</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 0.5, fontFamily: 'Nunito, sans-serif' }}>
                     {formatCurrency(stockValue)}
                   </Typography>
-                  <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.7rem' }}>
                     Items: {stockData.length}
                   </Typography>
                 </Box>
-                <Inventory sx={{ fontSize: 35, opacity: 0.8 }} />
+                <Inventory sx={{ fontSize: 28, opacity: 0.8 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white', height: '100%' }}>
-            <CardContent>
+          <Card sx={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white', height: 'auto', backgroundColor: '#f5f5f5', boxShadow: 1 }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Payroll Cost</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', mt: 1 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem' }}>Payroll Cost</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 0.5, fontFamily: 'Nunito, sans-serif' }}>
                     {formatCurrency(totalPayroll)}
                   </Typography>
-                  <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.7rem' }}>
                     Staff: {employeesData.length}
                   </Typography>
                 </Box>
-                <People sx={{ fontSize: 35, opacity: 0.8 }} />
+                <People sx={{ fontSize: 28, opacity: 0.8 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} sm={6} md={2.4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', color: '#333', height: '100%' }}>
-            <CardContent>
+          <Card sx={{ background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', color: '#333', height: 'auto', backgroundColor: '#f5f5f5', boxShadow: 1 }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Net Profit</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', mt: 1, color: netProfit >= 0 ? 'green' : 'red' }}>
+                  <Typography variant="body2" sx={{ opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem' }}>Net Profit</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 0.5, color: netProfit >= 0 ? 'green' : 'red', fontFamily: 'Nunito, sans-serif' }}>
                     {formatCurrency(netProfit)}
                   </Typography>
-                  <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.8, fontFamily: 'Nunito, sans-serif', fontSize: '0.7rem' }}>
                     Margin: {profitMargin.toFixed(1)}%
                   </Typography>
                 </Box>
-                <AccountBalanceWallet sx={{ fontSize: 35, opacity: 0.8 }} />
+                <AccountBalanceWallet sx={{ fontSize: 28, opacity: 0.8 }} />
               </Box>
             </CardContent>
           </Card>
@@ -450,7 +457,7 @@ const FinancePage = () => {
       </Grid>
 
       {/* Enhanced Tabs */}
-      <Card>
+      <Card sx={{ backgroundColor: '#f5f5f5', boxShadow: 1 }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs 
             value={activeTab} 
@@ -458,13 +465,13 @@ const FinancePage = () => {
             variant="scrollable"
             scrollButtons="auto"
           >
-            <Tab icon={<BarChart />} label="Financial Overview" />
-            <Tab icon={<Business />} label="Branch Analysis" />
-            <Tab icon={<Receipt />} label="Expense Breakdown" />
-            <Tab icon={<Inventory />} label="Asset Management" />
-            <Tab icon={<People />} label="HR Financials" />
-            <Tab icon={<LocalShipping />} label="Operations" />
-            <Tab icon={<Timeline />} label="Reports" />
+            <Tab icon={<BarChart />} label="financial overview" sx={{ fontFamily: 'Nunito, sans-serif', textTransform: 'lowercase' }} />
+            <Tab icon={<Business />} label="branch analysis" sx={{ fontFamily: 'Nunito, sans-serif', textTransform: 'lowercase' }} />
+            <Tab icon={<Receipt />} label="expense breakdown" sx={{ fontFamily: 'Nunito, sans-serif', textTransform: 'lowercase' }} />
+            <Tab icon={<Inventory />} label="asset management" sx={{ fontFamily: 'Nunito, sans-serif', textTransform: 'lowercase' }} />
+            <Tab icon={<People />} label="hr financials" sx={{ fontFamily: 'Nunito, sans-serif', textTransform: 'lowercase' }} />
+            <Tab icon={<LocalShipping />} label="operations" sx={{ fontFamily: 'Nunito, sans-serif', textTransform: 'lowercase' }} />
+            <Tab icon={<Timeline />} label="reports" sx={{ fontFamily: 'Nunito, sans-serif', textTransform: 'lowercase' }} />
           </Tabs>
         </Box>
 
