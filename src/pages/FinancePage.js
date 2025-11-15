@@ -53,7 +53,7 @@ import {
   AccountBalanceWallet
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
-import { salesAPI, expensesAPI, branchesAPI, ordersAPI, stockAPI, hrAPI, logisticsAPI, logisticsTransactionsAPI } from '../services/api';
+import { salesAPI, expensesAPI, branchesAPI, ordersAPI, stockAPI, hrAPI, logisticsAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 
 const FinancePage = () => {
