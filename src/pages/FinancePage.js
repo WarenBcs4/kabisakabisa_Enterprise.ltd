@@ -108,10 +108,7 @@ const FinancePage = () => {
     ['stockMovements', dateRange],
     () => stockAPI.getMovements('all', dateRange).catch(() => [])
   );
-  const { data: logisticsTransactions = [] } = useQuery(
-    ['logisticsTransactions', dateRange],
-    () => logisticsTransactionsAPI.getAll(dateRange).catch(() => [])
-  );
+
   const { data: tripsData = [] } = useQuery(
     ['tripsData', dateRange],
     () => logisticsAPI.getTrips(dateRange).catch(() => [])
