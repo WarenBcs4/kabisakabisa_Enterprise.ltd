@@ -77,13 +77,13 @@ const SalesPage = () => {
   const { data: stock = [], isLoading: stockLoading } = useQuery(
     ['stock', selectedBranchId],
     () => stockAPI.getByBranch(selectedBranchId),
-    { enabled: !!selectedBranchId, refetchInterval: 30000, retry: false }
+    { enabled: !!selectedBranchId, refetchInterval: 3600000, retry: false }
   );
   
   const { data: sales = [], isLoading: salesLoading } = useQuery(
     ['sales', selectedBranchId],
     () => salesAPI.getByBranch(selectedBranchId),
-    { enabled: !!selectedBranchId, refetchInterval: 10000, retry: false }
+    { enabled: !!selectedBranchId, refetchInterval: 3600000, retry: false }
   );
   
   const { data: branches = [] } = useQuery(
@@ -226,7 +226,7 @@ const SalesPage = () => {
   const { data: branchExpenses = [] } = useQuery(
     ['expenses', selectedBranchId],
     () => expensesAPI.getAll({ branchId: selectedBranchId }),
-    { enabled: !!selectedBranchId, refetchInterval: 30000, retry: false }
+    { enabled: !!selectedBranchId, refetchInterval: 3600000, retry: false }
   );
 
   const expenseCategories = [

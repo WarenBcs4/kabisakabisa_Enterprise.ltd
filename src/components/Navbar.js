@@ -96,11 +96,12 @@ const Navbar = () => {
             color: '#FFD700', 
             fontWeight: 'bold',
             fontFamily: 'Nunito, sans-serif',
-            fontSize: '24px',
-            textTransform: 'uppercase'
+            fontSize: '18px',
+            textTransform: 'lowercase',
+            zIndex: 900
           }}
         >
-          KABISAKABISA ENTERPRISE
+          kabisakabisa enterprise
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -122,11 +123,7 @@ const Navbar = () => {
                 sx={{ 
                   bgcolor: 'transparent', 
                   border: 'none',
-                  color: '#000000',
-                  '&:hover': {
-                    bgcolor: 'transparent',
-                    color: '#000000'
-                  }
+                  color: '#000000'
                 }}
               >
                 Dashboard
@@ -139,11 +136,7 @@ const Navbar = () => {
                   sx={{ 
                     bgcolor: 'transparent', 
                     border: 'none',
-                    color: '#000000',
-                    '&:hover': {
-                      bgcolor: 'transparent',
-                      color: '#000000'
-                    }
+                    color: '#000000'
                   }}
                 >
                   HR
@@ -152,10 +145,9 @@ const Navbar = () => {
 
               {canAccessManager && (
                 <Button
-                  color="inherit"
-                  startIcon={<Business />}
+                  startIcon={<Business sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/manager')}
-                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
                 >
                   Manager
                 </Button>
@@ -163,10 +155,9 @@ const Navbar = () => {
 
               {canAccessAdmin && (
                 <Button
-                  color="inherit"
-                  startIcon={<Business />}
+                  startIcon={<Business sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/admin')}
-                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
                 >
                   Admin
                 </Button>
@@ -175,10 +166,9 @@ const Navbar = () => {
               {canAccessSales && (
                 <>
                   <Button
-                    color="inherit"
-                    startIcon={<Store />}
+                    startIcon={<Store sx={{ color: '#D3D3D3' }} />}
                     onClick={handleSalesMenuOpen}
-                    sx={{ bgcolor: 'transparent', border: 'none' }}
+                    sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
                   >
                     Sales
                   </Button>
@@ -205,10 +195,9 @@ const Navbar = () => {
               {canAccessStock && (
                 <>
                   <Button
-                    color="inherit"
-                    startIcon={<Inventory />}
+                    startIcon={<Inventory sx={{ color: '#D3D3D3' }} />}
                     onClick={handleStockMenuOpen}
-                    sx={{ bgcolor: 'transparent', border: 'none' }}
+                    sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
                   >
                     Stock
                   </Button>
@@ -234,10 +223,9 @@ const Navbar = () => {
 
               {canAccessBoss && (
                 <Button
-                  color="inherit"
-                  startIcon={<Business />}
+                  startIcon={<Business sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/boss')}
-                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
                 >
                   Boss
                 </Button>
@@ -245,10 +233,9 @@ const Navbar = () => {
 
               {canAccessLogistics && (
                 <Button
-                  color="inherit"
-                  startIcon={<LocalShipping />}
+                  startIcon={<LocalShipping sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/logistics')}
-                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
                 >
                   Logistics
                 </Button>
@@ -256,10 +243,9 @@ const Navbar = () => {
 
               {canAccessOrders && (
                 <Button
-                  color="inherit"
-                  startIcon={<ShoppingCart />}
+                  startIcon={<ShoppingCart sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/orders')}
-                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
                 >
                   Orders
                 </Button>
@@ -267,10 +253,9 @@ const Navbar = () => {
 
               {canAccessExpenses && (
                 <Button
-                  color="inherit"
-                  startIcon={<Receipt />}
+                  startIcon={<Receipt sx={{ color: '#D3D3D3' }} />}
                   onClick={() => navigate('/expenses')}
-                  sx={{ bgcolor: 'transparent', border: 'none' }}
+                  sx={{ bgcolor: 'transparent', border: 'none', color: '#000000' }}
                 >
                   Expenses
                 </Button>

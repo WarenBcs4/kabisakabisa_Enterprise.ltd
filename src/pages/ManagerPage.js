@@ -45,25 +45,25 @@ const ManagerPage = () => {
   const { data: employees = [], isLoading: employeesLoading } = useQuery(
     'manager-employees',
     () => hrAPI.getEmployees().catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: sales = [], isLoading: salesLoading } = useQuery(
     'manager-sales',
     () => selectedBranch ? salesAPI.getByBranch(selectedBranch).catch(() => []) : [],
-    { refetchInterval: 10000, retry: false, enabled: !!selectedBranch }
+    { refetchInterval: 3600000, retry: false, enabled: !!selectedBranch }
   );
 
   const { data: expenses = [] } = useQuery(
     'manager-expenses',
     () => expensesAPI.getAll({ branchId: selectedBranch }).catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: stock = [], isLoading: stockLoading } = useQuery(
     'manager-stock',
     () => selectedBranch ? stockAPI.getByBranch(selectedBranch).catch(() => []) : stockAPI.getAll().catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: branches = [] } = useQuery(
@@ -75,7 +75,7 @@ const ManagerPage = () => {
   const { data: orders = [] } = useQuery(
     'manager-orders',
     () => ordersAPI.getAll().catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: vehicles = [] } = useQuery(
@@ -87,13 +87,13 @@ const ManagerPage = () => {
   const { data: trips = [] } = useQuery(
     'manager-trips',
     () => logisticsAPI.getTrips().catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: payroll = [] } = useQuery(
     'manager-payroll',
     () => hrAPI.getPayroll().catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   // Helper functions to get related data

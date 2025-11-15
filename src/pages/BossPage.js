@@ -60,21 +60,21 @@ const BossPage = () => {
     'boss-sales',
     () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Sales`)
       .then(res => res.ok ? res.json() : []).catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: expenses = [] } = useQuery(
     'boss-expenses',
     () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Expenses`)
       .then(res => res.ok ? res.json() : []).catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: trips = [] } = useQuery(
     'boss-trips',
     () => fetch(`${process.env.REACT_APP_API_URL || 'https://kabisakabisabackendenterpriseltd.vercel.app/api'}/data/Trips`)
       .then(res => res.ok ? res.json() : []).catch(() => []),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   // Calculate dashboard metrics from real data

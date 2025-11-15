@@ -78,31 +78,31 @@ const AdminPage = () => {
   const { data: employees = [], isLoading: employeesLoading } = useQuery(
     'admin-employees',
     () => hrAPI.getEmployees(),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: branches = [], isLoading: branchesLoading } = useQuery(
     'admin-branches',
     () => branchesAPI.getAll(),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: products = [], isLoading: productsLoading } = useQuery(
     'admin-stock',
     () => stockAPI.getAll(),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: sales = [] } = useQuery(
     'admin-sales',
     () => genericDataAPI.getAll('Sales'),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: expenses = [] } = useQuery(
     'admin-expenses',
     () => genericDataAPI.getAll('Expenses'),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
 

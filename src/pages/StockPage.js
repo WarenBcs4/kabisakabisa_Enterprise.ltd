@@ -55,13 +55,13 @@ const StockPage = () => {
   const { data: stock = [], isLoading: stockLoading } = useQuery(
     ['stock', branchId],
     () => branchId ? stockAPI.getByBranch(branchId) : stockAPI.getAll(),
-    { enabled: !!branchId, refetchInterval: 30000, retry: false }
+    { enabled: !!branchId, refetchInterval: 3600000, retry: false }
   );
 
   const { data: stockMovements = [], isLoading: movementsLoading } = useQuery(
     ['stockMovements', branchId],
     () => branchId ? api.get(`/stock/movements/${branchId}`).then(res => res.data) : [],
-    { enabled: !!branchId, refetchInterval: 30000, retry: false }
+    { enabled: !!branchId, refetchInterval: 3600000, retry: false }
   );
 
   // Filter pending transfers from stock movements

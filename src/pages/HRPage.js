@@ -67,13 +67,13 @@ const HRPage = () => {
   const { data: allEmployees = [], isLoading: employeesLoading } = useQuery(
     'employees',
     () => hrAPI.getEmployees(),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
 
   const { data: allPayroll = [], isLoading: payrollLoading } = useQuery(
     'payroll',
     () => hrAPI.getPayroll(),
-    { refetchInterval: 30000, retry: false }
+    { refetchInterval: 3600000, retry: false }
   );
   
   const { data: branches = [], isLoading: branchesLoading } = useQuery(
