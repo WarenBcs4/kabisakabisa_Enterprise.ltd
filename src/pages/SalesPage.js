@@ -29,7 +29,7 @@ import { Add, Visibility, Receipt, Business } from '@mui/icons-material';
 import SalesForm from '../components/forms/SalesForm';
 
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, FormProvider } from 'react-hook-form';
 
 import { formatCurrency } from '../theme';
 import { useAuth } from '../contexts/AuthContext';
@@ -60,13 +60,15 @@ const SalesPage = () => {
   const [filteredSales, setFilteredSales] = useState([]);
   const [showExpensesModal, setShowExpensesModal] = useState(false);
 
-  const { register, control, handleSubmit, watch, reset } = useForm({
+  const methods = useForm({
     defaultValues: {
       items: [{ product_id: '', product_name: '', quantity: 1, unit_price: 0 }],
       payment_method: 'cash',
       customer_name: ''
     }
   });
+  
+  const { register, control, handleSubmit, watch, reset, setValue, getValues } = methods;
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -559,16 +561,17 @@ const SalesPage = () => {
                 New Sale Entry
               </Typography>
               
-              <Box component="form" onSubmit={handleSubmit(onSubmitSale)}>
-                <SalesForm 
-                  register={register}
-                  control={control}
-                  fields={fields}
-                  append={append}
-                  remove={remove}
-                  watch={watch}
-                  stock={stock}
-                />
+              <FormProvider {...methods}>
+                <Box component="form" onSubmit={handleSubmit(onSubmitSale)}>
+                  <SalesForm 
+                    register={register}
+                    control={control}
+                    fields={fields}
+                    append={append}
+                    remove={remove}
+                    watch={watch}
+                    stock={stock}
+                  />
                 
                 <Button
                   startIcon={<Add />}
@@ -591,7 +594,8 @@ const SalesPage = () => {
                     Record Sale
                   </Button>
                 </Box>
-              </Box>
+                </Box>
+              </FormProvider>
             </CardContent>
           </Card>
         </Grid>

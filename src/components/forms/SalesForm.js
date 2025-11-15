@@ -1,9 +1,10 @@
 import React from 'react';
 import { TextField, Grid, FormControl, InputLabel, Select, MenuItem, IconButton, Box } from '@mui/material';
 import { Delete } from '@mui/icons-material';
-import { Controller } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 
 const SalesForm = ({ register, control, fields, append, remove, watch, stock }) => {
+  const { setValue } = useFormContext();
   const watchedItems = watch('items');
 
   return (
@@ -22,9 +23,9 @@ const SalesForm = ({ register, control, fields, append, remove, watch, stock }) 
                     onChange={(e) => {
                       const selectedProduct = stock.find(item => item.product_id === e.target.value);
                       onChange(e.target.value);
-                      // Also set product_name
+                      // Set product_name using setValue
                       if (selectedProduct) {
-                        register(`items.${index}.product_name`).onChange({ target: { value: selectedProduct.product_name } });
+                        setValue(`items.${index}.product_name`, selectedProduct.product_name);
                       }
                     }}
                     label="Product"
@@ -38,7 +39,11 @@ const SalesForm = ({ register, control, fields, append, remove, watch, stock }) 
                 </FormControl>
               )}
             />
-            <input type="hidden" {...register(`items.${index}.product_name`)} />
+            <Controller
+              name={`items.${index}.product_name`}
+              control={control}
+              render={({ field }) => <input type="hidden" {...field} />}
+            />
           </Grid>
           <Grid item xs={12} sm={2}>
             <TextField
