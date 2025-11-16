@@ -86,7 +86,7 @@ const HRPage = () => {
 
   // Filter employees based on search and filters (show all employees with status)
   const employees = useMemo(() => {
-    let filtered = [...allEmployees];
+    let filtered = [...(allEmployees || [])];
     
     if (employeeSearch) {
       filtered = filtered.filter(emp => 
@@ -112,7 +112,7 @@ const HRPage = () => {
 
   // Filter payroll based on period
   const payroll = useMemo(() => {
-    let filtered = [...allPayroll];
+    let filtered = [...(allPayroll || [])];
     
     if (payrollPeriod) {
       const [year, month] = payrollPeriod.split('-');
@@ -137,7 +137,7 @@ const HRPage = () => {
   }, [payroll, selectedPayrollIds]);
 
   // Get drivers for logistics integration
-  const drivers = employees.filter(emp => emp.role === 'logistics');
+  const drivers = (employees || []).filter(emp => emp.role === 'logistics');
   const totalDrivers = drivers.length;
   const activeDrivers = drivers.filter(d => d.is_active).length;
 
@@ -430,12 +430,12 @@ const HRPage = () => {
   };
 
   // Calculate statistics with proper null checks
-  const totalEmployees = allEmployees.length;
-  const activeEmployees = allEmployees.filter(emp => emp.is_active !== false).length;
-  const totalSalaryExpense = allEmployees
+  const totalEmployees = (allEmployees || []).length;
+  const activeEmployees = (allEmployees || []).filter(emp => emp.is_active !== false).length;
+  const totalSalaryExpense = (allEmployees || [])
     .filter(emp => emp.is_active !== false && emp.salary)
     .reduce((sum, emp) => sum + parseFloat(emp.salary || 0), 0);
-  const pendingPayroll = allPayroll.filter(p => p.payment_status === 'pending').length;
+  const pendingPayroll = (allPayroll || []).filter(p => p.payment_status === 'pending').length;
   const averageSalary = activeEmployees > 0 ? totalSalaryExpense / activeEmployees : 0;
 
   // Watch form values for validation
@@ -1073,7 +1073,7 @@ const HRPage = () => {
                     </TableHead>
                     <TableBody>
                       {['admin', 'boss', 'manager', 'hr', 'sales', 'logistics'].map(role => {
-                        const count = allEmployees.filter(emp => emp.role === role).length;
+                        const count = (allEmployees || []).filter(emp => emp.role === role).length;
                         const percentage = totalEmployees > 0 ? ((count / totalEmployees) * 100).toFixed(1) : 0;
                         return (
                           <TableRow key={role}>

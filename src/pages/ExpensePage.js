@@ -208,7 +208,7 @@ const ExpensePage = () => {
     reset();
   };
 
-  const totalExpenses = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+  const totalExpenses = (expenses || []).reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
 
   if (expensesLoading) {
     return (
@@ -314,7 +314,7 @@ const ExpensePage = () => {
                   Total: {formatCurrency(totalExpenses)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  ({expenses.length} expenses)
+                  ({(expenses || []).length} expenses)
                 </Typography>
               </Box>
             </Grid>
@@ -323,9 +323,9 @@ const ExpensePage = () => {
       </Card>
 
           {/* Summary Cards */}
-      {expenseSummary && (
+      {expenseSummary && expenseSummary.summary && (
         <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 3 }}>
-          {expenseSummary.summary.slice(0, 4).map((categorySum) => {
+          {(expenseSummary.summary || []).slice(0, 4).map((categorySum) => {
             const category = categories.find(c => c.value === categorySum.category);
             return (
               <Grid item xs={6} sm={6} md={3} key={categorySum.category}>
@@ -370,7 +370,7 @@ const ExpensePage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {expenses.map((expense) => {
+                {(expenses || []).map((expense) => {
                   const category = categories.find(c => c.value === expense.category);
                   return (
                     <TableRow key={expense.id} hover>
@@ -419,7 +419,7 @@ const ExpensePage = () => {
                     </TableRow>
                   );
                 })}
-                {expenses.length === 0 && (
+                {(expenses || []).length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8} align="center">
                       <Typography color="text.secondary" sx={{ py: 4 }}>
