@@ -573,7 +573,6 @@ const LogisticsPage = () => {
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
-          <Tab label="dashboard" icon={<Dashboard />} />
           <Tab label="vehicles" />
           <Tab label="trips" />
           <Tab label="maintenance" />
@@ -582,13 +581,8 @@ const LogisticsPage = () => {
         </Tabs>
       </Box>
 
-      {/* Dashboard Tab */}
-      {activeTab === 0 && (
-        <LogisticsDashboard />
-      )}
-
       {/* Vehicles Tab */}
-      {activeTab === 1 && (
+      {activeTab === 0 && (
         <Card>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -667,7 +661,7 @@ const LogisticsPage = () => {
       )}
 
       {/* Trips Tab */}
-      {activeTab === 2 && (
+      {activeTab === 1 && (
         <Card>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
@@ -821,7 +815,7 @@ const LogisticsPage = () => {
       )}
 
       {/* Maintenance Tab */}
-      {activeTab === 3 && (
+      {activeTab === 2 && (
         <Card>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
@@ -952,7 +946,7 @@ const LogisticsPage = () => {
       )}
 
       {/* Packages Tab */}
-      {activeTab === 4 && (
+      {activeTab === 3 && (
         <Card sx={{ backgroundColor: '#f6f4d2' }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -966,7 +960,7 @@ const LogisticsPage = () => {
       )}
 
       {/* Performance Tab */}
-      {activeTab === 5 && (
+      {activeTab === 4 && (
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
