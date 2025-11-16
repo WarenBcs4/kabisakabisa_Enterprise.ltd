@@ -35,7 +35,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 
 import { useForm } from 'react-hook-form';
-import { logisticsAPI, hrAPI, dataAPI } from '../services/api';
+import { logisticsAPI, hrAPI, dataAPI, packagesAPI } from '../services/api';
 import LogisticsDashboard from '../components/logistics/LogisticsDashboard';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
@@ -951,19 +951,16 @@ const LogisticsPage = () => {
 
       {/* Packages Tab */}
       {activeTab === 4 && (
-        <PackageListPage
-          onAddPackage={() => setShowAddPackage(true)}
-          onEditPackage={(pkg) => {
-            setEditingPackage(pkg);
-            Object.keys(pkg).forEach(key => {
-              setValue(key, pkg[key]);
-            });
-            setShowAddPackage(true);
-          }}
-          onViewPackage={(pkg) => {
-            toast.info(`Viewing package: ${pkg.tracking_number}`);
-          }}
-        />
+        <Card sx={{ backgroundColor: '#f6f4d2' }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Package Management
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Package management functionality will be implemented here.
+            </Typography>
+          </CardContent>
+        </Card>
       )}
 
       {/* Performance Tab */}
