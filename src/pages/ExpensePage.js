@@ -32,9 +32,286 @@ import { Add, Edit, Delete, TrendingUp, Business, Dashboard, AccountBalance, Cre
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { expensesAPI, branchesAPI, logisticsAPI } from '../services/api';
+import api from '../services/api';
 import { formatCurrency } from '../theme';
 
 import toast from 'react-hot-toast';
+
+// Bills Management Component
+const BillsManagement = () => {
+  const [bills, setBills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showBillModal, setShowBillModal] = useState(false);
+  
+  const { data: billsData = [], isLoading: billsLoading } = useQuery(
+    'bills',
+    () => api.get('/bills').then(res => res.data),
+    { onError: () => toast.error('Failed to load bills') }
+  );
+  
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h6">Bills Management</Typography>
+        <Button variant="contained" startIcon={<Add />} onClick={() => setShowBillModal(true)}>
+          Create Bill
+        </Button>
+      </Box>
+      
+      <Card sx={{ backgroundColor: '#f6f4d2' }}>
+        <CardContent>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Bill Number</TableCell>
+                  <TableCell>Vendor</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Due Date</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {billsLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">Loading bills...</TableCell>
+                  </TableRow>
+                ) : (
+                  Array.isArray(billsData) ? billsData.map((bill) => (
+                    <TableRow key={bill.id} hover>
+                      <TableCell>{bill.bill_number}</TableCell>
+                      <TableCell>{bill.vendor_name}</TableCell>
+                      <TableCell>{formatCurrency(bill.total_amount || 0)}</TableCell>
+                      <TableCell>{bill.due_date ? new Date(bill.due_date).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={bill.status || 'Draft'} 
+                          color={bill.status === 'paid' ? 'success' : bill.status === 'overdue' ? 'error' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <IconButton size="small">
+                          <Edit />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">No bills found</TableCell>
+                    </TableRow>
+                  )
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+};
+
+// Payments Processing Component
+const PaymentsProcessing = () => {
+  const [payments, setPayments] = useState([]);
+  const [paymentQueue, setPaymentQueue] = useState([]);
+  
+  const { data: paymentsData = [], isLoading: paymentsLoading } = useQuery(
+    'payments',
+    () => api.get('/payments').then(res => res.data),
+    { onError: () => toast.error('Failed to load payments') }
+  );
+  
+  const { data: queueData = [] } = useQuery(
+    'payment-queue',
+    () => api.get('/payments/queue').then(res => res.data),
+    { onError: () => console.error('Failed to load payment queue') }
+  );
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>Payments Processing</Typography>
+      
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ backgroundColor: '#f6f4d2' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Payment Queue</Typography>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Vendor</TableCell>
+                      <TableCell>Amount Due</TableCell>
+                      <TableCell>Due Date</TableCell>
+                      <TableCell>Priority</TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Array.isArray(queueData) ? queueData.map((item) => (
+                      <TableRow key={item.id} hover>
+                        <TableCell>{item.vendor_name}</TableCell>
+                        <TableCell>{formatCurrency(item.amount_due || 0)}</TableCell>
+                        <TableCell>{item.due_date ? new Date(item.due_date).toLocaleDateString() : 'N/A'}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={item.priority || 'Normal'} 
+                            color={item.priority === 'high' ? 'error' : 'default'}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button size="small" variant="outlined">
+                            Pay Now
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">No pending payments</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
+          <Card sx={{ backgroundColor: '#ffe5d9' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Recent Payments</Typography>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Vendor</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Method</TableCell>
+                      <TableCell>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {paymentsLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">Loading payments...</TableCell>
+                      </TableRow>
+                    ) : (
+                      Array.isArray(paymentsData.payments) ? paymentsData.payments.slice(0, 10).map((payment) => (
+                        <TableRow key={payment.id} hover>
+                          <TableCell>{payment.payment_date ? new Date(payment.payment_date).toLocaleDateString() : 'N/A'}</TableCell>
+                          <TableCell>{payment.vendor_name}</TableCell>
+                          <TableCell>{formatCurrency(payment.amount || 0)}</TableCell>
+                          <TableCell>{payment.payment_method || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={payment.status || 'Pending'} 
+                              color={payment.status === 'completed' ? 'success' : 'default'}
+                              size="small"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      )) : (
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">No payments found</TableCell>
+                        </TableRow>
+                      )
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+// Vendor Credits Component
+const VendorCredits = () => {
+  const [credits, setCredits] = useState([]);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  
+  const { data: creditsData = [], isLoading: creditsLoading } = useQuery(
+    'vendor-credits',
+    () => api.get('/vendor-credits').then(res => res.data),
+    { onError: () => toast.error('Failed to load vendor credits') }
+  );
+  
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h6">Vendor Credits</Typography>
+        <Button variant="contained" startIcon={<Add />} onClick={() => setShowCreditModal(true)}>
+          Create Credit
+        </Button>
+      </Box>
+      
+      <Card sx={{ backgroundColor: '#f6f4d2' }}>
+        <CardContent>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Credit Number</TableCell>
+                  <TableCell>Vendor</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Applied To</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {creditsLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">Loading credits...</TableCell>
+                  </TableRow>
+                ) : (
+                  Array.isArray(creditsData) ? creditsData.map((credit) => (
+                    <TableRow key={credit.id} hover>
+                      <TableCell>{credit.credit_number}</TableCell>
+                      <TableCell>{credit.vendor_name}</TableCell>
+                      <TableCell>{formatCurrency(credit.amount || 0)}</TableCell>
+                      <TableCell>{credit.credit_date ? new Date(credit.credit_date).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={credit.status || 'Pending'} 
+                          color={credit.status === 'applied' ? 'success' : credit.status === 'approved' ? 'primary' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{credit.applied_to_bill || 'Not Applied'}</TableCell>
+                      <TableCell>
+                        <IconButton size="small">
+                          <Edit />
+                        </IconButton>
+                        {credit.status === 'approved' && (
+                          <Button size="small" variant="outlined" sx={{ ml: 1 }}>
+                            Apply
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center">No vendor credits found</TableCell>
+                    </TableRow>
+                  )
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+};
 
 const ExpensePage = () => {
   const queryClient = useQueryClient();
@@ -536,44 +813,17 @@ const ExpensePage = () => {
 
       {/* Bills Tab */}
       {activeTab === 2 && (
-        <Card sx={{ backgroundColor: '#f6f4d2' }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Bills Management
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Bills management functionality will be implemented here.
-            </Typography>
-          </CardContent>
-        </Card>
+        <BillsManagement />
       )}
 
       {/* Payments Tab */}
       {activeTab === 3 && (
-        <Card sx={{ backgroundColor: '#f6f4d2' }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Payments Processing
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Payment processing functionality will be implemented here.
-            </Typography>
-          </CardContent>
-        </Card>
+        <PaymentsProcessing />
       )}
 
       {/* Credits Tab */}
       {activeTab === 4 && (
-        <Card sx={{ backgroundColor: '#f6f4d2' }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Vendor Credits
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Vendor credits management functionality will be implemented here.
-            </Typography>
-          </CardContent>
-        </Card>
+        <VendorCredits />
       )}
 
     </Container>

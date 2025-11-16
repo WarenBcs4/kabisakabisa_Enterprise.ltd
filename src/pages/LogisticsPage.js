@@ -946,14 +946,96 @@ const LogisticsPage = () => {
 
       {/* Packages Tab */}
       {activeTab === 3 && (
-        <Card sx={{ backgroundColor: '#f6f4d2' }}>
+        <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Package Management
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Package management functionality will be implemented here.
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                Package Management
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => setShowAddPackage(true)}
+                sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#45a049' } }}
+              >
+                Add Package
+              </Button>
+            </Box>
+            
+            <TableContainer component={Paper}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: '#90ee90' }}>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Tracking Number</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Carrier</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Origin</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Destination</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Ship Date</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Expected Delivery</TableCell>
+                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {(pageData?.packages || []).map((pkg) => (
+                    <TableRow key={pkg.id}>
+                      <TableCell>{pkg.tracking_number}</TableCell>
+                      <TableCell>{pkg.carrier}</TableCell>
+                      <TableCell>{pkg.origin}</TableCell>
+                      <TableCell>{pkg.destination}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={pkg.status || 'packed'}
+                          color={pkg.status === 'delivered' ? 'success' : pkg.status === 'in_transit' ? 'warning' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{pkg.ship_date ? new Date(pkg.ship_date).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>{pkg.expected_delivery_date ? new Date(pkg.expected_delivery_date).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>
+                        <IconButton 
+                          onClick={() => {
+                            setEditingPackage(pkg);
+                            Object.keys(pkg).forEach(key => {
+                              setValue(key, pkg[key]);
+                            });
+                            setShowAddPackage(true);
+                          }} 
+                          size="small"
+                        >
+                          <Edit />
+                        </IconButton>
+                        <IconButton 
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this package?')) {
+                              packagesAPI.delete(pkg.id).then(() => {
+                                toast.success('Package deleted successfully!');
+                                queryClient.invalidateQueries('logisticsPageData');
+                              }).catch(() => {
+                                toast.error('Failed to delete package');
+                              });
+                            }
+                          }}
+                          size="small" 
+                          color="error"
+                        >
+                          <Delete />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {(!pageData?.packages || pageData.packages.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">
+                        <Typography color="text.secondary">
+                          No packages found. Click "Add Package" to create your first package.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </CardContent>
         </Card>
       )}
