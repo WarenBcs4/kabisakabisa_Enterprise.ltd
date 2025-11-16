@@ -39,8 +39,6 @@ import toast from 'react-hot-toast';
 
 // Bills Management Component
 const BillsManagement = () => {
-  const [bills, setBills] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showBillModal, setShowBillModal] = useState(false);
   
   const { data: billsData = [], isLoading: billsLoading } = useQuery(
@@ -114,8 +112,6 @@ const BillsManagement = () => {
 
 // Payments Processing Component
 const PaymentsProcessing = () => {
-  const [payments, setPayments] = useState([]);
-  const [paymentQueue, setPaymentQueue] = useState([]);
   
   const { data: paymentsData = [], isLoading: paymentsLoading } = useQuery(
     'payments',
@@ -234,7 +230,6 @@ const PaymentsProcessing = () => {
 
 // Vendor Credits Component
 const VendorCredits = () => {
-  const [credits, setCredits] = useState([]);
   const [showCreditModal, setShowCreditModal] = useState(false);
   
   const { data: creditsData = [], isLoading: creditsLoading } = useQuery(
