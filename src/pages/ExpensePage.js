@@ -28,11 +28,10 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
-import { Add, Edit, Delete, TrendingUp, Business, Dashboard, AccountBalance, CreditCard, Assignment } from '@mui/icons-material';
+import { Add, Edit, Delete, TrendingUp, Business, Dashboard, AccountBalance, CreditCard, Assignment, Receipt } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
-import { expensesAPI, branchesAPI, logisticsAPI, billsAPI, paymentsAPI, vendorCreditsAPI } from '../services/api';
-import ExpensesDashboard from '../components/expenses/ExpensesDashboard';
+import { expensesAPI, branchesAPI, logisticsAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 
 import toast from 'react-hot-toast';
@@ -240,7 +239,16 @@ const ExpensePage = () => {
 
       {/* Dashboard Tab */}
       {activeTab === 0 && (
-        <ExpensesDashboard />
+        <Card sx={{ backgroundColor: '#f6f4d2' }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Expenses Dashboard
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Dashboard functionality will be implemented here.
+            </Typography>
+          </CardContent>
+        </Card>
       )}
 
       {/* Direct Expenses Tab */}

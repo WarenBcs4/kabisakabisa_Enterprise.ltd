@@ -411,14 +411,14 @@ export const dataAPI = {
           return { stock: stockData, transfers, movements };
 
         case 'logistics':
-          const [vehicles, trips, maintenance, packages, dashboard] = await Promise.all([
+          const [vehicles, trips, maintenance, packages, logisticsDashboard] = await Promise.all([
             logisticsAPI.getVehicles().catch(() => []),
             logisticsAPI.getTrips(params).catch(() => []),
             logisticsAPI.getAllMaintenance().catch(() => []),
             packagesAPI.getAll().catch(() => []),
             logisticsAPI.getDashboard().catch(() => ({}))
           ]);
-          return { vehicles, trips, maintenance, packages, dashboard };
+          return { vehicles, trips, maintenance, packages, dashboard: logisticsDashboard };
 
         case 'orders':
           return await ordersAPI.getAll(params).catch(() => []);
@@ -436,14 +436,14 @@ export const dataAPI = {
             hrAPI.getEmployees(),
             api.get('/stock').then(res => res.data)
           ]);
-          const dashboard = {
+          const bossDashboard = {
             totalBranches: bossBranches.length,
             totalEmployees: bossEmployees.length,
             totalStock: bossStock.length,
             totalRevenue: 0
           };
           const rotAnalysis = { averageROT: 15.5 };
-          return { dashboard, rotAnalysis };
+          return { dashboard: bossDashboard, rotAnalysis };
 
         default:
           throw new Error(`Unknown page: ${page}`);
