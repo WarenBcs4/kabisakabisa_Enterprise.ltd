@@ -820,7 +820,7 @@ const FinancePage = () => {
                           />
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )) : null}
                   </TableBody>
                 </Table>
               </TableContainer>
