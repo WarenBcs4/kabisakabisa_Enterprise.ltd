@@ -706,7 +706,7 @@ const HRPage = () => {
                 <TableBody>
                   {employees.length > 0 ? employees.map((employee) => {
                     const branchId = Array.isArray(employee.branch_id) ? employee.branch_id[0] : employee.branch_id;
-                    const employeeBranch = branches.find(b => b.id === branchId);
+                    const employeeBranch = Array.isArray(branches) ? branches.find(b => b.id === branchId) : null;
                     return (
                       <TableRow key={employee.id}>
                         <TableCell>{(employee.full_name || 'Unknown').toLowerCase()}</TableCell>

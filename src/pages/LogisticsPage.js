@@ -106,14 +106,14 @@ const LogisticsPage = () => {
   // Helper functions to resolve IDs to names
   const getVehiclePlateNumber = (vehicleId) => {
     if (Array.isArray(vehicleId)) vehicleId = vehicleId[0];
-    const vehicle = vehicles.find(v => v.id === vehicleId);
+    const vehicle = Array.isArray(vehicles) ? vehicles.find(v => v.id === vehicleId) : null;
     return vehicle?.plate_number || 'N/A';
   };
   
   const getDriverName = (driverId) => {
     if (!driverId) return 'N/A';
     if (Array.isArray(driverId)) driverId = driverId[0];
-    const driver = employees.find(emp => emp.id === driverId);
+    const driver = Array.isArray(employees) ? employees.find(emp => emp.id === driverId) : null;
     return driver?.full_name || 'N/A';
   };
   
@@ -134,7 +134,7 @@ const LogisticsPage = () => {
     
     // Filter by vehicle
     if (selectedVehicleForTrips) {
-      const selectedVehicle = vehicles.find(v => v.id === selectedVehicleForTrips);
+      const selectedVehicle = Array.isArray(vehicles) ? vehicles.find(v => v.id === selectedVehicleForTrips) : null;
       if (selectedVehicle) {
         filteredTrips = filteredTrips.filter(trip => {
           const tripVehicleId = Array.isArray(trip.vehicle_id) ? trip.vehicle_id[0] : trip.vehicle_id;

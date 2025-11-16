@@ -779,7 +779,7 @@ const AdminPage = () => {
               <TableBody>
                 {products.map((product) => {
                   const branchId = Array.isArray(product.branch_id) ? product.branch_id[0] : product.branch_id;
-                  const productBranch = branches.find(b => b.id === branchId);
+                  const productBranch = Array.isArray(branches) ? branches.find(b => b.id === branchId) : null;
                   return (
                     <TableRow key={product.id}>
                       <TableCell>{product.product_name}</TableCell>

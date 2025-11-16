@@ -326,7 +326,7 @@ const ExpensePage = () => {
       {expenseSummary && Array.isArray(expenseSummary.summary) && (
         <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 3 }}>
           {expenseSummary.summary.slice(0, 4).map((categorySum) => {
-            const category = categories.find(c => c.value === categorySum.category);
+            const category = Array.isArray(categories) ? categories.find(c => c.value === categorySum.category) : null;
             return (
               <Grid item xs={6} sm={6} md={3} key={categorySum.category}>
                 <Card sx={{ backgroundColor: categorySum.category === 'fuel' ? '#ffe5d9' : '#f6f4d2' }}>
@@ -371,7 +371,7 @@ const ExpensePage = () => {
               </TableHead>
               <TableBody>
                 {Array.isArray(expenses) ? expenses.map((expense) => {
-                  const category = categories.find(c => c.value === expense.category);
+                  const category = Array.isArray(categories) ? categories.find(c => c.value === expense.category) : null;
                   return (
                     <TableRow key={expense.id} hover>
                       <TableCell>
@@ -392,13 +392,13 @@ const ExpensePage = () => {
                       </TableCell>
                       <TableCell>
                         {Array.isArray(expense.branch_id) && expense.branch_id.length > 0 
-                          ? branches.find(b => b.id === expense.branch_id[0])?.branch_name || 'Unknown Branch'
+                          ? (Array.isArray(branches) ? branches.find(b => b.id === expense.branch_id[0])?.branch_name : null) || 'Unknown Branch'
                           : 'N/A'
                         }
                       </TableCell>
                       <TableCell>
                         {Array.isArray(expense.vehicle_id) && expense.vehicle_id.length > 0
-                          ? vehicles.find(v => v.id === expense.vehicle_id[0])?.plate_number || expense.vehicle_plate_number || 'N/A'
+                          ? (Array.isArray(vehicles) ? vehicles.find(v => v.id === expense.vehicle_id[0])?.plate_number : null) || expense.vehicle_plate_number || 'N/A'
                           : expense.vehicle_plate_number || 'N/A'
                         }
                       </TableCell>
