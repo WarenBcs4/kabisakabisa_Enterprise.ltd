@@ -371,11 +371,11 @@ export const dataAPI = {
           return api.get(adminUrl).then(res => res.data);
           
         case 'expenses':
-          const [expensesData, expenseAnalytics] = await Promise.all([
+          const [allExpensesData, expenseAnalytics] = await Promise.all([
             expensesAPI.getAll(params).catch(() => []),
             expensesAPI.getAnalytics(params).catch(() => {})
           ]);
-          return { expenses: expensesData, analytics: expenseAnalytics };
+          return { expenses: allExpensesData, analytics: expenseAnalytics };
 
         case 'manager':
           if (!branchId) throw new Error('Branch ID required for manager page');
