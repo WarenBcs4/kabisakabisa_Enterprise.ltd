@@ -30,13 +30,12 @@ import {
 
   InputAdornment
 } from '@mui/material';
-import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, Search, Dashboard, Inventory } from '@mui/icons-material';
+import { Add, Edit, Delete, LocalShipping, Build, TrendingUp, Search, Inventory } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 
 import { useForm } from 'react-hook-form';
 import { logisticsAPI, hrAPI, dataAPI, packagesAPI } from '../services/api';
-import LogisticsDashboard from '../components/logistics/LogisticsDashboard';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 

@@ -42,7 +42,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 import { useForm } from 'react-hook-form';
-import { hrAPI, branchesAPI } from '../services/api';
+import { hrAPI } from '../services/api';
 import { formatCurrency } from '../theme';
 import toast from 'react-hot-toast';
 
