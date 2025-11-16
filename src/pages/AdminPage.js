@@ -588,7 +588,7 @@ const AdminPage = () => {
                   {employees.length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {employees.filter(e => e.is_active).length} active
+                  {Array.isArray(employees) ? employees.filter(e => e.is_active).length : 0} active
                 </Typography>
               </CardContent>
             </Card>
@@ -675,7 +675,7 @@ const AdminPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {employees.map((employee) => (
+                {Array.isArray(employees) ? employees.map((employee) => (
                   <TableRow key={employee.id}>
                     <TableCell>{employee.full_name}</TableCell>
                     <TableCell>{employee.email}</TableCell>
@@ -698,7 +698,7 @@ const AdminPage = () => {
                       </IconButton>
                     </TableCell>
                   </TableRow>
-                ))}
+                )) : null}
               </TableBody>
             </Table>
           </CardContent>
@@ -730,7 +730,7 @@ const AdminPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {branches.map((branch) => (
+                {Array.isArray(branches) ? branches.map((branch) => (
                   <TableRow key={branch.id}>
                     <TableCell>{branch.branch_name}</TableCell>
                     <TableCell>{branch.location_address}</TableCell>
@@ -745,7 +745,7 @@ const AdminPage = () => {
                       </IconButton>
                     </TableCell>
                   </TableRow>
-                ))}
+                )) : null}
               </TableBody>
             </Table>
           </CardContent>
@@ -777,7 +777,7 @@ const AdminPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {products.map((product) => {
+                {Array.isArray(products) ? products.map((product) => {
                   const branchId = Array.isArray(product.branch_id) ? product.branch_id[0] : product.branch_id;
                   const productBranch = Array.isArray(branches) ? branches.find(b => b.id === branchId) : null;
                   return (
@@ -796,7 +796,7 @@ const AdminPage = () => {
                       </TableCell>
                     </TableRow>
                   );
-                })}
+                }) : null}
               </TableBody>
             </Table>
           </CardContent>
